@@ -1,0 +1,5 @@
+{
+    "tasks": {
+        "test": "deno run --watch main_test.ts"
+    }
+}
