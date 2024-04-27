@@ -2,7 +2,9 @@
 
 You Need Deno https://deno.com
 
-Download:
+Create Project:
 ```
-
+KLSE new-project
+# Digit Project Name
+# Digit Template Name(use list-templates to show all templates)
 ```
