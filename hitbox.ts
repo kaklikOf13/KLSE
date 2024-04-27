@@ -82,6 +82,7 @@ export class CircleHitbox extends BaseHitbox{
         }case HitboxType.rect:{
             const result = Collision.circle_with_rect_ov(this,other)
             if (result) {
+                // @ts-ignore error
                 this.position = Vec.sub(this.position,Vec.scale(result[0],result[1]))
             }
             break
@@ -133,6 +134,7 @@ export class RectHitbox extends BaseHitbox{
             }case HitboxType.circle: {
                 const result = Collision.circle_with_rect_ov(other,this)
                 if (result) {
+                    // @ts-ignore error
                     this.position = Vec.sub(this.position,Vec.scale(result[0], result[1]))
                 }
                 break

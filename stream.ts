@@ -1,4 +1,5 @@
 import { Vector,Vec } from "./geometry.ts";
+import { ID } from "./types.ts";
 
 export class NetStream {
     buffer: Uint8Array
@@ -73,6 +74,20 @@ export class NetStream {
         this.insert(buf)
     }
 
+    writeUInt64(val: number) {
+        const high = Math.floor(val / 0x100000000)
+        const low = val & 0xFFFFFFFF
+        this.writeUInt32(low)
+        this.writeUInt32(high)
+    }
+
+    writeInt64(val: number) {
+        const high = Math.floor(val / 0x100000000)
+        const low = val & 0xFFFFFFFF
+        this.writeInt32(low)
+        this.writeInt32(high)
+    }
+
     writeFloat32(val: number) {
         const buf = new Uint8Array(4)
         new DataView(buf.buffer).setFloat32(0, val, true)
@@ -84,7 +99,7 @@ export class NetStream {
         new DataView(buf.buffer).setFloat64(0, val, true)
         this.insert(buf)
     }
-
+    // deno-lint-ignore no-explicit-any
     writeArray(array: any, encodeFunc: (value:any) => void) {
         this.writeUInt32(array.length)
         for (const item of array) {
@@ -125,6 +140,18 @@ export class NetStream {
         return (val & 0x80000000) ? val - 0x100000000 : val
     }
 
+    readUInt64(): number {
+        const low = this.readUInt32()
+        const high = this.readUInt32()
+        return (high * 0x100000000) + low
+    }
+
+    readInt64(): number {
+        const low = this.readInt32()
+        const high = this.readInt32()
+        return (high * 0x100000000) + low
+    }
+
     readFloat32(): number {
         const val = new DataView(this.buffer.buffer, this.pos).getFloat32(0, true)
         this.walk(4)
@@ -136,8 +163,10 @@ export class NetStream {
         this.walk(8)
         return val
     }
+    // deno-lint-ignore no-explicit-any
     readArray(decodeFunc: () => any): any[] {
         const length = this.readUInt32()
+        // deno-lint-ignore no-explicit-any
         const array: any[] = []
         for (let i = 0; i < length; i++) {
             const item = decodeFunc()
@@ -154,5 +183,11 @@ export class NetStream {
     readVector():Vector{
         return Vec.new(this.readFloat32(),this.readFloat32())
     }
-    
+
+    writeID(id:ID){
+        this.writeUInt32(id)
+    }
+    readID():ID{
+        return this.readUInt32()
+    }
 }
