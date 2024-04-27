@@ -1,5 +1,8 @@
 {
     "tasks": {
-        "test": "deno run --watch main_test.ts"
-    }
+        "test_executable":"deno run -A executable/main.ts",
+        "build":"deno compile -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates"
+    },
+    "version": "0.0.1",
+    "name": "KLSE"
 }
