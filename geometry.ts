@@ -1,9 +1,21 @@
+
 export interface Vector{
     x:number
     y:number
 }
 export type RadAngle=number
 export type DegAngle=number
+function float32ToUint32(value: number): number {
+    const floatView = new Float32Array(1)
+    const intView = new Uint32Array(floatView.buffer)
+    floatView[0] = value
+    return intView[0]
+}
+const prime1 = BigInt("2654435761")
+const prime2 = BigInt("2246822519")
+
+export type HashVector=bigint
+
 export const Vec = Object.freeze({
     /**
      * Creates a new `Vector`
@@ -195,6 +207,14 @@ export const Vec = Object.freeze({
     },
     /**
      * 
+     * @param vector `Vector`
+     * @returns A new Interger `Vector`
+     */
+    floor(vector:Vector):Vector{
+        return this.new(Math.floor(vector.x),Math.floor(vector.y))
+    },
+    /**
+     * 
      * @param current The current `Vector` Position
      * @param end The Final `Vector` Position
      * @param interpolation 
@@ -208,7 +228,7 @@ export const Vec = Object.freeze({
      * @param fallback A `Vector` to clone and return in case the normalization operation fails
      * @returns A `Vector` whose length is 1 and is parallel to the original vector
      */
-    normalizeSafe(vector:Vector,fallback?:Vector):Vector {
+    normalizeSafe(vector:Vector,fallback:Vector=NullVector):Vector {
         fallback ??= this.new(1.0, 0.0);
         const eps = 0.000001;
         const len = Vec.length(vector);
@@ -238,8 +258,24 @@ export const Vec = Object.freeze({
      */
     duplicate(vector:Vector):Vector{
         return this.new(vector.x,vector.y)
+    },
+    /**
+     * 
+     * @param vector The `Vector` To hash
+     * @returns Hashed Vector
+     */
+    hash(vector:Vector):HashVector{
+        let hash = BigInt(float32ToUint32(vector.x))
+        hash = (hash * prime1) & BigInt("4294967295")
+        hash ^= BigInt(float32ToUint32(vector.y))
+        hash = (hash * prime2) & BigInt("4294967295")
+        return hash
+    },
+    toString(vector:Vector):string{
+        return `{${vector.x},${vector.y}}`
     }
 })
+export const NullVector:Vector=Vec.new(0,0)
 export const Angle=Object.freeze({
     deg2rad(angle:DegAngle):RadAngle{
         return angle* Math.PI / 180
