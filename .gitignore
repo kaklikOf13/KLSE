@@ -1,2 +1,6 @@
+deno.lock
+.deno.lock
 ./deno.lock
+dist
+.dist
 ./dist

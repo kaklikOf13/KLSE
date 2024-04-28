@@ -1,5 +1,5 @@
 import { NetStream } from "../stream.ts";
-import { ID,random_id } from "../types.ts";
+import { ID,random_id } from "../utils.ts";
 import {serveTls} from "https://deno.land/std@0.224.0/http/server.ts"
 // @deno-types="npm:@types/express"
 import express from "npm:express"

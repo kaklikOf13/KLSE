@@ -1,5 +1,5 @@
 import { Vector,Vec } from "./geometry.ts";
-import { ID } from "./types.ts";
+import { ID } from "./utils.ts";
 
 export class NetStream {
     buffer: Uint8Array
