@@ -1,4 +1,4 @@
-<h1>KAKLIK ENGINE FOR IO GAMES</h1>
+<h1>KAKLIK SIMPLE ENGINE</h1>
 
 You Need Deno https://deno.com
 
@@ -7,4 +7,10 @@ Create Project:
 KLSE new-project
 # Digit Project Name
 # Digit Template Name(use list-templates to show all templates)
+```
+
+Create .IO Game
+
+```
+KLSE new-project IO
 ```
