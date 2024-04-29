@@ -1,44 +1,59 @@
+import { Packet, PacketsManager } from "../packets.ts";
 import { NetStream } from "../stream.ts";
-import { ID,random_id } from "../utils.ts";
+import { ID,random_id,SignalManager } from "../utils.ts";
 import {serveTls} from "https://deno.land/std@0.224.0/http/server.ts"
 // @deno-types="npm:@types/express"
 import express from "npm:express"
+
+export interface ClientMessage{
+    client:Client,
+    packet?:Packet
+}
 
 export class Client{
     ws:WebSocket
     opened:boolean=true
     id:ID
-    _streams:NetStream[]
-    get streams():NetStream[]{
-        const st=this.streams
-        this._streams=[]
-        return st
-    }
-    constructor(ws:WebSocket,id:ID){
+    signals:SignalManager<ClientMessage>
+    _manager:ClientsManager
+    constructor(ws:WebSocket,id:ID,manager:ClientsManager){
         this.ws=ws
         ws.addEventListener("message",(msg)=>{
             if (msg.data instanceof Uint8Array){
-                this._streams.push(new NetStream(msg.data))
+                this.signals.emit(DefaultSignals.message,{client:this,packet:this._manager.packets_manager.decode(new NetStream(msg.data))})
             }
         })
         this.id=id
-        this._streams=[]
+        this.signals=new SignalManager
+        this._manager=manager
     }
     send_stream(stream:NetStream){
         this.ws.send(stream.buffer)
     }
+    send(packet:Packet){
+        this.send_stream(this._manager.packets_manager.encode(packet))
+    }
     close(){
+        this.signals.emit(DefaultSignals.disconnect,{client:this})
         this.ws.close()
     }
 }
-
+export enum DefaultSignals{
+    message="message", // on a send a packet. use in `client.on("message",callback)`
+    disconnect="disconnect", // on a client close a connection. use in `client.on("disconnect",callback)`
+    connection="connection", // on a client connect in ClientsManager. use in `manager.on("connection",callback)`
+}
 export class ClientsManager{
     clients:Map<ID,Client>
+    packets_manager:PacketsManager
+    signals:SignalManager<ClientMessage>
     constructor(){
         this.clients=new Map()
+        this.packets_manager=new PacketsManager()
+        this.signals=new SignalManager()
     }
     activate_ws(ws:WebSocket):ID{
-        const client=new Client(ws,random_id())
+        const client=new Client(ws,random_id(),this)
         while (client.id in this.clients){
             client.id=random_id()
         }
@@ -46,7 +61,9 @@ export class ClientsManager{
         client.ws.addEventListener("close",()=>{
             client.opened=false
             this.clients.delete(client.id)
+            client.signals.emit(DefaultSignals.disconnect,{client:client})
         })
+        this.signals.emit(DefaultSignals.connection,{client:client})
         return client.id
     }
     // deno-lint-ignore no-explicit-any

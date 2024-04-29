@@ -4,6 +4,8 @@ import { ID } from "./utils.ts";
 export class NetStream {
     buffer: Uint8Array
     pos: number
+    encoder:TextEncoder=new TextEncoder
+    decoder:TextDecoder=new TextDecoder
     constructor(buffer:undefined|null|Uint8Array=null) {
         if (buffer instanceof Uint8Array){
             this.buffer=buffer
@@ -13,6 +15,7 @@ export class NetStream {
         this.pos = 0
     }
 
+    //Use Functions
     insert(val: Uint8Array) {
         this.buffer = Uint8Array.from([...this.buffer, ...val])
         this.pos = this.buffer.length
@@ -24,12 +27,25 @@ export class NetStream {
             this.pos = this.buffer.length
         }
     }
-
     goto(val: number) {
         this.pos = val
         if (this.pos > this.buffer.length) {
             this.pos = this.buffer.length
         }
+    }
+    clear(){
+        this.buffer=new Uint8Array
+    }
+
+    //BasicTypes
+
+    /**
+     * encode the string-UTF8
+     * @param string String
+     */
+    writeString(string:string){
+        this.writeUInt16(string.length)
+        this.insert(this.encoder.encode(string))
     }
 
     writeUInt8(val: number) {
@@ -105,6 +121,13 @@ export class NetStream {
         for (const item of array) {
             encodeFunc(item)
         }
+    }
+
+    readString():string{
+        const size=this.readUInt16()
+        const val=this.buffer.subarray(this.pos,this.pos+size)
+        this.walk(size)
+        return this.decoder.decode(val)
     }
 
     readUInt8(): number {
@@ -190,4 +213,5 @@ export class NetStream {
     readID():ID{
         return this.readUInt32()
     }
+
 }

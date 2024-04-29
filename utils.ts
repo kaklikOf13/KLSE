@@ -25,3 +25,43 @@ export function combineWithoutEqual<T>(...arrays: T[][]): T[] {
 
     return resultado;
 }
+
+export type SignalCallback<T> = (data: T) => void
+
+export class SignalManager<T> {
+    private listeners: Map<string, SignalCallback<T>[]>
+
+    constructor() {
+        this.listeners = new Map<string, SignalCallback<T>[]>()
+    }
+
+    public on(signal: string, callback: SignalCallback<T>): void {
+        if (!this.listeners.has(signal)) {
+            this.listeners.set(signal, [])
+        }
+        this.listeners.get(signal)!.push(callback)
+    }
+
+    public off(signal: string, callback: SignalCallback<T>): void {
+        const signalListeners = this.listeners.get(signal)
+        if (signalListeners) {
+            const index = signalListeners.indexOf(callback)
+            if (index !== -1) {
+                signalListeners.splice(index, 1)
+            }
+        }
+    }
+
+    public emit(signal: string, data: T): void {
+        const signalListeners = this.listeners.get(signal)
+        if (signalListeners) {
+            for (const listener of signalListeners) {
+                listener(data)
+            }
+        }
+    }
+
+    public clear(signal: string): void {
+        this.listeners.delete(signal)
+    }
+}

@@ -1,6 +1,6 @@
 import { HashVector, NullVector, Vec, Vector } from "./geometry.ts"
 import { Hitbox, NullHitbox } from "./hitbox.ts"
-import { ID,Tags,combineWithoutEqual,hasTag,random_id } from "./utils.ts"
+import { ID,Tags,combineWithoutEqual,random_id } from "./utils.ts"
 
 export type GameObjectID=ID
 export type Categorys=Tags
@@ -46,7 +46,7 @@ export class SimpleGameObjectsManager{
     }
     // deno-lint-ignore no-explicit-any
     after_update():any{}
-    begin_update():any{}
+    begin_update(){}
     // deno-lint-ignore no-explicit-any
     update():any{
         this.begin_update()
