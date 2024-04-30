@@ -22,3 +22,9 @@ Deno.test("Stream Array",()=>{
         return [stream.readInt16(),stream.readUInt8()]
     }),arr)
 })
+Deno.test("Stream String",()=>{
+    const stream=new NetStream()
+    stream.writeString("kaklik 1 2 3 4")
+    stream.goto(0)
+    assertEquals(stream.readString(),"kaklik 1 2 3 4")
+})
