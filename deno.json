@@ -3,6 +3,6 @@
         "test_executable":"deno run -A executable/main.ts",
         "build":"deno compile --allow-read --allow-write --allow-run -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates"
     },
-    "version": "0.0.4",
+    "version": "0.0.5",
     "name": "KLSE"
 }
