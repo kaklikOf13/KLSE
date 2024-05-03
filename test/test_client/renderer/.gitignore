@@ -11,4 +11,3 @@ dist
 dist-ssr
 .vite
 *.local
-deno.lock
