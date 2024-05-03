@@ -4,7 +4,10 @@ export function random_id():ID{
 }
 
 export type Tags=string[]
-export function hasTag(tags1:Tags,tags2:Tags):boolean{
+export function hasTag(tags:Tags,tag:string):boolean{
+    return tags.includes(tag)
+}
+export function hasTags(tags1:Tags,tags2:Tags):boolean{
     for(const t of tags1){
         if (tags2.includes(t)){
             return true
