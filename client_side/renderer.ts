@@ -1,5 +1,5 @@
-import { Vector } from "../geometry"
-import { CircleHitbox, RectHitbox } from "../hitbox"
+import { Vector } from "../geometry.ts"
+import { CircleHitbox, RectHitbox } from "../hitbox.ts"
 
 export interface Color{
     r:number
@@ -21,9 +21,9 @@ export abstract class Renderer{
         this.canvas=canvas
         this.meter_size=meter_size
     }
-    abstract draw_rect(rect:RectHitbox,color:Color)
-    abstract draw_circle(circle:CircleHitbox,color:Color)
-    abstract clear()
+    abstract draw_rect(rect:RectHitbox,color:Color):void
+    abstract draw_circle(circle:CircleHitbox,color:Color):void
+    abstract clear():void
 }
 
 const rectVertexShaderSource = `
@@ -51,6 +51,7 @@ export class WebglRenderer extends Renderer{
     constructor(canvas:HTMLCanvasElement,meter_size:number=100,background:Color=RGBA.new(255,255,255)){
         super(canvas,meter_size)
         const gl=this.canvas.getContext("webgl")
+        this.background=background
         if(gl){
             gl.viewport(0, 0, this.canvas.width, this.canvas.height)
             this.gl=gl
@@ -64,8 +65,8 @@ export class WebglRenderer extends Renderer{
             
         }
     }
-    createShader(src:string, type):WebGLShader {
-        var shader = this.gl.createShader(type);
+    createShader(src:string, type:number):WebGLShader {
+        const shader = this.gl.createShader(type);
         if(shader){
             this.gl.shaderSource(shader, src)
             this.gl.compileShader(shader)
