@@ -1,6 +1,6 @@
 import { Packet, PacketsManager } from "../packets.ts";
 import { NetStream } from "../stream.ts";
-import { ID,random_id,SignalManager } from "../utils.ts";
+import { ID,random_id,SignalManager } from "../utils/utils.ts";
 import {serveTls} from "https://deno.land/std@0.224.0/http/server.ts"
 // @deno-types="npm:@types/express"
 import express from "npm:express"
