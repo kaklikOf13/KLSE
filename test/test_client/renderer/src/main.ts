@@ -1,9 +1,8 @@
-import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/renderer"
-import { Vec } from "../../../../geometry"
-import { CircleHitbox, RectHitbox } from "../../../../hitbox"
+import { RGBA, Renderer, createCanvas } from "../../../../client_side/mod.ts"
+import { Vec } from "../../../../mod.ts"
 const canvas=createCanvas(Vec.new(400,400),true)
 document.body.appendChild(canvas)
-const renderer=new WebglRenderer(canvas)
+const renderer=new Renderer(canvas)
 const rect=new RectHitbox(Vec.new(-1,-1),Vec.new(.1,.1))
 renderer.clear()
 renderer.draw_rect(rect,RGBA.new(255,0,0))

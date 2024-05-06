@@ -1,130 +1,106 @@
-import { Packet, PacketsManager } from "../packets.ts";
-import { NetStream } from "../stream.ts";
-import { ID,random_id,SignalManager } from "../utils/utils.ts";
-import {serveTls} from "https://deno.land/std@0.224.0/http/server.ts"
-// @deno-types="npm:@types/express"
-import express from "npm:express"
-
-export interface ClientMessage{
-    client:Client,
-    packet?:Packet
-}
-
-export class Client{
-    ws:WebSocket
-    opened:boolean=true
-    id:ID
-    signals:SignalManager<ClientMessage>
-    _manager:ClientsManager
-    constructor(ws:WebSocket,id:ID,manager:ClientsManager){
-        this.ws=ws
-        ws.addEventListener("message",(msg)=>{
-            if (msg.data instanceof Uint8Array){
-                this.signals.emit(DefaultSignals.message,{client:this,packet:this._manager.packets_manager.decode(new NetStream(msg.data))})
-            }
-        })
-        this.id=id
-        this.signals=new SignalManager
-        this._manager=manager
-    }
-    send_stream(stream:NetStream){
-        this.ws.send(stream.buffer)
-    }
-    send(packet:Packet){
-        this.send_stream(this._manager.packets_manager.encode(packet))
-    }
-    close(){
-        this.signals.emit(DefaultSignals.disconnect,{client:this})
-        this.ws.close()
-    }
-}
-export enum DefaultSignals{
-    message="message", // on a send a packet. use in `client.on("message",callback)`
-    disconnect="disconnect", // on a client close a connection. use in `client.on("disconnect",callback)`
-    connection="connection", // on a client connect in ClientsManager. use in `manager.on("connection",callback)`
-}
-export class ClientsManager{
-    clients:Map<ID,Client>
-    packets_manager:PacketsManager
-    signals:SignalManager<ClientMessage>
-    constructor(){
-        this.clients=new Map()
-        this.packets_manager=new PacketsManager()
-        this.signals=new SignalManager()
-    }
-    activate_ws(ws:WebSocket):ID{
-        const client=new Client(ws,random_id(),this)
-        while (client.id in this.clients){
-            client.id=random_id()
-        }
-        this.clients.set(client.id,client)
-        client.ws.addEventListener("close",()=>{
-            client.opened=false
-            this.clients.delete(client.id)
-            client.signals.emit(DefaultSignals.disconnect,{client:client})
-        })
-        this.signals.emit(DefaultSignals.connection,{client:client})
-        return client.id
-    }
-    // deno-lint-ignore no-explicit-any
-    handler(req:any,res:any,next:any){
-        if (req.headers.get("upgrade") === "websocket") {
-            const sock = req.upgrade()
-            sock.addEventListner("open",()=>this.activate_ws(sock))
-        } else {
-            res.send("Not Websocket")
-        }
-    
-        next()
-    }
-}
-
+import { join } from "https://deno.land/std/path/mod.ts"
+import { splitPath } from "../utils/_utils.ts"
+import { existsSync } from "https://deno.land/std/fs/mod.ts"
+import { serveFile } from "https://deno.land/std/http/mod.ts"
+export type HandlerFunc = (req: Request,url_path:string[], info: Deno.ServeHandlerInfo) => Response
+export type HandlerFuncAsync = (req: Request,url_path:string[], info: Deno.ServeHandlerInfo) => Promise<Response>
 export class Router {
-    protected _router:express.Application
+    private routes: Map<string, HandlerFunc|HandlerFuncAsync> = new Map
+    private sub_routers:Map<string, Router>=new Map
+    private failCallback: HandlerFunc|HandlerFuncAsync
 
-    constructor() {
-        this._router=express()
+    constructor(failCallback: HandlerFunc|HandlerFuncAsync = (_req) => new Response("Not Found :(", { status: 404 })) {
+        this.failCallback = failCallback
     }
 
-    router(url: string, router: Router) {
-        this._router.use(url, router._router)
+    protected add_route(url: string, handler: HandlerFunc|HandlerFuncAsync): void {
+        this.routes.set(url, handler)
     }
-    func(url: string, func: (req: express.Request, res: express.Response) => void) {
-        this._router.get(url, func)
+    _route(url: string[], handler: HandlerFunc|HandlerFuncAsync|Router){
+        if(url.length==1){
+            if(handler instanceof Router){
+                this.sub_routers.set(url[0],handler)
+                this.add_route(url[0],handler._handler())
+            }else{
+                this.add_route(url[0],handler)
+            }
+            
+        }else{
+            const name=url[0]
+            url.shift()
+            if(this.sub_routers.has(name)){
+                this.sub_routers.get(name)!._route(url,handler)
+            }else{
+                this.sub_routers.set(name,new Router(this.failCallback))
+                this.sub_routers.get(name)!._route(url,handler)
+            }
+        }
     }
-    folder(url:string,folder:string){
-        this._router.use(url,express.static(folder))
+    route(url: string, handler: HandlerFunc|HandlerFuncAsync|Router){
+        this._route(splitPath(url),handler)
     }
-    websocket(url: string): ClientsManager {
-        const cm = new ClientsManager()
-        this._router.use(url, cm.handler)
-        return cm
+    folder(url:string,path:string){
+        this.route(url,async (req,url_path,info:Deno.ServeHandlerInfo)=>{
+            const filePath = join(path,...url_path)
+            if (!existsSync(filePath)) {
+                return this.failCallback(req,url_path,info)
+            }
+            return await serveFile(req, filePath)
+        })
+    }
+    _handler():(req: Request,path:string[],info:Deno.ServeHandlerInfo)=>Promise<Response> {
+        return (async(req: Request,path:string[],info:Deno.ServeHandlerInfo)=>{
+            if (this.routes.has(path[0])) {
+                const handler = this.routes.get(path[0])
+                path.shift()
+                const ret=handler!(req,path,info)
+                if(ret instanceof Promise){
+                    return await ret
+                }
+                return ret
+            }
+            return this.failCallback(req,path,info)
+        })
     }
 }
-
-export class Server extends Router{
-    port:number
-    host:string
-    https:boolean=false
-    certFile:string
-    keyFile:string
-    constructor(port:number=5000,host:string="0.0.0.0",https:boolean=false,certFile:string="",keyFile:string=""){
+export class Server extends Router {
+    port: number
+    https: boolean = false
+    certFile: string
+    keyFile: string
+    server:Deno.HttpServer|null
+    constructor(port: number = 5000, https: boolean = false, certFile: string = "", keyFile: string = "") {
         super()
-        this.port=port
-        this.host=host
-        if(https){
-            this.https=https
-        }
-        this.certFile=certFile
-        this.keyFile=keyFile
+        this.port = port
+        this.https = https
+        this.certFile = certFile
+        this.keyFile = keyFile
+        this.server=null
     }
-    run():void{
+    async run() {
         if(this.https){
-            let running:boolean=true
-            serveTls(this._router,{port:this.port,hostname:this.host,cert:this.certFile,keyFile:this.keyFile}).then(()=>{running=false})
-            while(running){/**/}
+            this.server=Deno.serve({
+                port:this.port,
+                cert:this.certFile,
+                key:this.keyFile
+            },async(req:Request,info)=>{
+                const url = new URL(req.url)
+                const path = url.pathname
+                return await this._handler()(req,splitPath(path),info)
+            })
         }else{
-            this._router.listen(this.port)
+            this.server=await Deno.serve({
+                port:this.port
+            },async(req:Request,info)=>{
+                const url = new URL(req.url)
+                const path = url.pathname
+                return await this._handler()(req,splitPath(path),info)
+            })
+        }
+    }
+    async stop(){
+        if(this.server){
+            await this.server.shutdown()
         }
     }
 }

@@ -1,6 +1,6 @@
 import { HashVector, NullVector, Vec, Vector } from "./geometry.ts"
 import { Hitbox, NullHitbox } from "./hitbox.ts"
-import { ID,Tags,combineWithoutEqual,random_id } from "./utils/utils.ts"
+import { ID,Tags,combineWithoutEqual,random_id } from "./_utils.ts"
 
 export type GameObjectID=ID
 export type Categorys=Tags

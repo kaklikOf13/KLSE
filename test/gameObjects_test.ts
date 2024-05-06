@@ -1,7 +1,7 @@
-import { GameObject, CellsGameObjectsManager,SimpleGameObjectsManager } from "../gameObject.ts"
-import { RectHitbox } from "../hitbox.ts"
-import { Vec } from "../geometry.ts"
-import { random_float } from "../random.ts";
+import { GameObject, CellsGameObjectsManager,SimpleGameObjectsManager } from "../utils/gameObject.ts"
+import { RectHitbox } from "../utils/hitbox.ts"
+import { Vec } from "../utils/geometry.ts"
+import { random_float } from "../utils/random.ts";
 import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
 const randl=Vec.new(-1000,1000)
 const randl2=Vec.new(-1,1)

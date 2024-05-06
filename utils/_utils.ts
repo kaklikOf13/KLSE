@@ -2,7 +2,16 @@ export type ID=number
 export function random_id():ID{
     return Math.floor(Math.random() * 4294967296)
 }
-
+export function splitPath(path:string):string[]{
+    const ret=path.split(/[\\/]/)
+    for(let i=0;i<ret.length;i++){
+        if(ret[i]==""){
+            ret.splice(i,1)
+            i--
+        }
+    }
+    return ret
+}
 export type Tags=string[]
 export function hasTag(tags:Tags,tag:string):boolean{
     return tags.includes(tag)
@@ -29,23 +38,24 @@ export function combineWithoutEqual<T>(...arrays: T[][]): T[] {
     return resultado;
 }
 
-export type SignalCallback<T> = (data: T) => void
-
-export class SignalManager<T> {
-    private listeners: Map<string, SignalCallback<T>[]>
+export class SignalManager {
+    // deno-lint-ignore ban-types
+    protected listeners: Map<string, Function[]>
 
     constructor() {
-        this.listeners = new Map<string, SignalCallback<T>[]>()
+        this.listeners = new Map()
     }
 
-    public on(signal: string, callback: SignalCallback<T>): void {
+    // deno-lint-ignore ban-types
+    on(signal: string, callback: Function): void {
         if (!this.listeners.has(signal)) {
             this.listeners.set(signal, [])
         }
         this.listeners.get(signal)!.push(callback)
     }
 
-    public off(signal: string, callback: SignalCallback<T>): void {
+    // deno-lint-ignore ban-types
+    off(signal: string, callback: Function): void {
         const signalListeners = this.listeners.get(signal)
         if (signalListeners) {
             const index = signalListeners.indexOf(callback)
@@ -55,16 +65,17 @@ export class SignalManager<T> {
         }
     }
 
-    public emit(signal: string, data: T): void {
+    // deno-lint-ignore no-explicit-any
+    emit(signal: string, ...parameters:any[]): void {
         const signalListeners = this.listeners.get(signal)
         if (signalListeners) {
             for (const listener of signalListeners) {
-                listener(data)
+                listener(...parameters)
             }
         }
     }
 
-    public clear(signal: string): void {
+    clear(signal: string): void {
         this.listeners.delete(signal)
     }
 }

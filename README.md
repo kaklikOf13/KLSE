@@ -2,6 +2,12 @@
 
 You Need Deno https://deno.com
 
+Compile_Executable:
+```
+deno task build
+```
+Add To ProgramPath
+
 Create Project:
 ```
 KLSE new-project
