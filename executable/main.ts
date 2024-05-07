@@ -1,5 +1,6 @@
-import { copy } from "https://deno.land/std/fs/mod.ts";
-import { dirname } from "https://deno.land/std/path/mod.ts";
+import { copy } from "https://deno.land/std/fs/mod.ts"
+import { dirname } from "https://deno.land/std/path/mod.ts"
+import { Server } from "../server_side/mod.ts";
 async function copyDir(source: string, destination: string): Promise<void> {
     await copy(source, destination, { overwrite: true })
 }
@@ -7,6 +8,7 @@ function help(){
     console.log("Commands:")
     console.log(" - new-project //create new project, with template.")
     console.log(" - list-templates //create new project, with template.")
+    console.log(" - host //host this current dir")
 }
 
 if(Deno.args[0]){
@@ -26,6 +28,12 @@ if(Deno.args[0]){
             for (const dirEntry of Deno.readDirSync(dir+"/templates")) {
                 console.log(dirEntry.name)
             }
+            break
+        }
+        case "host":{
+            const server=new Server(80,false)
+            server.folder("/",".")
+            server.run()
             break
         }
         default:{
