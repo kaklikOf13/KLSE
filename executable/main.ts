@@ -1,4 +1,5 @@
 import { copy } from "https://deno.land/std/fs/mod.ts";
+import { dirname } from "https://deno.land/std/path/mod.ts";
 async function copyDir(source: string, destination: string): Promise<void> {
     await copy(source, destination, { overwrite: true })
 }
@@ -9,19 +10,20 @@ function help(){
 }
 
 if(Deno.args[0]){
+    const dir=dirname(Deno.execPath())
     switch(Deno.args[0]){
         case "new-project":{
             const den="projecto_123456"
             const nn=prompt("project name:")
             const template=prompt("template:")
             if (nn&&template){
-                await copyDir(import.meta.dirname+"/templates/"+template,den)
+                await copyDir(dir+"/templates/"+template,den)
                 await Deno.rename(den,nn)
             }
             break
         }
         case "list-templates":{
-            for (const dirEntry of Deno.readDirSync(import.meta.dirname+"/templates")) {
+            for (const dirEntry of Deno.readDirSync(dir+"/templates")) {
                 console.log(dirEntry.name)
             }
             break

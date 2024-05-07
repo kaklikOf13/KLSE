@@ -1,11 +1,5 @@
-import { dirname } from"https://deno.land/std/path/mod.ts"
 import { GameServerConfig,GameServer } from "./server.ts"
 import { Server } from "https://deno.land/x/klse/server_side/mod.ts"
-
-//Init
-if(import.meta.dirname&&Deno.cwd()!=dirname(import.meta.dirname)){
-  Deno.chdir(dirname(import.meta.dirname))
-}
 
 
 //Definitions
@@ -29,14 +23,10 @@ export interface Config{
   }
 }
 function new_server_from_hc(hc:HostConfig):Server{
-  let host="0.0.0.0"
-  if(hc.name){
-    host=hc.name
-  }
   if(hc.https){
-    return new Server(hc.port,host,hc.https,hc.cert,hc.key)
+    return new Server(hc.port,hc.https,hc.cert,hc.key)
   }
-  return new Server(hc.port,host)
+  return new Server(hc.port)
 }
 
 // Site Server
@@ -44,8 +34,8 @@ function hostSite(){
   return new Promise(()=>{
     if(config.site){
       const server=new_server_from_hc(config.site.host)
-      server.static()
-      server.run
+      server.folder("","../../dist/client")
+      server.run()
     }
   })
 }
@@ -67,10 +57,10 @@ if (import.meta.main) {
   const g=config.game_server&&config.game_server.enable
   if(s&&g){
     hostSite()
-    await hostGame()
+    hostGame()
   }else if(s){
-    await hostSite()
+    hostSite()
   }else if(g){
-    await hostGame()
+    hostGame()
   }
 }

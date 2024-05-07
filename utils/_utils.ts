@@ -10,6 +10,9 @@ export function splitPath(path:string):string[]{
             i--
         }
     }
+    if(ret.length==0){
+        ret.push("")
+    }
     return ret
 }
 export type Tags=string[]

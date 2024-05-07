@@ -1,9 +1,23 @@
-import { join } from "https://deno.land/std/path/mod.ts"
+import { join,extname } from "https://deno.land/std/path/mod.ts"
 import { splitPath } from "../utils/_utils.ts"
 import { existsSync } from "https://deno.land/std/fs/mod.ts"
-import { serveFile } from "https://deno.land/std/http/mod.ts"
+import { serveFile } from "https://deno.land/std@0.224.0/http/mod.ts";
 export type HandlerFunc = (req: Request,url_path:string[], info: Deno.ServeHandlerInfo) => Response
 export type HandlerFuncAsync = (req: Request,url_path:string[], info: Deno.ServeHandlerInfo) => Promise<Response>
+const FilesResponse:Record<string,(name:string)=>Response>={
+    ".html":(n)=>{
+        return new Response(new Blob([Deno.readTextFileSync(n)],{type:"text/html"}),{status:200})
+    },
+    "":(n)=>{
+        return new Response(new Blob([Deno.readTextFileSync(n+"/index.html")],{type:"text/html"}),{status:200})
+    },
+    ".js":(n)=>{
+        return new Response(new Blob([Deno.readTextFileSync(n)],{type:"text/javascript"}),{status:200})
+    },
+    ".png":(n)=>{
+        return new Response(new Blob([Deno.readFileSync(n)],{type:"image/png"}),{status:200})
+    }
+}
 export class Router {
     private routes: Map<string, HandlerFunc|HandlerFuncAsync> = new Map
     private sub_routers:Map<string, Router>=new Map
@@ -41,9 +55,16 @@ export class Router {
     }
     folder(url:string,path:string){
         this.route(url,async (req,url_path,info:Deno.ServeHandlerInfo)=>{
-            const filePath = join(path,...url_path)
+            let filePath = join(path,...url_path)
+            const ext=extname(filePath)
+            if(ext==""){
+                filePath+="/index.html"
+            }
             if (!existsSync(filePath)) {
                 return this.failCallback(req,url_path,info)
+            }
+            if(FilesResponse[ext]){
+                return FilesResponse[ext](filePath)
             }
             return await serveFile(req, filePath)
         })
@@ -53,6 +74,13 @@ export class Router {
             if (this.routes.has(path[0])) {
                 const handler = this.routes.get(path[0])
                 path.shift()
+                const ret=handler!(req,path,info)
+                if(ret instanceof Promise){
+                    return await ret
+                }
+                return ret
+            } else if(this.routes.has("")){
+                const handler = this.routes.get("")
                 const ret=handler!(req,path,info)
                 if(ret instanceof Promise){
                     return await ret
