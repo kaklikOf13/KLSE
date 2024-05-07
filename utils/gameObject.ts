@@ -34,7 +34,7 @@ interface ObjectKey {category:string,id:GameObjectID}
 function newObjectKey(category:string,id:GameObjectID):ObjectKey{
     return {category:category,id:id}
 }
-interface Category {objs:Record<string,GameObject>,orden:GameObjectID[]}
+interface Category {objs:Record<GameObjectID,GameObject>,orden:GameObjectID[]}
 function newCategory():Category{
     return { objs:{}, orden:[]}
 }
@@ -93,6 +93,11 @@ export class SimpleGameObjectsManager{
         obj.parent=this
         this.categorys[category].objs[id]=obj
         this.categorys[category].orden.push(id)
+    }
+    get_object<Type extends GameObject>(category:string,id:GameObjectID):Type{
+        // deno-lint-ignore ban-ts-comment
+        //@ts-expect-error
+        return this.categorys[category].objs[id]
     }
     add_category(name:string){
         this.categorys[name]=newCategory()

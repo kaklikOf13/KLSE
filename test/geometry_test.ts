@@ -1,4 +1,4 @@
-import {Vec} from "../geometry.ts"
+import {Vec} from "../utils/geometry.ts"
 import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
 Deno.test("Vector Basics", () => {
     assertEquals(Vec.add(Vec.new(1,1),Vec.new(2,2)), Vec.new(3,3))
