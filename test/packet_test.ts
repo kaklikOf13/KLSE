@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
-import { Packet,PacketsManager } from "../packets.ts"
-import { NetStream } from "../stream.ts"
+import { Packet,PacketsManager } from "../utils/packets.ts"
+import { NetStream } from "../utils/stream.ts"
 class TestPacket1 extends Packet{
     number1:number
-    ID=5
+    ID=65535
     constructor(n1:number=0){
         super()
         this.number1=n1
@@ -21,7 +21,7 @@ class TestPacket1 extends Packet{
 class TestPacket2 extends Packet{
     number1:number
     number2:number
-    ID=10
+    ID=65534
     constructor(n1:number=0,n2:number=0){
         super()
         this.number1=n1

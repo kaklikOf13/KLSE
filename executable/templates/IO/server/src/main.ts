@@ -1,6 +1,6 @@
 import { dirname } from"https://deno.land/std/path/mod.ts"
 import { GameServerConfig,GameServer } from "./server.ts"
-import { Server } from "https://deno.land/x/klse/server_side/server.ts"
+import { Server } from "https://deno.land/x/klse/server_side/mod.ts"
 
 //Init
 if(import.meta.dirname&&Deno.cwd()!=dirname(import.meta.dirname)){

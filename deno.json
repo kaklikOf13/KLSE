@@ -1,8 +1,9 @@
 {
     "tasks": {
         "test_executable":"deno run -A executable/main.ts",
-        "build":"deno compile --allow-read --allow-write --allow-run -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates"
+        "build":"deno compile --allow-read --allow-write --allow-run -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates",
+        "test:server":"deno run -A test/test_server/server.ts",
+        "test:server:websocket":"deno run -A test/test_server/websocket.ts"
     },
-    "version": "0.0.6",
-    "name": "KLSE"
+    "version": "0.1.0"
 }

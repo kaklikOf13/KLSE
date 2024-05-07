@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
-import { Inventory, Item, Slot } from "../inventory.ts";
-import { Tags } from "../utils.ts";
+import { Inventory, Item, Slot } from "../utils/inventory.ts";
+import { Tags } from "../utils/_utils.ts";
 class Item1 extends Item{
     tags: Tags=["a"]
     limit_per_slot: number=10

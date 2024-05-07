@@ -1,5 +1,5 @@
-import { Server } from "https://deno.land/x/klse/server_side/server.ts"
-import {GameConfig} from "./game.ts"
+import { Server } from "https://deno.land/x/klse/server_side/mod.ts"
+import { GameConfig } from "./game.ts"
 export interface GameServerConfig{
     config:GameConfig,
 }

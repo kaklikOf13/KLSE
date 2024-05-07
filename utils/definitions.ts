@@ -1,3 +1,5 @@
+import { splitPath } from "./_utils.ts";
+
 export class Definitions<Type>{
     value:Record<string,Type>
     constructor(){
@@ -36,5 +38,24 @@ export class Tree<Type> extends Definitions<Type>{
     }
     list_tree():string[]{
         return Object.keys(this.childs)
+    }
+    exist_tree(tree:string):boolean{
+        return this.childs[tree]!=undefined
+    }
+    //** mysub/sub/1 */
+    get_item(name:string):Type|undefined{
+        const divisions:string[]=splitPath(name)
+        // deno-lint-ignore no-this-alias
+        let act:Tree<Type>=this
+        for(let i=0;i<divisions.length;i++){
+            const d=divisions[i]
+            if(act.exist_tree(d)){
+                act=this.get_tree(d)
+            }else if(act.value[d]!=undefined){
+                return act.value[d]
+            }else{
+                return undefined
+            }
+        }
     }
 }

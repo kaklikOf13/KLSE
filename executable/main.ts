@@ -1,5 +1,3 @@
-//cp -r executable/templates dist/templates)
-
 import { copy } from "https://deno.land/std/fs/mod.ts";
 async function copyDir(source: string, destination: string): Promise<void> {
     await copy(source, destination, { overwrite: true })
