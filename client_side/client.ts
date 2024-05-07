@@ -8,10 +8,10 @@ export const DefaultSignals={
 }
 export class Client{
     ws:WebSocket
-    protected opened:boolean
     protected manager:PacketsManager
-    ID:ID=0
-    IP:string
+    opened:boolean // Client Is Connected
+    ID:ID=0 // Client ID Sysed With Server And Client
+    IP:string // Clinet IP
     protected signals:SignalManager
     constructor(websocket:WebSocket,packet_manager:PacketsManager,ip:string=""){
         this.ws=websocket
@@ -38,13 +38,25 @@ export class Client{
             })
         }
     }
+    /**
+     * Send A `Packet` To `Server/Client`
+     * @param packet To Send
+     */
     emit(packet:Packet):void{
         this.ws.send(this.manager.encode(packet).buffer)
     }
+    /**
+     * On Recev A `Packet` From `Server/Client`
+     * @param name Name Of `Packet`, you can change the Packet Name In Property `MyPacket.Name`(readonly)
+     * @param callback Callback `(packet:MyPacket)=>void`
+     */
     // deno-lint-ignore ban-types
     on(name:string,callback:Function){
         this.signals.on(name,callback)
     }
+    /**
+     * Disconnect Websocket
+     */
     disconnect():void{
         this.ws.close()
     }

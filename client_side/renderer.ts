@@ -2,13 +2,21 @@ import { Vector } from "../geometry.ts"
 import { CircleHitbox, RectHitbox } from "../hitbox.ts"
 
 export interface Color{
-    r:number
-    b:number
-    g:number
-    a:number
+    r:number //Red
+    b:number //Green
+    g:number //Blue
+    a:number //Alpha
 }
 
 export const RGBA = Object.freeze({
+    /**
+     * Create The Color RGBA, limit=`(0 To 255)`
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     * @param a Alpa
+     * @returns A New Color
+     */
     new(r:number,g:number,b:number,a:number=255):Color{
         return { r:r/255, g:g/255, b:b/255, a:a/255}
     }
@@ -98,7 +106,6 @@ export class WebglRenderer extends Renderer{
         // Desenhando o retângulo
         this.gl.drawArrays(mode, 0, vertices.length / 2)
     }
-
     draw_rect(rect: RectHitbox, color: Color) {
         const x1 = rect.position.x
         const y1 = -rect.position.y
