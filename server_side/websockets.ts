@@ -1,3 +1,4 @@
+
 import { ConnectPacket, DisconnectPacket, PacketsManager } from "../utils/packets.ts"
 import { ID,random_id } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
@@ -23,6 +24,11 @@ export class ClientsManager{
         this.clients.set(client.ID,client)
         this.onconnection(client)
         return client.ID
+    }
+    emit(packet:Packet){
+        for(const i in this.cm.clients){
+            this.cm.clients[parseInt(i)].emit(packet)
+        }
     }
     handler():(req:Request,_path:string[],info:Deno.ServeHandlerInfo)=>Response{
         return (req:Request,_path:string[],info:Deno.ServeHandlerInfo)=>{
