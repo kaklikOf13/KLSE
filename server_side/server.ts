@@ -57,7 +57,7 @@ export class Router {
         this.route(url,async (req,url_path,info:Deno.ServeHandlerInfo)=>{
             let filePath = join(path,...url_path)
             const ext=extname(filePath)
-            if(ext==""){
+            if(ext==""&&!filePath.endsWith("index.html")){
                 filePath+="/index.html"
             }
             if (!existsSync(filePath)) {

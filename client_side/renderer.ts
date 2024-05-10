@@ -1,5 +1,5 @@
-import { Vector } from "../geometry.ts"
-import { CircleHitbox, RectHitbox } from "../hitbox.ts"
+import { Vector } from "../utils/geometry.ts"
+import { CircleHitbox, RectHitbox } from "../utils/hitbox.ts"
 
 export interface Color{
     r:number //Red
@@ -38,8 +38,7 @@ const rectVertexShaderSource = `
 attribute vec4 a_Position;
 void main() {
     gl_Position = a_Position;
-}
-    `
+}`
 const rectFragmentShaderSource = `
 #ifdef GL_ES
 precision highp float;
@@ -49,8 +48,7 @@ uniform vec4 a_Color;
 
 void main() {
     gl_FragColor = a_Color;
-}
-`
+}`
 
 export class WebglRenderer extends Renderer{
     gl:WebGLRenderingContext

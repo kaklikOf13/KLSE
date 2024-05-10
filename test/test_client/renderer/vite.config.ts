@@ -10,8 +10,8 @@ export default defineConfig({
 
 export default {
   build:{
-    outDir:"./dist/client",
+    outDir:"../dist/client",
     emptyOutDir:false
   },
-  root:"src"
+  root:"src",
 }
