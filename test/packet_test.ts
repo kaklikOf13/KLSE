@@ -4,6 +4,7 @@ import { NetStream } from "../utils/stream.ts"
 class TestPacket1 extends Packet{
     number1:number
     ID=65535
+    Name="a"
     constructor(n1:number=0){
         super()
         this.number1=n1
@@ -22,6 +23,7 @@ class TestPacket2 extends Packet{
     number1:number
     number2:number
     ID=65534
+    Name="b"
     constructor(n1:number=0,n2:number=0){
         super()
         this.number1=n1

@@ -5,5 +5,5 @@
         "test:server":"deno run --watch -A test/test_server/server.ts",
         "test:server:websocket":"deno run -A test/test_server/websocket.ts"
     },
-    "version": "0.1.0"
+    "version": "0.1.2"
 }

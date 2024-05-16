@@ -3,7 +3,6 @@
         "enable":true,
         "host":{
             "port":3000,
-            "name":"0.0.0.0",
             "https":false,
             "key":"./private/key.key",
             "cert":"./private/cert.crt"
@@ -18,7 +17,6 @@
     "game_server":{
         "enable":true,
         "host":{
-            "name":"0.0.0.0",
             "port":8080
         }
     }
