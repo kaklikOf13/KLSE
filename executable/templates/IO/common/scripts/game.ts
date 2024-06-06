@@ -1,4 +1,4 @@
-import { GameObjectsManager } from "https://deno.land/x/klse/mod.ts"
+import { GameObjectsManager } from "KLSE"
 export class Game{
     manager:GameObjectsManager
     constructor(thread:number,chunksize:number){
