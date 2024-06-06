@@ -58,18 +58,13 @@ export class WebglRenderer extends Renderer{
         super(canvas,meter_size)
         const gl=this.canvas.getContext("webgl")
         this.background=background
-        if(gl){
-            gl.viewport(0, 0, this.canvas.width, this.canvas.height)
-            this.gl=gl
-            const simple_program=gl.createProgram()
-            if (simple_program){
-                gl.attachShader(simple_program,this.createShader(rectVertexShaderSource,gl.VERTEX_SHADER))
-                gl.attachShader(simple_program,this.createShader(rectFragmentShaderSource,gl.FRAGMENT_SHADER))
-                this.simple_program=simple_program
-                gl.linkProgram(this.simple_program)
-            }
-            
-        }
+        gl!.viewport(0, 0, this.canvas.width, this.canvas.height)
+        this.gl=gl!
+        const simple_program=gl!.createProgram()
+        gl!.attachShader(simple_program!,this.createShader(rectVertexShaderSource,gl!.VERTEX_SHADER))
+        gl!.attachShader(simple_program!,this.createShader(rectFragmentShaderSource,gl!.FRAGMENT_SHADER))
+        this.simple_program=simple_program!
+        gl!.linkProgram(this.simple_program)
     }
     createShader(src:string, type:number):WebGLShader {
         const shader = this.gl.createShader(type);
