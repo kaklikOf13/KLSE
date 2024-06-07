@@ -33,7 +33,7 @@ export class ClientsManager{
     }
     handler():(req:Request,url:string[],info:Deno.ServeHandlerInfo)=>Response|null{
         return (req:Request,url:string[],info:Deno.ServeHandlerInfo)=>{
-            if(url.length==0){
+            if(url.length>1&&url[url.length-1]!="index.html"){
                 return null
             }
             const upgrade = req.headers.get("upgrade") || ""

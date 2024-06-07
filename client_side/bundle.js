@@ -236,18 +236,6 @@ class NetStream {
         buf[3] = val & 0xFF;
         this.insert(buf);
     }
-    writeUInt64(val) {
-        const high = Math.floor(val / 0x100000000);
-        const low = val & 0xFFFFFFFF;
-        this.writeUInt32(low);
-        this.writeUInt32(high);
-    }
-    writeInt64(val) {
-        const high = Math.floor(val / 0x100000000);
-        const low = val & 0xFFFFFFFF;
-        this.writeInt32(low);
-        this.writeInt32(high);
-    }
     writeFloat32(val) {
         const buf = new Uint8Array(4);
         new DataView(buf.buffer).setFloat32(0, val, true);
