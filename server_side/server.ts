@@ -1,127 +1,133 @@
-import { join, extname, resolve } from "https://deno.land/std/path/mod.ts";
-import { splitPath } from "../utils/_utils.ts";
-import { existsSync } from "https://deno.land/std/fs/mod.ts";
-import { serveFile } from "https://deno.land/std/http/file_server.ts";
+import { join, extname, basename } from "https://deno.land/std/path/mod.ts"
+import { splitPath } from "../utils/_utils.ts"
+import { existsSync } from "https://deno.land/std/fs/mod.ts"
+import { serveFile } from "https://deno.land/std/http/file_server.ts"
 
-export type HandlerFunc = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Response | null;
-export type HandlerFuncAsync = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Promise<Response | null>;
+export type HandlerFunc = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Response | null
+export type HandlerFuncAsync = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Promise<Response | null>
 
 const FilesResponse: Record<string, (name: string) => Promise<Response | null>> = {
   ".html": async (name) => {
     try {
-      const content = await Deno.readTextFile(name);
-      return new Response(content, { status: 200, headers: { "Content-Type": "text/html" } });
+      const content = await Deno.readTextFile(name)
+      return new Response(content, { status: 200, headers: { "Content-Type": "text/html" } })
     } catch {
-      return null;
+      return null
     }
   },
   "": async (name) => {
     try {
-      const content = await Deno.readTextFile(join(name, "index.html"));
-      return new Response(content, { status: 200, headers: { "Content-Type": "text/html" } });
+      const content = await Deno.readTextFile(join(name, "index.html"))
+      return new Response(content, { status: 200, headers: { "Content-Type": "text/html" } })
     } catch {
-      return null;
+      return null
     }
   },
   ".js": async (name) => {
     try {
-      const content = await Deno.readTextFile(name);
-      return new Response(content, { status: 200, headers: { "Content-Type": "application/javascript" } });
+      const content = await Deno.readTextFile(name)
+      return new Response(content, { status: 200, headers: { "Content-Type": "application/javascript" } })
     } catch {
-      return null;
+      return null
+    }
+  },
+  ".ts": async (name) => {
+    try {
+      const content = await Deno.readTextFile(name.replace(".ts",".js"))
+      return new Response(content, { status: 200, headers: { "Content-Type": "application/javascript" } })
+    } catch {
+      return null
     }
   },
   ".png": async (name) => {
     try {
-      const content = await Deno.readFile(name);
-      return new Response(content, { status: 200, headers: { "Content-Type": "image/png" } });
+      const content = await Deno.readFile(name)
+      return new Response(content, { status: 200, headers: { "Content-Type": "image/png" } })
     } catch {
-      return null;
+      return null
     }
   },
-};
+}
 
 export class Router {
-  private routes: Map<string, (HandlerFunc | HandlerFuncAsync)[]> = new Map();
-  private sub_routers: Map<string, Router> = new Map();
-  failCallback: HandlerFunc | HandlerFuncAsync;
+  private routes: Map<string, (HandlerFunc | HandlerFuncAsync)[]> = new Map()
+  private sub_routers: Map<string, Router> = new Map()
+  failCallback: HandlerFunc | HandlerFuncAsync
 
   constructor(failCallback: HandlerFunc | HandlerFuncAsync = (_req) => new Response("Not Found :(", { status: 404 })) {
-    this.failCallback = failCallback;
+    this.failCallback = failCallback
   }
 
   protected add_route(url: string, handler: HandlerFunc | HandlerFuncAsync): void {
     if (!this.routes.has(url)) {
-      this.routes.set(url, []);
+      this.routes.set(url, [])
     }
-    this.routes.get(url)!.push(handler);
+    this.routes.get(url)!.push(handler)
   }
 
   private _route(url: string[], handler: HandlerFunc | HandlerFuncAsync | Router) {
     if (url.length == 1) {
       if (handler instanceof Router) {
-        this.sub_routers.set(url[0], handler);
-        this.add_route(url[0], handler._handler());
+        this.sub_routers.set(url[0], handler)
+        this.add_route(url[0], handler._handler())
       } else {
-        this.add_route(url[0], handler);
+        this.add_route(url[0], handler)
       }
     } else {
-      const name = url[0];
-      url.shift();
+      const name = url[0]
+      url.shift()
       if (this.sub_routers.has(name)) {
-        this.sub_routers.get(name)!._route(url, handler);
+        this.sub_routers.get(name)!._route(url, handler)
       } else {
-        this.sub_routers.set(name, new Router(this.failCallback));
-        this.sub_routers.get(name)!._route(url, handler);
+        this.sub_routers.set(name, new Router(this.failCallback))
+        this.sub_routers.get(name)!._route(url, handler)
       }
     }
   }
 
   route(url: string, ...handlers: (HandlerFunc | HandlerFuncAsync | Router)[]) {
     handlers.forEach(handler => {
-      this._route(splitPath(url), handler);
-    });
+      this._route(splitPath(url), handler)
+    })
   }
 
   folder(url: string, path: string) {
     this.route(url, async (req, url_path, _info: Deno.ServeHandlerInfo) => {
-      let filePath = join(path, ...url_path);
-      let ext = extname(filePath);
-      if (!filePath.endsWith("index.html")) {
-        filePath += "/index.html";
+      let filePath = join(path, ...url_path)
+      let ext = extname(filePath)
+      if (basename(url)==""&&!filePath.endsWith("index.html")) {
+        filePath += "/index.html"
       }
-      ext = extname(filePath);
-      console.log(ext,filePath)
+      ext = extname(filePath)
       if (!existsSync(filePath)) {
-        return null;
+        return null
       }
       if (FilesResponse[ext]) {
-        return await FilesResponse[ext](filePath);
+        return await FilesResponse[ext](filePath)
       }
-      return await serveFile(req, filePath);
-    });
+      return await serveFile(req, filePath)
+    })
   }
 
   protected _handler(): (req: Request, path: string[], info: Deno.ServeHandlerInfo) => Promise<Response|null> {
     return async (req: Request, path: string[], info: Deno.ServeHandlerInfo) => {
-      const handlers = this.routes.get(path[0]) || this.routes.get("");
+      const handlers = this.routes.get(path[0]) || this.routes.get("")
       if (handlers) {
-        path.shift();
+        path.shift()
         for (const handler of handlers) {
-          const ret = handler(req, path, info);
+          const ret = handler(req, path, info)
           if (ret instanceof Promise) {
-            const response = await ret;
-            console.log(response,handler)
+            const response = await ret
             if (response) {
-              return response;
+              return response
             }
           } else if (ret) {
-            return ret;
+            return ret
           }
         }
       }
-      return null;
-    };
+      return null
+    }
   }
 }
 
