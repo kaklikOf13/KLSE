@@ -31,14 +31,17 @@ export class ClientsManager{
             this.clients.get(parseInt(i))!.emit(packet)
         }
     }
-    handler():(context: Context)=>Response{
-        return (context: Context)=>{
-            const upgrade = context.request.headers.get("upgrade") || ""
+    handler():(req:Request,url:string[],info:Deno.ServeHandlerInfo)=>Response|null{
+        return (req:Request,url:string[],info:Deno.ServeHandlerInfo)=>{
+            if(url.length==0){
+                return null
+            }
+            const upgrade = req.headers.get("upgrade") || ""
             if (upgrade.toLowerCase() != "websocket") {
                 return new Response("request isn't trying to upgrade to websocket.",{status:406})
             }
-            const { socket, response } = Deno.upgradeWebSocket(context.request.source!)
-            socket.onopen = () => {this.activate_ws(socket,context.request.ip)}
+            const { socket, response } = Deno.upgradeWebSocket(req)
+            socket.onopen = () => {this.activate_ws(socket,info.remoteAddr.hostname)}
             return response
         }
     }
