@@ -784,18 +784,6 @@ class NetStream {
         buf[3] = val & 0xFF;
         this.insert(buf);
     }
-    writeUInt64(val) {
-        const high = Math.floor(val / 0x100000000);
-        const low = val & 0xFFFFFFFF;
-        this.writeUInt32(low);
-        this.writeUInt32(high);
-    }
-    writeInt64(val) {
-        const high = Math.floor(val / 0x100000000);
-        const low = val & 0xFFFFFFFF;
-        this.writeInt32(low);
-        this.writeInt32(high);
-    }
     writeFloat32(val) {
         const buf = new Uint8Array(4);
         new DataView(buf.buffer).setFloat32(0, val, true);
@@ -964,7 +952,7 @@ function random_float(min, max) {
 }
 export { Definitions as Definitions, Tree as Tree };
 export { GameObject as GameObject, CellsGameObjectsManager as GameObjectsManager };
-export { Vec as Vec, Angle as Angle };
+export { Vec as Vec, Angle as Angle, NullVector as NullVector };
 export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };
 export { Inventory as Inventory, Slot as Slot, Item as Item };
 export { PacketsManager as PacketsManager, Packet as Packet };

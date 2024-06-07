@@ -1,4 +1,4 @@
-import { join, extname, basename } from "https://deno.land/std/path/mod.ts"
+import { join, extname, basename, resolve } from "https://deno.land/std/path/mod.ts"
 import { splitPath } from "../utils/_utils.ts"
 import { existsSync } from "https://deno.land/std/fs/mod.ts"
 import { serveFile } from "https://deno.land/std/http/file_server.ts"
@@ -33,7 +33,7 @@ const FilesResponse: Record<string, (name: string) => Promise<Response | null>> 
   },
   ".ts": async (name) => {
     try {
-      const content = await Deno.readTextFile(name.replace(".ts",".js"))
+      const content = await Deno.readTextFile(name.replace(".ts",".ts"))
       return new Response(content, { status: 200, headers: { "Content-Type": "application/javascript" } })
     } catch {
       return null
@@ -73,14 +73,16 @@ export class Router {
       } else {
         this.add_route(url[0], handler)
       }
-    } else {
+    } else if(url.length>1){
       const name = url[0]
       url.shift()
+      console.log(url,name,"aaa")
       if (this.sub_routers.has(name)) {
         this.sub_routers.get(name)!._route(url, handler)
       } else {
         this.sub_routers.set(name, new Router(this.failCallback))
         this.sub_routers.get(name)!._route(url, handler)
+        this.add_route(name,this.sub_routers.get(name)!._handler())
       }
     }
   }
@@ -92,16 +94,15 @@ export class Router {
   }
 
   folder(url: string, path: string) {
-    this.route(url, async (req, url_path, _info: Deno.ServeHandlerInfo) => {
-      let filePath = join(path, ...url_path)
-      let ext = extname(filePath)
-      if (basename(url)==""&&!filePath.endsWith("index.html")) {
-        filePath += "/index.html"
-      }
-      ext = extname(filePath)
+    this.route(url, async (req, url_path, info: Deno.ServeHandlerInfo) => {
+      const filePath = join(path, ...url_path)
       if (!existsSync(filePath)) {
+        if(!filePath.endsWith("index.html")){
+          return await this._handler()(req,[...url_path,"index.html"],info)
+        }
         return null
       }
+      const ext = extname(filePath)
       if (FilesResponse[ext]) {
         return await FilesResponse[ext](filePath)
       }
@@ -109,21 +110,20 @@ export class Router {
     })
   }
 
-  protected _handler(): (req: Request, path: string[], info: Deno.ServeHandlerInfo) => Promise<Response|null> {
-    return async (req: Request, path: string[], info: Deno.ServeHandlerInfo) => {
-      const handlers = this.routes.get(path[0]) || this.routes.get("")
-      if (handlers) {
-        path.shift()
-        for (const handler of handlers) {
-          const ret = handler(req, path, info)
-          if (ret instanceof Promise) {
-            const response = await ret
-            if (response) {
-              return response
-            }
-          } else if (ret) {
-            return ret
+  protected _handler(): (req:Request,path:string[],info:Deno.ServeHandlerInfo)=>Promise<Response|null>{
+    return async(req,path,info)=>{
+      path.shift()
+      const handlers = (this.routes.get(path[0]) ?? [])
+      handlers.push(...(this.routes.get("")??[]))
+      for (const handler of handlers) {
+        const ret = handler(req, [...path], info)
+        if (ret instanceof Promise) {
+          const response = await ret
+          if (response) {
+            return response
           }
+        } else if (ret) {
+          return ret
         }
       }
       return null
@@ -153,7 +153,8 @@ export class Server extends Router {
                 key:Deno.readTextFileSync(this.keyFile)
             },async(req:Request,info:Deno.ServeHandlerInfo)=>{
                 const url = new URL(req.url)
-                const path = splitPath(url.pathname)
+                const path = [""]
+                path.push(...splitPath(url.pathname))
                 let val=(await this._handler()(req,path,info))
                 if(!val){
                     const re=this.failCallback(req,path,info)
@@ -170,7 +171,8 @@ export class Server extends Router {
                 port:this.port,
             },async(req:Request,info:Deno.ServeHandlerInfo)=>{
                 const url = new URL(req.url)
-                const path = splitPath(url.pathname)
+                const path = [url.host]
+                path.push(...splitPath(url.pathname))
                 let val=(await this._handler()(req,path,info))
                 if(!val){
                     const re=this.failCallback(req,path,info)
