@@ -3,6 +3,7 @@ import { ConnectPacket, DisconnectPacket, PacketsManager,Packet } from "../utils
 import { ID,random_id } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
 export * from "../client_side/client.ts"
+import { Context } from "https://deno.land/x/oak/mod.ts"
 export class ClientsManager{
     clients:Map<ID,Client>
     packets_manager:PacketsManager
@@ -30,14 +31,14 @@ export class ClientsManager{
             this.clients.get(parseInt(i))!.emit(packet)
         }
     }
-    handler():(req:Request,_path:string[],info:Deno.ServeHandlerInfo)=>Response{
-        return (req:Request,_path:string[],info:Deno.ServeHandlerInfo)=>{
-            const upgrade = req.headers.get("upgrade") || ""
+    handler():(context: Context)=>Response{
+        return (context: Context)=>{
+            const upgrade = context.request.headers.get("upgrade") || ""
             if (upgrade.toLowerCase() != "websocket") {
                 return new Response("request isn't trying to upgrade to websocket.",{status:406})
             }
-            const { socket, response } = Deno.upgradeWebSocket(req)
-            socket.onopen = () => {this.activate_ws(socket,info.remoteAddr.hostname)}
+            const { socket, response } = Deno.upgradeWebSocket(context.request.source!)
+            socket.onopen = () => {this.activate_ws(socket,context.request.ip)}
             return response
         }
     }

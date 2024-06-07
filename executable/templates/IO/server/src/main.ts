@@ -1,5 +1,5 @@
 import { GameServerConfig,GameServer } from "./server.ts"
-import { Server } from "https://deno.land/x/klse/server_side/mod.ts"
+import { Server } from "KLSE/SERVER"
 
 
 //Definitions
@@ -34,7 +34,7 @@ function hostSite(){
   return new Promise(()=>{
     if(config.site){
       const server=new_server_from_hc(config.site.host)
-      server.folder("","../../dist/client")
+      server.folder("","../dist/client")
       server.run()
     }
   })

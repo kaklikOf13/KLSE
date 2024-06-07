@@ -7,7 +7,7 @@
             "key":"./private/key.key",
             "cert":"./private/cert.crt"
         },
-        "dir":"../client/dist"
+        "dir":"../dist/client"
     },
     "game":{
         "config":{
