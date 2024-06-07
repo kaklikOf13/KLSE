@@ -1,6 +1,6 @@
-import {CATEGORYS, Game as GameBase} from "../../common/scripts/game.ts" 
+import {CATEGORYS, Game as GameBase} from "common/scripts/game.ts" 
 import { Client, ClientsManager, DefaultSignals } from "KLSE/SERVER"
-import { JoinPacket } from "../../common/scripts/packets/join_packet.ts";
+import { JoinPacket } from "common/scripts/packets/join_packet.ts";
 import { Player } from "./gameObjects/player.ts";
 import { ID } from "KLSE";
 export interface GameConfig{

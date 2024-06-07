@@ -1,4 +1,4 @@
-import { splitPath } from "./_utils.ts";
+import { splitPath } from "./_utils.ts"
 
 export class Definitions<Type>{
     value:Record<string,Type>

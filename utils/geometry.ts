@@ -229,9 +229,9 @@ export const Vec = Object.freeze({
      * @returns A `Vector` whose length is 1 and is parallel to the original vector
      */
     normalizeSafe(vector:Vector,fallback:Vector=NullVector):Vector {
-        fallback ??= this.new(1.0, 0.0);
-        const eps = 0.000001;
-        const len = Vec.length(vector);
+        fallback ??= this.new(1.0, 0.0)
+        const eps = 0.000001
+        const len = Vec.length(vector)
         return len > eps
             ? {
                 x:vector.x/len,
@@ -243,8 +243,8 @@ export const Vec = Object.freeze({
      * @returns A `Vector` whose length is 1 and is parallel to the original vector
      */
     normalize(vector:Vector): Vector {
-        const eps = 0.000001;
-        const len = Vec.length(vector);
+        const eps = 0.000001
+        const len = Vec.length(vector)
         return eps
             ? {
                 x:vector.x/len,

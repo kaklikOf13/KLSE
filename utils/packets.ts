@@ -1,5 +1,5 @@
 import { NetStream } from "./stream.ts"
-import { ID } from "./_utils.ts";
+import { ID } from "./_utils.ts"
 
 export type PacketID=number
 

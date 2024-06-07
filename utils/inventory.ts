@@ -1,4 +1,4 @@
-import { Tags, hasTag, hasTags } from "./_utils.ts";
+import { Tags, hasTag, hasTags } from "./_utils.ts"
 
 export abstract class Item{
     limit_per_slot:number=1
