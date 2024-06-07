@@ -1,4 +1,4 @@
-import { NullVector, Vec, Vector } from "./geometry.ts";
+import { NullVector, Vec, Vector } from "./geometry.ts"
 
 export const Collision=Object.freeze({
     circle_with_rect(hb1:CircleHitbox,hb2:RectHitbox):boolean{
@@ -19,7 +19,7 @@ export const Collision=Object.freeze({
         const dstSqr = Vec.squared(dir)
 
         if (dstSqr < hb1.radius * hb1.radius) {
-            const dst = Math.sqrt(dstSqr);
+            const dst = Math.sqrt(dstSqr)
             return [Vec.normalizeSafe(dir),hb1.radius - dst]
         }
         return null

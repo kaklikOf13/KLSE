@@ -155,42 +155,26 @@ export class CellsGameObjectsManager extends SimpleGameObjectsManager{
         })
     }
     update_cell(c:HashVector){
-        // deno-lint-ignore ban-ts-comment
-        //@ts-expect-error
-        const cp=this.cells.get(c).pos
+        const cp=this.cells.get(c)!.pos
         for(let yy=-1; yy<=1; yy++){
             for(let xx=-1; xx<=1; xx++){
                 const oc=Vec.new(cp.x+xx,cp.y+yy)
                 const och=Vec.hash(oc)
                 if(this.cells.get(och)){
-                    // deno-lint-ignore ban-ts-comment
-                    //@ts-expect-error
-                    for(const cat1 of Object.keys(this.cells.get(c).objs)){
-                        // deno-lint-ignore ban-ts-comment
-                        //@ts-expect-error
-                        if (!this.cells.get(c).objs[cat1]) continue
-                        // deno-lint-ignore ban-ts-comment
-                        //@ts-expect-error
-                        for(const objA of this.cells.get(c).objs[cat1]){
+                    for(const cat1 of Object.keys(this.cells.get(c)!.objs)){
+                        if (!this.cells.get(c)!.objs[cat1]) continue
+                        for(const objA of this.cells.get(c)!.objs[cat1]){
                             const objAk=newObjectKey(cat1,objA)
                             for(const cat2 of this.categorys[cat1].objs[objA].collides){
-                                // deno-lint-ignore ban-ts-comment
-                                //@ts-expect-error
-                                if (this.cells.get(c).objs[cat2]){
-                                    // deno-lint-ignore ban-ts-comment
-                                    //@ts-expect-error
-                                    for(const objB of this.cells.get(c).objs[cat2]){
+                                if (this.cells.get(c)!.objs[cat2]){
+                                    for(const objB of this.cells.get(c)!.objs[cat2]){
                                         this.solve_collision_normal(objAk,newObjectKey(cat2,objB))
                                     }
                                 }
                             }
                             for(const cat2 of this.categorys[cat1].objs[objA].overlaps){
-                                // deno-lint-ignore ban-ts-comment
-                                //@ts-expect-error
-                                if (this.cells.get(c).objs[cat2]){
-                                    // deno-lint-ignore ban-ts-comment
-                                    //@ts-expect-error
-                                    for(const objB of this.cells.get(c).objs[cat2]){
+                                if (this.cells.get(c)!.objs[cat2]){
+                                    for(const objB of this.cells.get(c)!.objs[cat2]){
                                         this.solve_collision_overlap(objAk,newObjectKey(cat2,objB))
                                     }
                                 }

@@ -1,5 +1,5 @@
-import { Vector,Vec } from "./geometry.ts";
-import { ID } from "./_utils.ts";
+import { Vector,Vec } from "./geometry.ts"
+import { ID } from "./_utils.ts"
 
 export class NetStream {
     buffer: Uint8Array
@@ -88,20 +88,6 @@ export class NetStream {
         buf[2] = (val >> 8) & 0xFF
         buf[3] = val & 0xFF
         this.insert(buf)
-    }
-
-    writeUInt64(val: number) {
-        const high = Math.floor(val / 0x100000000)
-        const low = val & 0xFFFFFFFF
-        this.writeUInt32(low)
-        this.writeUInt32(high)
-    }
-
-    writeInt64(val: number) {
-        const high = Math.floor(val / 0x100000000)
-        const low = val & 0xFFFFFFFF
-        this.writeInt32(low)
-        this.writeInt32(high)
     }
 
     writeFloat32(val: number) {

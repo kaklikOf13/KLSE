@@ -67,7 +67,7 @@ export class WebglRenderer extends Renderer{
         gl!.linkProgram(this.simple_program)
     }
     createShader(src:string, type:number):WebGLShader {
-        const shader = this.gl.createShader(type);
+        const shader = this.gl.createShader(type)
         if(shader){
             this.gl.shaderSource(shader, src)
             this.gl.compileShader(shader)

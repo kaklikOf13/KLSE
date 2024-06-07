@@ -2,23 +2,13 @@ import path from "path"
 export default {
   build:{
     outDir:"../../dist/client",
-    emptyOutDir:false,
-    /*rollupOptions: {
-      input: {
-          main: resolve(__dirname, "./index.html"),
-      }
-    }*/
+    emptyOutDir:false
   },
   resolve: {
     alias: {
-      /*entries:[
-        { find:"common",replacement:"../common"},
-        { find:"KLSE/CLIENT",replacement:"https://deno.land/x/klse@0.1.3/client_side/bundle.js"},
-        { find:"KLSE",replacement:"https://deno.land/x/klse@0.1.3/bundle.js"}
-      ],*/
       "common":path.resolve(__dirname,"../common"),
-      "KLSE/CLIENT":"https://deno.land/x/klse@0.1.3/client_side/bundle.js",
-      "KLSE":"https://deno.land/x/klse@0.1.3/bundle.js"
+      "KLSE/CLIENT":"https://deno.land/x/klse@0.1.5/client_side/bundle.js",
+      "KLSE":"https://deno.land/x/klse@0.1.5/bundle.js"
     },
   },
   server:{
