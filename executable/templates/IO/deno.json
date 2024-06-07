@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "cd client && deno task build && cd .. && cd server && deno task dev "
+    "dev": "cd client && deno task build && cd .. && cd server && deno task dev"
   },
   "lock": false,
   "importMap": "./common/config/deps.json"

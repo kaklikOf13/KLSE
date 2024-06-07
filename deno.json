@@ -1,12 +1,12 @@
 {
     "tasks": {
         "test_executable":"deno run -A executable/main.ts",
-        "build":"deno task bundle && rm -rf dist && deno compile --allow-read --allow-write --allow-run -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates",
+        "build":"deno task bundle && rm -rf dist && deno compile --allow-read --allow-write --allow-run --allow-net -o dist/KLSE.exe executable/main.ts && cp -r executable/templates dist/templates",
         "test:server":"deno run --watch -A test/test_server/server.ts",
         "test:server:websocket":"deno run -A test/test_server/websocket.ts",
         "bundle":"deno bundle mod.ts bundle.js && deno bundle client_side/mod.ts client_side/bundle.js"
     },
-    "version": "0.1.3",
+    "version": "0.1.4",
     "compilerOptions": {
         "lib": ["dom", "deno.ns"]
     }
