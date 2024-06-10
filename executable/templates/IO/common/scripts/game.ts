@@ -1,4 +1,4 @@
-import { GameObject, GameObjectsManager } from "KLSE"
+import { GameObject, GameObjectsManager, ID } from "KLSE"
 import { JoinPacket } from "./packets/join_packet.ts"
 
 export enum CATEGORYS{
@@ -14,4 +14,10 @@ export abstract class Game{
         this.manager.update()
     }
     abstract addPlayer(joinpacket:JoinPacket):GameObject
+    getPlayer(id:ID):GameObject{
+        return this.manager.categorys[CATEGORYS.PLAYERS].objs[id]
+    }
+    havePlayer(id:ID):boolean{
+        return Object.hasOwn(this.manager.categorys[CATEGORYS.PLAYERS].objs,id)
+    }
 }

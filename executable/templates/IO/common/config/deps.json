@@ -1,8 +1,8 @@
 {
     "imports":{
-        "KLSE":"https://deno.land/x/klse@0.1.5/mod.ts",
-        "KLSE/CLIENT":"https://deno.land/x/klse@0.1.5/client_side/mod.ts",
-        "KLSE/SERVER":"https://deno.land/x/klse@0.1.5/server_side/mod.ts",
+        "KLSE":"https://deno.land/x/klse@0.1.7/mod.ts",
+        "KLSE/CLIENT":"https://deno.land/x/klse@0.1.7/client_side/mod.ts",
+        "KLSE/SERVER":"https://deno.land/x/klse@0.1.7/server_side/mod.ts",
         "common/":"../"
     }
 }
