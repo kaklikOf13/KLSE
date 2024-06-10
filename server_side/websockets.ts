@@ -3,7 +3,6 @@ import { ConnectPacket, DisconnectPacket, PacketsManager,Packet } from "../utils
 import { ID,random_id } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
 export * from "../client_side/client.ts"
-import { Context } from "https://deno.land/x/oak/mod.ts"
 export class ClientsManager{
     clients:Map<ID,Client>
     packets_manager:PacketsManager
@@ -13,9 +12,9 @@ export class ClientsManager{
         this.packets_manager=new PacketsManager()
         this.onconnection=onconnection
     }
-    activate_ws(ws:WebSocket,ip:string):ID{
+    private activate_ws(ws:WebSocket,ip:string):ID{
         const client=new Client(ws,this.packets_manager,ip)
-        while (client.ID in this.clients){
+        while (this.clients.has(client.ID)){
             client.ID=random_id()
         }
         client.on("disconnect",(packet:DisconnectPacket)=>{
@@ -27,8 +26,8 @@ export class ClientsManager{
         return client.ID
     }
     emit(packet:Packet){
-        for(const i in this.clients){
-            this.clients.get(parseInt(i))!.emit(packet)
+        for(const i of this.clients.keys()){
+            this.clients.get(i)!.emit(packet)
         }
     }
     handler():(req:Request,url:string[],info:Deno.ServeHandlerInfo)=>Response|null{

@@ -99,6 +99,22 @@ class Tree extends Definitions {
         }
     }
 }
+class Server {
+    IP;
+    Port;
+    HTTP;
+    constructor(IP, Port, HTTP = false){
+        this.IP = IP;
+        this.Port = Port;
+        this.HTTP = HTTP;
+    }
+    toString() {
+        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
+    }
+}
+export { Definitions as Definitions };
+export { Tree as Tree };
+export { Server as Server };
 function float32ToUint32(value) {
     const floatView = new Float32Array(1);
     const intView = new Uint32Array(floatView.buffer);
@@ -944,17 +960,20 @@ class DisconnectPacket extends Packet {
         this.client_id = stream.readID();
     }
 }
+export { Packet as Packet };
+export { PacketsManager as PacketsManager };
+export { ConnectPacket as ConnectPacket };
+export { DisconnectPacket as DisconnectPacket };
 function random_int(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
 }
 function random_float(min, max) {
     return Math.random() * (max - min) + min;
 }
-export { Definitions as Definitions, Tree as Tree };
+export { random_int as random_int };
+export { random_float as random_float };
 export { GameObject as GameObject, CellsGameObjectsManager as GameObjectsManager };
 export { Vec as Vec, Angle as Angle, NullVector as NullVector };
 export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };
 export { Inventory as Inventory, Slot as Slot, Item as Item };
-export { PacketsManager as PacketsManager, Packet as Packet };
-export { random_int as random_int, random_float as random_float };
 export { NetStream as NetStream };

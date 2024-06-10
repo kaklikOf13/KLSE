@@ -6,6 +6,14 @@ import { serveFile } from "https://deno.land/std/http/file_server.ts"
 export type HandlerFunc = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Response | null
 export type HandlerFuncAsync = (req: Request, url_path: string[], info: Deno.ServeHandlerInfo) => Promise<Response | null>
 
+export function Cors(res:Response):Response{
+  res.headers.append("Access-Control-Allow-Origin", "*")
+  res.headers.append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res.headers.append("Access-Control-Allow-Headers", "origin, content-type, accept, x-requested-with")
+  res.headers.append("Access-Control-Max-Age", "3600")
+  return res
+}
+
 const FilesResponse: Record<string, (name: string) => Promise<Response | null>> = {
   ".html": async (name) => {
     try {
@@ -76,7 +84,6 @@ export class Router {
     } else if(url.length>1){
       const name = url[0]
       url.shift()
-      console.log(url,name,"aaa")
       if (this.sub_routers.has(name)) {
         this.sub_routers.get(name)!._route(url, handler)
       } else {

@@ -6,7 +6,7 @@
         "test:server:websocket":"deno run -A test/test_server/websocket.ts",
         "bundle":"deno bundle mod.ts bundle.js && deno bundle client_side/mod.ts client_side/bundle.js"
     },
-    "version": "0.1.5",
+    "version": "0.1.7",
     "compilerOptions": {
         "lib": ["dom", "deno.ns"]
     }
