@@ -1,4 +1,4 @@
-import { join, extname, basename, resolve } from "https://deno.land/std/path/mod.ts"
+import { join, extname } from "https://deno.land/std/path/mod.ts"
 import { splitPath } from "../utils/_utils.ts"
 import { existsSync } from "https://deno.land/std/fs/mod.ts"
 import { serveFile } from "https://deno.land/std/http/file_server.ts"
