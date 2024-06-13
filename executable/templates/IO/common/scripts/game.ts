@@ -1,17 +1,17 @@
-import { GameObject, GameObjectsManager } from "KLSE"
-import { JoinPacket } from "./packets/join_packet.ts"
+import { BaseGameObject, Game, ID } from "KLSE"
+import { JoinPacket } from "common/scripts/packets/join_packet.ts";
 
 export enum CATEGORYS{
     PLAYERS="players"
 }
-export abstract class Game{
-    manager:GameObjectsManager
-    constructor(thread:number,chunksize:number){
-        this.manager=new GameObjectsManager(thread,chunksize)
-        this.manager.add_category(CATEGORYS.PLAYERS)
+
+export abstract class MainGame extends Game{
+    constructor(tps:number,thread:number,chunckSize:number){
+        super(tps,thread,chunckSize)
+        this.add_category(CATEGORYS.PLAYERS)
     }
-    update(){
-        this.manager.update()
+    abstract addPlayer(joinpacket:JoinPacket):BaseGameObject
+    havePlayer(id:ID):boolean{
+        return this.exist_object(CATEGORYS.PLAYERS,id)
     }
-    abstract addPlayer(joinpacket:JoinPacket):GameObject
 }

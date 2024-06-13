@@ -26,14 +26,17 @@ export class Client{
             this.signals.emit(DefaultSignals.DISCONNECT,new DisconnectPacket(this.ID))
         }
         this.ws.onmessage=async(msg)=>{
-            if (msg.data instanceof Blob){
+            if (msg.data instanceof ArrayBuffer){
+                const packet=this.manager.decode(new NetStream(new Uint8Array(msg.data)))
+                this.signals.emit(packet.Name,packet)
+            }else if(msg.data instanceof Blob){
                 const packet=this.manager.decode(new NetStream(new Uint8Array(await msg.data.arrayBuffer())))
                 this.signals.emit(packet.Name,packet)
             }
         }
         this.IP=ip
         if(ip==""){
-            this.on("connect",(packet:ConnectPacket)=>{
+            this.on(DefaultSignals.CONNECT,(packet:ConnectPacket)=>{
                 this.ID=packet.client_id
             })
         }

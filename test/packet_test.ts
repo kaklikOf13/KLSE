@@ -10,10 +10,10 @@ class TestPacket1 extends Packet{
         this.number1=n1
     }
     encode(stream:NetStream):void{
-        stream.writeInt64(this.number1)
+        stream.writeInt32(this.number1)
     }
     decode(stream: NetStream): void {
-      this.number1=stream.readInt64()
+      this.number1=stream.readInt32()
     }
     toString():string{
         return `${this.number1}`
@@ -30,12 +30,12 @@ class TestPacket2 extends Packet{
         this.number2=n2
     }
     encode(stream:NetStream):void{
-        stream.writeInt64(this.number1)
-        stream.writeUInt16(this.number2)
+        stream.writeInt32(this.number1)
+        stream.writeUInt32(this.number2)
     }
     decode(stream: NetStream): void {
-      this.number1=stream.readInt64()
-      this.number2=stream.readUInt16()
+      this.number1=stream.readInt32()
+      this.number2=stream.readUInt32()
     }
     toString():string{
         return `${this.number1},${this.number2}`

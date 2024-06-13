@@ -1,6 +1,6 @@
-import { Server } from "KLSE/SERVER"
+import { Server,Cors } from "KLSE/SERVER"
 import { Game, GameConfig } from "./game.ts"
-import { ID } from "KLSE";
+import { ID } from "KLSE"
 export interface GameServerConfig{
     config:GameConfig,
     threads?:number,
@@ -15,13 +15,15 @@ export class GameServer{
         this.server=server
         this.config=config
         this.server.route("/api/get-game",(_req:Request,_url:string[], _info: Deno.ServeHandlerInfo)=>{
-            console.log("aaa")
-            return new Response("game/0",{status:200})
+            return Cors(new Response("game/0",{status:200}))
         })
         this.games={}
+        this.addGame(0)
     }
     addGame(id:ID,config?:GameConfig):Game{
-        this.games[id]=new Game(id,config ?? this.config.config,this.config.threads ?? 10,this.config.chunckSize ?? 15)
+        this.games[id]=new Game(id,config ?? this.config.config)
+        this.games[id].mainloop()
+        console.log(`Game ${id} Started`)
         this.server.route(`api/game/${id}/ws`,this.games[id].clients.handler())
         return this.games[id]
     }

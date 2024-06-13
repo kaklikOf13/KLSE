@@ -82,3 +82,27 @@ export class SignalManager {
         this.listeners.delete(signal)
     }
 }
+
+export class Clock {
+    private frameDuration: number;
+    private lastFrameTime: number;
+    public timeScale: number;
+
+    constructor(targetFPS: number, timeScale: number) {
+        this.frameDuration = 1000 / targetFPS;
+        this.lastFrameTime = Date.now();
+        this.timeScale = timeScale;
+    }
+
+    // deno-lint-ignore ban-types
+    public tick(callback:Function){
+        const currentTime = Date.now();
+        const elapsedTime=(currentTime-this.lastFrameTime)
+        const next_frame=(this.frameDuration-elapsedTime)
+        setTimeout(()=>{
+            this.lastFrameTime=currentTime
+            callback()
+            return 0
+        },next_frame)
+    }
+}
