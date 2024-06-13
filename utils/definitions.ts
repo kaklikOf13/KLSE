@@ -72,3 +72,66 @@ export class Server{
         return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`
     }
 }
+export class ExtendedMap<K, V> extends Map<K, V> {
+    private _get(key: K): V {
+        // it's up to callers to verify that the key is valid
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return super.get(key)!;
+    }
+
+    /**
+     * Retrieves the value at a given key, placing (and returning) a user-defined
+     * default value if no mapping for the key exists
+     * @param key      The key to retrieve from
+     * @param fallback A value to place at the given key if it currently not associated with a value
+     * @returns The value emplaced at key `key`; either the one that was already there or `fallback` if
+     *          none was present
+     */
+    getAndSetIfAbsent(key: K, fallback: V): V {
+        // pretty obvious why this is okay
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (this.has(key)) return this.get(key)!;
+
+        this.set(key, fallback);
+        return fallback;
+    }
+
+    /**
+     * Retrieves the value at a given key, placing (and returning) a user-defined
+     * default value if no mapping for the key exists
+     * @param key      The key to retrieve from
+     * @param fallback A function providing a value to place at the given key if it currently not
+     *                 associated with a value
+     * @returns The value emplaced at key `key`; either the one that was already there
+     *          or the result of `fallback` if none was present
+     */
+    getAndGetDefaultIfAbsent(key: K, fallback: () => V): V {
+        // pretty obvious why this is okay
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (this.has(key)) return this.get(key)!;
+
+        const value = fallback();
+        this.set(key, value);
+        return value;
+    }
+
+    ifPresent(key: K, callback: (obstacle: V) => void): void {
+        this.ifPresentOrElse(key, callback, () => { /* no-op */ });
+    }
+
+    ifPresentOrElse(key: K, callback: (obstacle: V) => void, ifAbsent: () => void): void {
+        const mappingPresent = super.has(key);
+
+        if (!mappingPresent) {
+            return ifAbsent();
+        }
+
+        callback(this._get(key));
+    }
+
+    mapIfPresent<U = V>(key: K, mapper: (value: V) => U): U | undefined {
+        if (!super.has(key)) return undefined;
+
+        return mapper(this._get(key));
+    }
+}

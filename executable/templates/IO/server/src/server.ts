@@ -21,7 +21,9 @@ export class GameServer{
         this.addGame(0)
     }
     addGame(id:ID,config?:GameConfig):Game{
-        this.games[id]=new Game(id,config ?? this.config.config,this.config.threads ?? 10,this.config.chunckSize ?? 15)
+        this.games[id]=new Game(id,config ?? this.config.config)
+        this.games[id].mainloop()
+        console.log(`Game ${id} Started`)
         this.server.route(`api/game/${id}/ws`,this.games[id].clients.handler())
         return this.games[id]
     }

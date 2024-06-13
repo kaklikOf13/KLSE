@@ -4,17 +4,19 @@ import { ID,Tags,combineWithoutEqual,random_id } from "./_utils.ts"
 
 export type GameObjectID=ID
 export type Categorys=Tags
-export abstract class GameObject{
+export abstract class BaseGameObject{
     public hb:Hitbox
     public destroyed:boolean
     public id:GameObjectID
     public parent:SimpleGameObjectsManager|null
     public overlaps:Categorys
     public collides:Categorys
+    public category:string
     public get position():Vector{
         return this.hb ? this.hb.position : NullVector
     }
     constructor(){
+        this.category=""
         this.hb=new NullHitbox()
         this.destroyed=false
         this.id=0
@@ -23,9 +25,9 @@ export abstract class GameObject{
         this.collides=[]
     }
     abstract update():void
-    on_collide_with(_obj:GameObject):void{}
-    on_overlap_with(_obj:GameObject):void{}
-    copy():GameObject{
+    on_collide_with(_obj:BaseGameObject):void{}
+    on_overlap_with(_obj:BaseGameObject):void{}
+    copy():BaseGameObject{
         return Object.assign({}, this)
     }
 }
@@ -34,19 +36,16 @@ interface ObjectKey {category:string,id:GameObjectID}
 function newObjectKey(category:string,id:GameObjectID):ObjectKey{
     return {category:category,id:id}
 }
-interface Category {objs:Record<GameObjectID,GameObject>,orden:GameObjectID[]}
-function newCategory():Category{
-    return { objs:{}, orden:[]}
-}
+interface Category<GameObjectB extends BaseGameObject> {objs:Record<GameObjectID,GameObjectB>,orden:GameObjectID[]}
 
-export class SimpleGameObjectsManager{
-    public categorys:Record<string,Category>
+export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGameObject>{
+    public categorys:Record<string,Category<GameObjectB>>
     constructor(){
         this.categorys={}
     }
     // deno-lint-ignore no-explicit-any
-    after_update():any{}
-    begin_update(){}
+    protected after_update():any{}
+    protected begin_update(){}
     // deno-lint-ignore no-explicit-any
     update():any{
         this.begin_update()
@@ -65,7 +64,7 @@ export class SimpleGameObjectsManager{
         }
         return this.after_update()
     }
-    update_object(obj:ObjectKey){
+    protected update_object(obj:ObjectKey){
         const obji=this.categorys[obj.category].objs[obj.id]
         const a=combineWithoutEqual(obji.collides,obji.overlaps)
         for(const c2 of a){
@@ -75,32 +74,34 @@ export class SimpleGameObjectsManager{
             }
         }
     }
-    solve_collision_overlap(objA:ObjectKey,objB:ObjectKey){
+    protected solve_collision_overlap(objA:ObjectKey,objB:ObjectKey){
         if(!(objA.id==objB.id&&objA.category==objB.category)&&this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)){
             this.categorys[objA.category].objs[objA.id].on_overlap_with(this.categorys[objB.category].objs[objB.id])
         }
     }
-    solve_collision_normal(objA:ObjectKey,objB:ObjectKey){
+    protected solve_collision_normal(objA:ObjectKey,objB:ObjectKey){
         if(!(objA.id==objB.id&&objA.category==objB.category)&&this.categorys[objA.category].objs[objA.id].hb.collidingWith(this.categorys[objB.category].objs[objB.id].hb)){
             this.categorys[objA.category].objs[objA.id].on_collide_with(this.categorys[objB.category].objs[objB.id])
         }
     }
-    add_object(category:string,obj:GameObject,id?:GameObjectID){
-        if(!id){
+    add_object(category:string,obj:GameObjectB,id?:GameObjectID){
+        if(id===undefined){
             id=random_id()
         }
         obj.id=id
         obj.parent=this
+        obj.category=category
         this.categorys[category].objs[id]=obj
         this.categorys[category].orden.push(id)
     }
-    get_object<Type extends GameObject>(category:string,id:GameObjectID):Type{
-        // deno-lint-ignore ban-ts-comment
-        //@ts-expect-error
-        return this.categorys[category].objs[id]
+    get_object<Type extends GameObjectB>(category:string,id:GameObjectID):Type{
+        return this.categorys[category].objs[id] as Type
+    }
+    exist_object(category:string,id:GameObjectID):boolean{
+        return Object.hasOwn(this.categorys[category].objs,id)
     }
     add_category(name:string){
-        this.categorys[name]=newCategory()
+        this.categorys[name]={objs:{},orden:[]}
     }
 }
 
@@ -146,7 +147,7 @@ export class CellsGameObjectsManager extends SimpleGameObjectsManager{
             this.cells.set(ch,{objs:{[obj.category]:[obj.id]},pos:c})
         }
     }
-    update_especific_cells(keys:HashVector[]):Promise<void>{
+    private update_especific_cells(keys:HashVector[]):Promise<void>{
         return new Promise((resolve, _reject)=>{
             for(const cc of keys){
                 this.update_cell(cc)
@@ -154,7 +155,7 @@ export class CellsGameObjectsManager extends SimpleGameObjectsManager{
             resolve()
         })
     }
-    update_cell(c:HashVector){
+    private update_cell(c:HashVector){
         const cp=this.cells.get(c)!.pos
         for(let yy=-1; yy<=1; yy++){
             for(let xx=-1; xx<=1; xx++){

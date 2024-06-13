@@ -5,9 +5,9 @@ import { Server } from "./config.ts";
 (async() => {
     const canvas=createCanvas(Vec.new(1000,500))
     document.body.appendChild(canvas)
-    const renderer=new Renderer(canvas)
+    const renderer=new Renderer(canvas,0.01)
 
-    const g=new Game(`ws${new Server("localhost",8080)}/${await getGame("http://localhost:8080")}`,renderer,10,10)
+    const g=new Game(`ws${new Server("localhost",8080)}/${await getGame("http://localhost:8080")}`,renderer)
     function loop(){
         g.update()
         self.requestAnimationFrame(loop)

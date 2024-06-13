@@ -6,6 +6,10 @@ export const GameConstants={
         defaultName:"player"
     },
     tps:30,
+    collision:{
+        threads:2,
+        chunckSize:20
+    }
 }
 export const PacketManager:PacketsManager=new PacketsManager()
 PacketManager.add_packet(JoinPacket)

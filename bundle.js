@@ -40,6 +40,58 @@ function combineWithoutEqual(...arrays) {
     }
     return resultado;
 }
+class SignalManager {
+    listeners;
+    constructor(){
+        this.listeners = new Map();
+    }
+    on(signal, callback) {
+        if (!this.listeners.has(signal)) {
+            this.listeners.set(signal, []);
+        }
+        this.listeners.get(signal).push(callback);
+    }
+    off(signal, callback) {
+        const signalListeners = this.listeners.get(signal);
+        if (signalListeners) {
+            const index = signalListeners.indexOf(callback);
+            if (index !== -1) {
+                signalListeners.splice(index, 1);
+            }
+        }
+    }
+    emit(signal, ...parameters) {
+        const signalListeners = this.listeners.get(signal);
+        if (signalListeners) {
+            for (const listener of signalListeners){
+                listener(...parameters);
+            }
+        }
+    }
+    clear(signal) {
+        this.listeners.delete(signal);
+    }
+}
+class Clock {
+    frameDuration;
+    lastFrameTime;
+    timeScale;
+    constructor(targetFPS, timeScale){
+        this.frameDuration = 1000 / targetFPS;
+        this.lastFrameTime = Date.now();
+        this.timeScale = timeScale;
+    }
+    tick(callback) {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - this.lastFrameTime;
+        const next_frame = this.frameDuration - elapsedTime;
+        setTimeout(()=>{
+            this.lastFrameTime = currentTime;
+            callback();
+            return 0;
+        }, next_frame);
+    }
+}
 class Definitions {
     value;
     constructor(){
@@ -112,9 +164,40 @@ class Server {
         return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
     }
 }
+class ExtendedMap extends Map {
+    _get(key) {
+        return super.get(key);
+    }
+    getAndSetIfAbsent(key, fallback) {
+        if (this.has(key)) return this.get(key);
+        this.set(key, fallback);
+        return fallback;
+    }
+    getAndGetDefaultIfAbsent(key, fallback) {
+        if (this.has(key)) return this.get(key);
+        const value = fallback();
+        this.set(key, value);
+        return value;
+    }
+    ifPresent(key, callback) {
+        this.ifPresentOrElse(key, callback, ()=>{});
+    }
+    ifPresentOrElse(key, callback, ifAbsent) {
+        const mappingPresent = super.has(key);
+        if (!mappingPresent) {
+            return ifAbsent();
+        }
+        callback(this._get(key));
+    }
+    mapIfPresent(key, mapper) {
+        if (!super.has(key)) return undefined;
+        return mapper(this._get(key));
+    }
+}
 export { Definitions as Definitions };
 export { Tree as Tree };
 export { Server as Server };
+export { ExtendedMap as ExtendedMap };
 function float32ToUint32(value) {
     const floatView = new Float32Array(1);
     const intView = new Uint32Array(floatView.buffer);
@@ -420,17 +503,19 @@ class RectHitbox extends BaseHitbox {
         this.size = Vec.scale(this.size, scale);
     }
 }
-class GameObject {
+class BaseGameObject {
     hb;
     destroyed;
     id;
     parent;
     overlaps;
     collides;
+    category;
     get position() {
         return this.hb ? this.hb.position : NullVector;
     }
     constructor(){
+        this.category = "";
         this.hb = new NullHitbox();
         this.destroyed = false;
         this.id = 0;
@@ -448,12 +533,6 @@ function newObjectKey(category, id) {
     return {
         category: category,
         id: id
-    };
-}
-function newCategory() {
-    return {
-        objs: {},
-        orden: []
     };
 }
 class SimpleGameObjectsManager {
@@ -501,19 +580,26 @@ class SimpleGameObjectsManager {
         }
     }
     add_object(category, obj, id) {
-        if (!id) {
+        if (id === undefined) {
             id = random_id();
         }
         obj.id = id;
         obj.parent = this;
+        obj.category = category;
         this.categorys[category].objs[id] = obj;
         this.categorys[category].orden.push(id);
     }
     get_object(category, id) {
         return this.categorys[category].objs[id];
     }
+    exist_object(category, id) {
+        return Object.hasOwn(this.categorys[category].objs, id);
+    }
     add_category(name) {
-        this.categorys[name] = newCategory();
+        this.categorys[name] = {
+            objs: {},
+            orden: []
+        };
     }
 }
 class CellsGameObjectsManager extends SimpleGameObjectsManager {
@@ -599,6 +685,45 @@ class CellsGameObjectsManager extends SimpleGameObjectsManager {
         }
     }
 }
+var CATEGORYS;
+(function(CATEGORYS) {
+    CATEGORYS["PLAYERS"] = "players";
+})(CATEGORYS || (CATEGORYS = {}));
+var GenericEvents;
+(function(GenericEvents) {
+    GenericEvents["GameStart"] = "Game Start";
+    GenericEvents["GameTick"] = "Game Tick";
+})(GenericEvents || (GenericEvents = {}));
+class GamePlugin {
+}
+class Game extends CellsGameObjectsManager {
+    tps;
+    clock;
+    running = true;
+    events;
+    constructor(tps, thread, chunksize){
+        super(thread, chunksize);
+        this.tps = tps;
+        this.events = new SignalManager();
+        this.clock = new Clock(tps, 1);
+    }
+    update() {
+        CellsGameObjectsManager.prototype.update.call(this);
+        this.events.emit(GenericEvents.GameTick);
+        this.clock.tick(this.update.bind(this));
+    }
+    mainloop() {
+        return new Promise((resolve)=>{
+            this.events.emit(GenericEvents.GameStart);
+            this.update();
+            resolve();
+        });
+    }
+}
+export { CATEGORYS as CATEGORYS };
+export { GenericEvents as GenericEvents };
+export { GamePlugin as GamePlugin };
+export { Game as Game };
 class Item {
     limit_per_slot = 1;
     tags = [];
@@ -972,7 +1097,7 @@ function random_float(min, max) {
 }
 export { random_int as random_int };
 export { random_float as random_float };
-export { GameObject as GameObject, CellsGameObjectsManager as GameObjectsManager };
+export { BaseGameObject as BaseGameObject, CellsGameObjectsManager as GameObjectsManager };
 export { Vec as Vec, Angle as Angle, NullVector as NullVector };
 export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };
 export { Inventory as Inventory, Slot as Slot, Item as Item };

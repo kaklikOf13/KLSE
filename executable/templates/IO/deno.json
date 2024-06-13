@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "dev": "cd client && deno task build && cd .. && cd server && deno task dev"
+    "dev": "cd client && deno task build && cd .. && cd server && deno task dev",
+    "clear":"rm -rf dist"
   },
   "lock": false,
   "importMap": "./common/config/deps.json",

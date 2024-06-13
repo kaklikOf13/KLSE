@@ -1,8 +1,8 @@
-import { CircleHitbox, GameObject, Vec } from "KLSE";
+import { CircleHitbox, BaseGameObject, Vec } from "KLSE";
 import { GameConstants } from "../constants.ts";
 import { JoinPacket } from "../packets/join_packet.ts";
 
-export abstract class PlayerBase extends GameObject{
+export abstract class PlayerBase extends BaseGameObject{
     Name:string
     constructor(){
         super()
