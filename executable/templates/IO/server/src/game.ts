@@ -4,6 +4,7 @@ import { JoinPacket } from "common/scripts/packets/join_packet.ts";
 import { Player } from "./gameObjects/player.ts";
 import { ID } from "KLSE";
 import { GameConstants, PacketManager } from "common/scripts/constants.ts";
+import { UpdatePacket } from "common/scripts/packets/update_packet.ts";
 export interface GameConfig{
     maxPlayers:number
 }
@@ -13,11 +14,13 @@ export class Game extends GameBase{
     public can_join:boolean
     public config:GameConfig
     public id:ID=1
+    public update_packet:UpdatePacket
     constructor(id:ID,config:GameConfig){
         super(GameConstants.tps,GameConstants.collision.threads,GameConstants.collision.chunckSize)
         this.id=id
         this.can_join=true
         this.config=config
+        this.update_packet=new UpdatePacket([])
         this.clients=new ClientsManager((client:Client)=>{
             client.on("join",(packet:JoinPacket)=>{
                 if (this.can_join&&!this.havePlayer(client.ID)){
@@ -27,12 +30,16 @@ export class Game extends GameBase{
             })
             client.on(DefaultSignals.DISCONNECT,()=>{
                 if(this.havePlayer(client.ID)){
-                    console.log((this.get_object(CATEGORYS.PLAYERS,client.ID) as Player).Name,"disconnect")
                     this.categorys[CATEGORYS.PLAYERS].objs[client.ID].destroyed=true
                 }
             })
         })
         this.clients.packets_manager=PacketManager
+    }
+    update(): void {
+        GameBase.prototype.update.call(this)
+        this.clients.emit(this.update_packet)
+        this.update_packet=new UpdatePacket([])
     }
     addPlayer(joinpacket: JoinPacket): Player {
         const player=new Player
