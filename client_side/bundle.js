@@ -432,9 +432,11 @@ class Renderer {
     }
 }
 const rectVertexShaderSource = `
-attribute vec4 a_Position;
+attribute vec2 a_Position;
+uniform mat4 u_ProjectionMatrix;
+
 void main() {
-    gl_Position = a_Position;
+    gl_Position = u_ProjectionMatrix * vec4(a_Position, 0.0, 1.0);
 }`;
 const rectFragmentShaderSource = `
 #ifdef GL_ES
@@ -450,6 +452,7 @@ class WebglRenderer extends Renderer {
     gl;
     simple_program;
     background = RGBA.new(255, 255, 255);
+    projectionMatrix;
     constructor(canvas, meter_size = 100, background = RGBA.new(255, 255, 255)){
         super(canvas, meter_size);
         const gl = this.canvas.getContext("webgl");
@@ -461,6 +464,26 @@ class WebglRenderer extends Renderer {
         gl.attachShader(simple_program, this.createShader(rectFragmentShaderSource, gl.FRAGMENT_SHADER));
         this.simple_program = simple_program;
         gl.linkProgram(this.simple_program);
+        const scaleX = 2 / (this.canvas.width / this.meter_size);
+        const scaleY = 2 / (this.canvas.height / this.meter_size);
+        this.projectionMatrix = new Float32Array([
+            scaleX,
+            0,
+            0,
+            0,
+            0,
+            -scaleY,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -1,
+            1,
+            0,
+            1
+        ]);
     }
     createShader(src, type) {
         const shader = this.gl.createShader(type);
@@ -484,13 +507,15 @@ class WebglRenderer extends Renderer {
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
         const colorUniformLocation = this.gl.getUniformLocation(this.simple_program, "a_Color");
         this.gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
+        const projectionMatrixLocation = this.gl.getUniformLocation(this.simple_program, "u_ProjectionMatrix");
+        this.gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
     draw_rect(rect, color) {
         const x1 = rect.position.x;
-        const y1 = -rect.position.y;
+        const y1 = rect.position.y;
         const x2 = rect.position.x + rect.size.x;
-        const y2 = -(rect.position.y + rect.size.y);
+        const y2 = rect.position.y + rect.size.y;
         this._draw_vertices([
             x1,
             y1,
@@ -543,5 +568,12 @@ function createCanvas(size, pixelated = true, center = true) {
     }
     return canvas;
 }
+function applyBorder(elem) {
+    elem.style.border = "1px solid #000";
+}
+function applyShadow(elem) {
+    elem.style.boxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
+    elem.style.webkitBoxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
+}
 export { Client as Client, ConnectPacket as ConnectPacket, DefaultSignals as DefaultSignals, DisconnectPacket as DisconnectPacket };
-export { WebglRenderer as Renderer, RGBA as RGBA, createCanvas as createCanvas };
+export { WebglRenderer as Renderer, RGBA as RGBA, createCanvas as createCanvas, applyBorder as applyBorder, applyShadow as applyShadow };
