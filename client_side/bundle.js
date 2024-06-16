@@ -532,14 +532,14 @@ class WebglRenderer extends Renderer {
         ], color);
     }
     draw_circle(circle, color, precision = 50) {
-        const centerX = circle.position.x + circle.radius;
-        const centerY = -circle.position.y - circle.radius;
+        const centerX = (circle.position.x + circle.radius) * this.meter_size;
+        const centerY = (circle.position.y + circle.radius) * this.meter_size;
         const angleIncrement = 2 * Math.PI / precision;
         const vertices = [];
         for(let i = 0; i < precision; i++){
             const angle = angleIncrement * i;
-            const x = centerX + circle.radius * Math.cos(angle);
-            const y = centerY + circle.radius * Math.sin(angle);
+            const x = centerX + circle.radius * this.meter_size * Math.cos(angle);
+            const y = centerY + circle.radius * this.meter_size * Math.sin(angle);
             vertices.push(x, y);
         }
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
