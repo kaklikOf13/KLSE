@@ -532,14 +532,16 @@ class WebglRenderer extends Renderer {
         ], color);
     }
     draw_circle(circle, color, precision = 50) {
-        const centerX = (circle.position.x + circle.radius) * this.meter_size;
-        const centerY = (circle.position.y + circle.radius) * this.meter_size;
+        const centerX = circle.position.x;
+        const centerY = circle.position.y;
+        const radius = circle.radius;
         const angleIncrement = 2 * Math.PI / precision;
         const vertices = [];
-        for(let i = 0; i < precision; i++){
+        vertices.push(centerX, centerY);
+        for(let i = 0; i <= precision; i++){
             const angle = angleIncrement * i;
-            const x = centerX + circle.radius * this.meter_size * Math.cos(angle);
-            const y = centerY + circle.radius * this.meter_size * Math.sin(angle);
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
             vertices.push(x, y);
         }
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
@@ -575,5 +577,440 @@ function applyShadow(elem) {
     elem.style.boxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
     elem.style.webkitBoxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
 }
+const Collision = Object.freeze({
+    circle_with_rect (hb1, hb2) {
+        const cp = Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size));
+        const dist = Vec.distance(hb1.position, cp);
+        return dist < hb1.radius * hb1.radius || hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x;
+    },
+    circle_with_rect_ov (hb1, hb2) {
+        if (hb2.position.x <= hb1.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb2.position.y <= hb1.position.y && hb1.position.y <= hb2.position.y + hb2.size.y) {
+            const halfDim = Vec.dscale(Vec.sub(Vec.add(hb2.position, hb2.size), hb2.position), 2);
+            const p = Vec.sub(hb1.position, Vec.add(hb2.position, halfDim));
+            const p2 = Vec.sub(Vec.sub(Vec.absolute(p), halfDim), Vec.new(hb1.radius, hb1.radius));
+            return p2.x > p2.y ? [
+                Vec.new(p.x > 0 ? 1 : -1, 0),
+                -p2.x
+            ] : [
+                Vec.new(0, p.y > 0 ? 1 : -1),
+                -p2.y
+            ];
+        }
+        const dir = Vec.sub(Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size)), hb1.position);
+        const dstSqr = Vec.squared(dir);
+        if (dstSqr < hb1.radius * hb1.radius) {
+            const dst = Math.sqrt(dstSqr);
+            return [
+                Vec.normalizeSafe(dir),
+                hb1.radius - dst
+            ];
+        }
+        return null;
+    }
+});
+var HitboxType;
+(function(HitboxType) {
+    HitboxType[HitboxType["circle"] = 0] = "circle";
+    HitboxType[HitboxType["rect"] = 1] = "rect";
+    HitboxType[HitboxType["null"] = 2] = "null";
+})(HitboxType || (HitboxType = {}));
+class BaseHitbox {
+    position;
+    constructor(position){
+        this.position = position;
+    }
+    is_null() {
+        return false;
+    }
+}
+class NullHitbox extends BaseHitbox {
+    constructor(){
+        super(NullVector);
+    }
+    type = HitboxType.null;
+    collidingWith(_other) {
+        return false;
+    }
+    pointInside(_point) {
+        return false;
+    }
+    overlapCollision(_other) {
+        return false;
+    }
+    center() {
+        return NullVector;
+    }
+    scale(_scale) {}
+    is_null() {
+        return true;
+    }
+}
+class CircleHitbox extends BaseHitbox {
+    type = HitboxType.circle;
+    radius;
+    constructor(position, radius){
+        super(position);
+        this.radius = radius;
+    }
+    collidingWith(other) {
+        switch(other.type){
+            case HitboxType.circle:
+                return Vec.distance(this.position, other.position) < this.radius + other.radius;
+            case HitboxType.rect:
+                return Collision.circle_with_rect(this, other);
+        }
+        return false;
+    }
+    overlapCollision(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.circle:
+                    {
+                        const r = this.radius + other.radius;
+                        const dis = Vec.sub(this.position, other.position);
+                        const dist = Vec.squared(dis);
+                        if (dist < r * r) {
+                            this.position = Vec.sub(this.position, Vec.scale(Vec.normalizeSafe(dis), r - Math.sqrt(dist)));
+                            return true;
+                        }
+                        break;
+                    }
+                case HitboxType.rect:
+                    {
+                        const result = Collision.circle_with_rect_ov(this, other);
+                        if (result) {
+                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
+                            return true;
+                        }
+                        break;
+                    }
+            }
+        }
+        return false;
+    }
+    pointInside(point) {
+        return Vec.distance(this.position, point) < this.radius;
+    }
+    center() {
+        return this.position;
+    }
+    scale(scale) {
+        this.radius *= scale;
+    }
+}
+class RectHitbox extends BaseHitbox {
+    type = HitboxType.rect;
+    size;
+    constructor(position, size){
+        super(position);
+        this.size = size;
+    }
+    collidingWith(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y;
+                case HitboxType.circle:
+                    return Collision.circle_with_rect(other, this);
+            }
+        }
+        return false;
+    }
+    overlapCollision(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    {
+                        const ss = Vec.dscale(Vec.add(this.position, other.position), 2);
+                        const dist = Vec.sub(this.center(), other.center());
+                        if (Vec.less(Vec.absolute(dist), ss)) {
+                            const overlap = Vec.sub(ss, Vec.absolute(dist));
+                            if (overlap.x < overlap.y) {
+                                this.position.x = dist.x > 0 ? this.position.x + overlap.x : this.position.x - overlap.x;
+                            } else {
+                                this.position.y = dist.y > 0 ? this.position.y + overlap.y : this.position.y - overlap.y;
+                            }
+                            return true;
+                        }
+                        break;
+                    }
+                case HitboxType.circle:
+                    {
+                        const result = Collision.circle_with_rect_ov(other, this);
+                        if (result) {
+                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
+                            return true;
+                        }
+                        break;
+                    }
+            }
+        }
+        return false;
+    }
+    pointInside(point) {
+        return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y;
+    }
+    center() {
+        return Vec.add(this.position, Vec.dscale(this.size, 2));
+    }
+    scale(scale) {
+        this.size = Vec.scale(this.size, scale);
+    }
+}
+var CATEGORYS;
+(function(CATEGORYS) {
+    CATEGORYS["PLAYERS"] = "players";
+})(CATEGORYS || (CATEGORYS = {}));
+var GenericEvents;
+(function(GenericEvents) {
+    GenericEvents["GameStart"] = "Game Start";
+    GenericEvents["GameTick"] = "Game Tick";
+})(GenericEvents || (GenericEvents = {}));
+var Key;
+(function(Key) {
+    Key[Key["A"] = 0] = "A";
+    Key[Key["B"] = 1] = "B";
+    Key[Key["C"] = 2] = "C";
+    Key[Key["D"] = 3] = "D";
+    Key[Key["E"] = 4] = "E";
+    Key[Key["F"] = 5] = "F";
+    Key[Key["G"] = 6] = "G";
+    Key[Key["H"] = 7] = "H";
+    Key[Key["I"] = 8] = "I";
+    Key[Key["J"] = 9] = "J";
+    Key[Key["K"] = 10] = "K";
+    Key[Key["L"] = 11] = "L";
+    Key[Key["M"] = 12] = "M";
+    Key[Key["N"] = 13] = "N";
+    Key[Key["O"] = 14] = "O";
+    Key[Key["P"] = 15] = "P";
+    Key[Key["Q"] = 16] = "Q";
+    Key[Key["R"] = 17] = "R";
+    Key[Key["S"] = 18] = "S";
+    Key[Key["T"] = 19] = "T";
+    Key[Key["U"] = 20] = "U";
+    Key[Key["V"] = 21] = "V";
+    Key[Key["W"] = 22] = "W";
+    Key[Key["X"] = 23] = "X";
+    Key[Key["Y"] = 24] = "Y";
+    Key[Key["Z"] = 25] = "Z";
+    Key[Key["Number_0"] = 26] = "Number_0";
+    Key[Key["Number_1"] = 27] = "Number_1";
+    Key[Key["Number_2"] = 28] = "Number_2";
+    Key[Key["Number_3"] = 29] = "Number_3";
+    Key[Key["Number_4"] = 30] = "Number_4";
+    Key[Key["Number_5"] = 31] = "Number_5";
+    Key[Key["Number_6"] = 32] = "Number_6";
+    Key[Key["Number_7"] = 33] = "Number_7";
+    Key[Key["Number_8"] = 34] = "Number_8";
+    Key[Key["Number_9"] = 35] = "Number_9";
+    Key[Key["Enter"] = 36] = "Enter";
+    Key[Key["Backspace"] = 37] = "Backspace";
+    Key[Key["Space"] = 38] = "Space";
+    Key[Key["Delete"] = 39] = "Delete";
+    Key[Key["Tab"] = 40] = "Tab";
+    Key[Key["LShift"] = 41] = "LShift";
+    Key[Key["RShift"] = 42] = "RShift";
+    Key[Key["LCtrl"] = 43] = "LCtrl";
+    Key[Key["RCtrl"] = 44] = "RCtrl";
+    Key[Key["LALT"] = 45] = "LALT";
+    Key[Key["RALT"] = 46] = "RALT";
+    Key[Key["Arrow_Up"] = 47] = "Arrow_Up";
+    Key[Key["Arrow_Down"] = 48] = "Arrow_Down";
+    Key[Key["Arrow_Left"] = 49] = "Arrow_Left";
+    Key[Key["Arrow_Right"] = 50] = "Arrow_Right";
+    Key[Key["Mouse_Left"] = 51] = "Mouse_Left";
+    Key[Key["Mouse_Middle"] = 52] = "Mouse_Middle";
+    Key[Key["Mouse_Right"] = 53] = "Mouse_Right";
+    Key[Key["Mouse_Option1"] = 54] = "Mouse_Option1";
+    Key[Key["Mouse_Option2"] = 55] = "Mouse_Option2";
+})(Key || (Key = {}));
+const JSKeys = {
+    [Key.A]: 65,
+    [Key.B]: 66,
+    [Key.C]: 67,
+    [Key.D]: 68,
+    [Key.E]: 69,
+    [Key.F]: 70,
+    [Key.G]: 71,
+    [Key.H]: 72,
+    [Key.I]: 73,
+    [Key.J]: 74,
+    [Key.K]: 75,
+    [Key.L]: 76,
+    [Key.M]: 77,
+    [Key.N]: 78,
+    [Key.O]: 79,
+    [Key.P]: 80,
+    [Key.Q]: 81,
+    [Key.R]: 82,
+    [Key.S]: 83,
+    [Key.T]: 84,
+    [Key.U]: 85,
+    [Key.V]: 86,
+    [Key.W]: 87,
+    [Key.X]: 88,
+    [Key.Y]: 89,
+    [Key.Z]: 100,
+    [Key.Number_0]: 48,
+    [Key.Number_1]: 49,
+    [Key.Number_2]: 50,
+    [Key.Number_3]: 51,
+    [Key.Number_4]: 52,
+    [Key.Number_5]: 53,
+    [Key.Number_6]: 54,
+    [Key.Number_7]: 55,
+    [Key.Number_8]: 56,
+    [Key.Number_9]: 57,
+    [Key.Enter]: 13,
+    [Key.Backspace]: 8,
+    [Key.Space]: 32,
+    [Key.Delete]: 46,
+    [Key.Tab]: 9,
+    [Key.LShift]: 16,
+    [Key.RShift]: 16,
+    [Key.LCtrl]: 17,
+    [Key.RCtrl]: 17,
+    [Key.LALT]: 18,
+    [Key.RALT]: 18,
+    [Key.Arrow_Up]: 38,
+    [Key.Arrow_Down]: 40,
+    [Key.Arrow_Left]: 37,
+    [Key.Arrow_Right]: 39,
+    [Key.Mouse_Left]: 300,
+    [Key.Mouse_Middle]: 301,
+    [Key.Mouse_Right]: 302,
+    [Key.Mouse_Option1]: 303,
+    [Key.Mouse_Option2]: 304
+};
+const KeyNames = {
+    65: Key.A,
+    66: Key.B,
+    67: Key.C,
+    68: Key.D,
+    69: Key.E,
+    70: Key.F,
+    71: Key.G,
+    72: Key.H,
+    73: Key.I,
+    74: Key.J,
+    75: Key.K,
+    76: Key.L,
+    77: Key.M,
+    78: Key.N,
+    79: Key.O,
+    80: Key.P,
+    81: Key.Q,
+    82: Key.R,
+    83: Key.S,
+    84: Key.T,
+    85: Key.U,
+    86: Key.V,
+    87: Key.W,
+    88: Key.X,
+    89: Key.Y,
+    100: Key.Z,
+    48: Key.Number_0,
+    49: Key.Number_1,
+    50: Key.Number_2,
+    51: Key.Number_3,
+    52: Key.Number_4,
+    53: Key.Number_5,
+    54: Key.Number_6,
+    55: Key.Number_7,
+    56: Key.Number_8,
+    57: Key.Number_9,
+    13: Key.Enter,
+    8: Key.Backspace,
+    32: Key.Space,
+    46: Key.Delete,
+    9: Key.Tab,
+    16: Key.LShift,
+    17: Key.LCtrl,
+    18: Key.LALT,
+    38: Key.Arrow_Up,
+    40: Key.Arrow_Down,
+    37: Key.Arrow_Left,
+    39: Key.Arrow_Right,
+    301: Key.Mouse_Left,
+    302: Key.Mouse_Middle,
+    303: Key.Mouse_Right,
+    304: Key.Mouse_Option1,
+    305: Key.Mouse_Option2
+};
+var Events;
+(function(Events) {
+    Events["KeyDown"] = "keydown";
+    Events["KeyUp"] = "keyup";
+})(Events || (Events = {}));
+class KeyListener {
+    keys;
+    keysdown;
+    keysup;
+    listener;
+    constructor(){
+        this.keys = [];
+        this.keysdown = [];
+        this.keysup = [];
+        this.listener = new SignalManager();
+    }
+    bind(elem) {
+        elem.addEventListener("keydown", (e)=>{
+            this.keysdown.push(e.keyCode);
+            this.keys.push(e.keyCode);
+            this.listener.emit(Events.KeyDown, KeyNames[e.keyCode]);
+        });
+        elem.addEventListener("keyup", (e)=>{
+            this.keys.splice(this.keys.indexOf(e.keyCode));
+            this.keysup.push(e.keyCode);
+            this.listener.emit(Events.KeyUp, KeyNames[e.keyCode]);
+        });
+        elem.addEventListener("mousedown", (e)=>{
+            this.keysdown.push(e.button + 300);
+            this.keys.push(e.button + 300);
+            this.listener.emit(Events.KeyDown, KeyNames[e.button + 300]);
+        });
+        elem.addEventListener("mouseup", (e)=>{
+            this.keys.splice(this.keys.indexOf(e.button + 300));
+            this.keysup.push(e.button + 300);
+            this.listener.emit(Events.KeyUp, KeyNames[e.button + 300]);
+        });
+    }
+    tick() {
+        this.keysdown = [];
+        this.keysup = [];
+    }
+    keyPress(key) {
+        return this.keys.includes(JSKeys[key]);
+    }
+    keyDown(key) {
+        return this.keysdown.includes(JSKeys[key]);
+    }
+    keyUp(key) {
+        return this.keysup.includes(JSKeys[key]);
+    }
+}
+class MousePosListener {
+    _position;
+    meter_size;
+    get position() {
+        return Vec.scale(this._position, this.meter_size);
+    }
+    constructor(meter_size){
+        this._position = Vec.new(0, 0);
+        this.meter_size = meter_size;
+    }
+    bind(elem) {
+        elem.addEventListener("mousemove", (e)=>{
+            this._position = Vec.new(e.clientX, e.clientY);
+        });
+    }
+}
+export { Key as Key };
+export { JSKeys as JSKeys };
+export { KeyNames as KeyNames };
+export { Events as Events };
+export { KeyListener as KeyListener };
+export { MousePosListener as MousePosListener };
 export { Client as Client, ConnectPacket as ConnectPacket, DefaultSignals as DefaultSignals, DisconnectPacket as DisconnectPacket };
 export { WebglRenderer as Renderer, RGBA as RGBA, createCanvas as createCanvas, applyBorder as applyBorder, applyShadow as applyShadow };
