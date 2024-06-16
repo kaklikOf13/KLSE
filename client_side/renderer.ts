@@ -124,22 +124,22 @@ export class WebglRenderer extends Renderer{
             x2, y2
         ], color)
     }
-    draw_circle(circle: CircleHitbox, color: Color,precision:number=50): void {
-        const centerX = circle.position.x + circle.radius
-        const centerY = -circle.position.y - circle.radius
-    
-        // Definindo a precisão do círculo
+    draw_circle(circle: CircleHitbox, color: Color, precision: number = 50): void {
+        const centerX = circle.position.x
+        const centerY = circle.position.y
+        const radius = circle.radius
+
         const angleIncrement = (2 * Math.PI) / precision
-    
-        // Criando os vértices do círculo
-        const vertices:number[] = []
-        for (let i = 0; i < precision; i++) {
+
+        const vertices: number[] = []
+        vertices.push(centerX, centerY)
+        for (let i = 0; i <= precision; i++) {
             const angle = angleIncrement * i
-            const x = centerX + circle.radius * Math.cos(angle)
-            const y = centerY + circle.radius * Math.sin(angle)
+            const x = centerX + radius * Math.cos(angle)
+            const y = centerY + radius * Math.sin(angle)
             vertices.push(x, y)
         }
-        this._draw_vertices(vertices,color,this.gl.TRIANGLE_FAN)
+        this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN)
     }
     override clear() {
         this.gl.clearColor(this.background.r,this.background.g,this.background.b,this.background.a)
