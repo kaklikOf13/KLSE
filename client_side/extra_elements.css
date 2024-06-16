@@ -1,0 +1,90 @@
+tabs-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+}
+
+tabs-container .tab-active {
+    display: block;
+}
+
+tabs-container .tabs-content {
+    flex: 1;
+    padding: 10px;
+}
+
+tabs-container tab {
+    display: none;
+}
+
+tabs-container .tabs-header {
+    display: flex;
+    border: 1px solid #ccc;
+}
+
+tabs-container .tab-button {
+    background-color: #f1f1f1;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+tabs-container .tab-button:hover {
+    background-color: #ddd;
+}
+
+tabs-container .tab-button.active {
+    background-color: #ccc;
+}
+
+tabs-container.top {
+    flex-direction: column-reverse;
+}
+
+tabs-container.top .tabs-header {
+    flex-direction: row;
+    
+    border-left: none;
+    border-right: none;
+    border-top: none;
+}
+
+tabs-container.right {
+    flex-direction: row;
+}
+
+tabs-container.right .tabs-header {
+    flex-direction: column;
+
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
+}
+
+tabs-container.left {
+    flex-direction: row-reverse;
+}
+
+tabs-container.left .tabs-header {
+    flex-direction: column;
+
+    border-left: none;
+    border-top: none;
+    border-bottom: none;
+}
+
+tabs-container.bottom {
+    flex-direction: column;
+}
+
+tabs-container.bottom .tabs-header {
+    flex-direction: row;
+
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+}

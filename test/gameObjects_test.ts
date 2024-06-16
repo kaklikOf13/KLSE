@@ -1,4 +1,4 @@
-import { GameObject, CellsGameObjectsManager,SimpleGameObjectsManager } from "../utils/gameObject.ts"
+import { BaseGameObject, CellsGameObjectsManager,SimpleGameObjectsManager } from "../utils/gameObject.ts"
 import { RectHitbox } from "../utils/hitbox.ts"
 import { Vec } from "../utils/geometry.ts"
 import { random_float } from "../utils/random.ts";
@@ -6,7 +6,7 @@ import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
 const randl=Vec.new(-1000,1000)
 const randl2=Vec.new(-1,1)
 
-class TestObject extends GameObject{
+class TestObject extends BaseGameObject{
     constructor(){
         super()
         this.overlaps=["test"]
@@ -20,7 +20,7 @@ class TestObject extends GameObject{
     }*/
 }
 
-class TestObject2 extends GameObject{
+class TestObject2 extends BaseGameObject{
     constructor(){
         super()
         this.collides=["test"]
@@ -29,7 +29,7 @@ class TestObject2 extends GameObject{
     override update(): void {
         
     }
-    override on_collide_with(_obj: GameObject): void {
+    override on_collide_with(_obj: BaseGameObject): void {
         this.destroyed=true
     }
 }

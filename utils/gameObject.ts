@@ -15,6 +15,9 @@ export abstract class BaseGameObject{
     public get position():Vector{
         return this.hb ? this.hb.position : NullVector
     }
+    set position(val:Vector){
+        this.hb.position=val
+    }
     constructor(){
         this.category=""
         this.hb=new NullHitbox()

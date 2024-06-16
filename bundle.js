@@ -514,6 +514,9 @@ class BaseGameObject {
     get position() {
         return this.hb ? this.hb.position : NullVector;
     }
+    set position(val) {
+        this.hb.position = val;
+    }
     constructor(){
         this.category = "";
         this.hb = new NullHitbox();
@@ -1102,3 +1105,4 @@ export { Vec as Vec, Angle as Angle, NullVector as NullVector };
 export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };
 export { Inventory as Inventory, Slot as Slot, Item as Item };
 export { NetStream as NetStream };
+export { Clock as Clock, SignalManager as SignalManager };
