@@ -1,17 +1,24 @@
 import { CircleHitbox, BaseGameObject, Vec } from "KLSE";
 import { GameConstants } from "../constants.ts";
-import { JoinPacket } from "../packets/join_packet.ts";
+import { NewPlayer } from "common/scripts/gameObjects/objectsDefinitions.ts";
 
 export abstract class PlayerBase extends BaseGameObject{
     Name:string
     constructor(){
         super()
-        this.hb=new CircleHitbox(Vec.new(0,0),2)
+        this.hb=new CircleHitbox(Vec.new(0,0),.5)
         this.Name=GameConstants.player.defaultName
     }
-    useJoinPacket(joinpacket:JoinPacket){
-        this.Name=joinpacket.playerName
-        this.hb.position=joinpacket.playerPosition
-        this.id=joinpacket.playerId
+    fromNewPlayer(np:NewPlayer){
+        this.Name=np.Name
+        this.position=np.Position
+        this.id=np.Id
+    }
+    toNewPlayer():NewPlayer{
+        return {
+            Id:this.id,
+            Name:this.Name,
+            Position:this.position,
+        }
     }
 }

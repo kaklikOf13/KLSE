@@ -1,24 +1,17 @@
-import { ID, NetStream, Packet, Vec, Vector } from "KLSE"
+import { NetStream, NullVector, Packet } from "KLSE"
+import { NewPlayer, decodeNewPlayer, encodeNewPlayer } from "common/scripts/gameObjects/objectsDefinitions.ts";
 export class JoinPacket extends Packet{
     ID=0
     Name="join"
-    playerId:ID
-    playerName:string=""
-    playerPosition:Vector
-    constructor(playerId:ID=0,playerName:string="",playerPosition:Vector=Vec.new(0,0)){
+    np:NewPlayer
+    constructor(np:NewPlayer={Id:0,Name:"",Position:NullVector}){
         super()
-        this.playerId=playerId
-        this.playerName=playerName
-        this.playerPosition=playerPosition
+        this.np=np
     }
     encode(stream: NetStream): void {
-      stream.writeID(this.playerId)
-      stream.writeString(this.playerName)
-      stream.writeVector(this.playerPosition)
+      encodeNewPlayer(this.np,stream)
     }
     decode(stream: NetStream): void {
-      this.playerId=stream.readID()
-      this.playerName=stream.readString()
-      this.playerPosition=stream.readVector()
+      this.np=decodeNewPlayer(stream)
     }
 }

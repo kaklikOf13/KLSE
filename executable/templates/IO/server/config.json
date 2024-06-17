@@ -11,7 +11,10 @@
     },
     "game":{
         "config":{
-            "maxPlayers":5
+            "maxPlayers":5,
+            "player":{
+                "speed":0.05
+            }
         }
     },
     "game_server":{
