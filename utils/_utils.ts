@@ -81,6 +81,9 @@ export class SignalManager {
     clear(signal: string): void {
         this.listeners.delete(signal)
     }
+    clearAll(): void {
+        this.listeners.clear()
+    }
 }
 
 export class Clock {

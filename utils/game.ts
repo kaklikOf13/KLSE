@@ -7,12 +7,14 @@ export enum GenericEvents{
     GameStart="Game Start",
     GameTick="Game Tick"
 }
-export interface GenericEventsDataMap{
-    [GenericEvents.GameStart]:undefined
-    [GenericEvents.GameTick]:undefined
-}
-export abstract class GamePlugin{
-
+export abstract class GamePlugin<Events extends GenericEvents=GenericEvents>{
+    game:Game
+    constructor(game:Game){
+        this.game=game
+    }
+    on(signal:Events,callback:(args:[])=>void){
+        this.game.events.on(signal,callback)
+    }
 }
 export abstract class Game extends CellsGameObjectsManager{
     readonly tps:number
@@ -26,6 +28,12 @@ export abstract class Game extends CellsGameObjectsManager{
         this.tps=tps
         this.events=new SignalManager()
         this.clock=new Clock(tps,1)
+    }
+    add_plugin(plugin:new(game:ThisType<this>)=>GamePlugin){
+        new plugin(this)
+    }
+    clear_plugins(){
+        this.events.clearAll()
     }
     update() {
         CellsGameObjectsManager.prototype.update.call(this)
