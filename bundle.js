@@ -543,6 +543,7 @@ class SimpleGameObjectsManager {
     constructor(){
         this.categorys = {};
     }
+    destroyCallback(_obj) {}
     after_update() {}
     begin_update() {}
     update() {
@@ -552,6 +553,7 @@ class SimpleGameObjectsManager {
                 const i = this.categorys[c].orden[j];
                 this.categorys[c].objs[i].update();
                 if (this.categorys[c].objs[i].destroyed) {
+                    this.destroyCallback(this.categorys[c].objs[i]);
                     this.categorys[c].orden.splice(j, 1);
                     delete this.categorys[c].objs[i];
                     j -= 1;

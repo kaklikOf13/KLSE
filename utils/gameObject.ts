@@ -35,7 +35,7 @@ export abstract class BaseGameObject{
     }
 }
 
-interface ObjectKey {category:string,id:GameObjectID}
+export interface ObjectKey {category:string,id:GameObjectID}
 function newObjectKey(category:string,id:GameObjectID):ObjectKey{
     return {category:category,id:id}
 }
@@ -45,6 +45,9 @@ export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGam
     public categorys:Record<string,Category<GameObjectB>>
     constructor(){
         this.categorys={}
+    }
+    public destroyCallback(_obj:GameObjectB){
+
     }
     // deno-lint-ignore no-explicit-any
     protected after_update():any{}
@@ -57,6 +60,7 @@ export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGam
                 const i=this.categorys[c].orden[j]
                 this.categorys[c].objs[i].update()
                 if (this.categorys[c].objs[i].destroyed){
+                    this.destroyCallback(this.categorys[c].objs[i])
                     this.categorys[c].orden.splice(j,1)
                     delete this.categorys[c].objs[i]
                     j-=1
