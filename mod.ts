@@ -1,6 +1,6 @@
 export * from "./utils/definitions.ts"
 export * from "./utils/game.ts"
-export { BaseGameObject,CellsGameObjectsManager as GameObjectsManager } from "./utils/gameObject.ts"
+export { BaseGameObject,CellsGameObjectsManager as GameObjectsManager,type ObjectKey } from "./utils/gameObject.ts"
 export { Vec,type Vector,type DegAngle,type RadAngle,Angle,NullVector,type HashVector } from "./utils/geometry.ts"
 export { CircleHitbox,RectHitbox,type Hitbox,HitboxType } from "./utils/hitbox.ts"
 export { Inventory,Slot,Item } from "./utils/inventory.ts"

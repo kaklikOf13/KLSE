@@ -33,6 +33,9 @@ class SignalManager {
     clear(signal) {
         this.listeners.delete(signal);
     }
+    clearAll() {
+        this.listeners.clear();
+    }
 }
 function float32ToUint32(value) {
     const floatView = new Float32Array(1);
@@ -961,7 +964,6 @@ class KeyListener {
             this.listener.emit(Events.KeyDown, KeyNames[e.keyCode]);
         });
         elem.addEventListener("keyup", (e)=>{
-            this.keys.splice(this.keys.indexOf(e.keyCode));
             this.keysup.push(e.keyCode);
             this.listener.emit(Events.KeyUp, KeyNames[e.keyCode]);
         });
@@ -978,6 +980,13 @@ class KeyListener {
     }
     tick() {
         this.keysdown = [];
+        for (const i of this.keysup){
+            let index = this.keys.indexOf(i);
+            while(index != -1){
+                this.keys.splice(index, 1);
+                index = this.keys.indexOf(i);
+            }
+        }
         this.keysup = [];
     }
     keyPress(key) {
@@ -1012,5 +1021,19 @@ export { KeyNames as KeyNames };
 export { Events as Events };
 export { KeyListener as KeyListener };
 export { MousePosListener as MousePosListener };
+class Server {
+    IP;
+    Port;
+    HTTP;
+    constructor(IP, Port, HTTP = false){
+        this.IP = IP;
+        this.Port = Port;
+        this.HTTP = HTTP;
+    }
+    toString() {
+        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
+    }
+}
+export { Server as Server };
 export { Client as Client, ConnectPacket as ConnectPacket, DefaultSignals as DefaultSignals, DisconnectPacket as DisconnectPacket };
 export { WebglRenderer as Renderer, RGBA as RGBA, createCanvas as createCanvas, applyBorder as applyBorder, applyShadow as applyShadow };
