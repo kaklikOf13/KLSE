@@ -94,6 +94,22 @@ export class Router {
     }
   }
 
+  private _remove_route(url: string[]) {
+    if (url.length == 1) {
+      this.routes.delete(url[0])
+    } else if(url.length>1){
+      const name = url[0]
+      url.shift()
+      if (this.sub_routers.has(name)) {
+        this.sub_routers.get(name)!._remove_route(url)
+      }
+    }
+  }
+
+  remove_route(url:string){
+    this._remove_route(splitPath(url))
+  }
+
   route(url: string, ...handlers: (HandlerFunc | HandlerFuncAsync | Router)[]) {
     handlers.forEach(handler => {
       this._route(splitPath(url), handler)
