@@ -71,6 +71,9 @@ class SignalManager {
     clear(signal) {
         this.listeners.delete(signal);
     }
+    clearAll() {
+        this.listeners.clear();
+    }
 }
 class Clock {
     frameDuration;
@@ -700,6 +703,13 @@ var GenericEvents;
     GenericEvents["GameTick"] = "Game Tick";
 })(GenericEvents || (GenericEvents = {}));
 class GamePlugin {
+    game;
+    constructor(game){
+        this.game = game;
+    }
+    on(signal, callback) {
+        this.game.events.on(signal, callback);
+    }
 }
 class Game extends CellsGameObjectsManager {
     tps;
@@ -711,6 +721,12 @@ class Game extends CellsGameObjectsManager {
         this.tps = tps;
         this.events = new SignalManager();
         this.clock = new Clock(tps, 1);
+    }
+    add_plugin(plugin) {
+        new plugin(this);
+    }
+    clear_plugins() {
+        this.events.clearAll();
     }
     update() {
         CellsGameObjectsManager.prototype.update.call(this);
