@@ -2,6 +2,7 @@
 import { ConnectPacket, DisconnectPacket, PacketsManager,Packet } from "../utils/packets.ts"
 import { ID,random_id } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
+import { DefaultSignals } from "./mod.ts";
 export * from "../client_side/client.ts"
 export class ClientsManager{
     clients:Map<ID,Client>
@@ -17,7 +18,7 @@ export class ClientsManager{
         while (this.clients.has(client.ID)){
             client.ID=random_id()
         }
-        client.on("disconnect",(packet:DisconnectPacket)=>{
+        client.on(DefaultSignals.DISCONNECT,(packet:DisconnectPacket)=>{
             this.clients.delete(packet.client_id)
         })
         client.emit(new ConnectPacket(client.ID))
@@ -27,7 +28,12 @@ export class ClientsManager{
     }
     emit(packet:Packet){
         for(const i of this.clients.keys()){
-            this.clients.get(i)!.emit(packet)
+            try{
+                this.clients.get(i)!.emit(packet)
+            // deno-lint-ignore no-empty
+            }catch{
+                
+            }
         }
     }
     handler():(req:Request,url:string[],info:Deno.ServeHandlerInfo)=>Response|null{
