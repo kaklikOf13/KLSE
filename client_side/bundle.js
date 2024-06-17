@@ -1012,5 +1012,19 @@ export { KeyNames as KeyNames };
 export { Events as Events };
 export { KeyListener as KeyListener };
 export { MousePosListener as MousePosListener };
+class Server {
+    IP;
+    Port;
+    HTTP;
+    constructor(IP, Port, HTTP = false){
+        this.IP = IP;
+        this.Port = Port;
+        this.HTTP = HTTP;
+    }
+    toString() {
+        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
+    }
+}
+export { Server as Server };
 export { Client as Client, ConnectPacket as ConnectPacket, DefaultSignals as DefaultSignals, DisconnectPacket as DisconnectPacket };
 export { WebglRenderer as Renderer, RGBA as RGBA, createCanvas as createCanvas, applyBorder as applyBorder, applyShadow as applyShadow };
