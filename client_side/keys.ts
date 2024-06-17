@@ -214,7 +214,6 @@ export class KeyListener{
             this.listener.emit(Events.KeyDown,KeyNames[e.keyCode])
         })
         elem.addEventListener("keyup",(e:KeyboardEvent)=>{
-            this.keys.splice(this.keys.indexOf(e.keyCode))
             this.keysup.push(e.keyCode)
             this.listener.emit(Events.KeyUp,KeyNames[e.keyCode])
         })
@@ -229,9 +228,16 @@ export class KeyListener{
             this.listener.emit(Events.KeyUp,KeyNames[e.button+300])
         })
     }
-    //to `keyDown` and `KeyUp` work
+    //to work
     tick(){
         this.keysdown=[]
+        for(const i of this.keysup){
+            let index=this.keys.indexOf(i)
+            while(index!=-1){
+                this.keys.splice(index,1)
+                index=this.keys.indexOf(i)
+            }
+        }
         this.keysup=[]
     }
     keyPress(key:Key):boolean{
