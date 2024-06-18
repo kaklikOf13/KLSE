@@ -1,8 +1,9 @@
 
 import { ConnectPacket, DisconnectPacket, PacketsManager,Packet } from "../utils/packets.ts"
-import { ID,random_id } from "../utils/_utils.ts"
+import { ID } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
 import { DefaultSignals } from "./mod.ts";
+import { random } from "../utils/random.ts";
 export * from "../client_side/client.ts"
 export class ClientsManager{
     clients:Map<ID,Client>
@@ -16,7 +17,7 @@ export class ClientsManager{
     private activate_ws(ws:WebSocket,ip:string):ID{
         const client=new Client(ws,this.packets_manager,ip)
         while (this.clients.has(client.ID)){
-            client.ID=random_id()
+            client.ID=random.id()
         }
         client.on(DefaultSignals.DISCONNECT,(packet:DisconnectPacket)=>{
             this.clients.delete(packet.client_id)

@@ -2,9 +2,6 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-function random_id() {
-    return Math.floor(Math.random() * 4294967296);
-}
 function splitPath(path) {
     const ret = path.split(/[\\/]/);
     for(let i = 0; i < ret.length; i++){
@@ -95,24 +92,105 @@ class Clock {
         }, next_frame);
     }
 }
+Symbol("clone");
+const cloneDeepSymbol = Symbol("clone deep");
+function cloneDeep(object) {
+    const clonedNodes = new Map();
+    return function internal(target) {
+        if (typeof target !== "object" && !Array.isArray(target)) return target;
+        if (clonedNodes.has(target)) return clonedNodes.get(target);
+        if (cloneDeepSymbol in target) {
+            const clone = target[cloneDeepSymbol];
+            if (typeof clone === "function" && clone.length === 0) {
+                return clone.call(target);
+            } else {
+                console.warn(`Inappropriate use of ${cloneDeepSymbol.toString()}: it should be a no-arg function`);
+            }
+        }
+        const copyAllPropDescs = (to, entryFilter = ()=>true)=>{
+            for (const [key, desc] of Object.entries(Object.getOwnPropertyDescriptors(target)).filter(entryFilter)){
+                desc.value = internal(target[key]);
+                Object.defineProperty(to, key, desc);
+            }
+            return to;
+        };
+        const prototype = Object.getPrototypeOf(target);
+        switch(true){
+            case target instanceof Array:
+                {
+                    const root = Object.create(prototype);
+                    clonedNodes.set(target, root);
+                    for(let i = 0, l = target.length; i < l; i++){
+                        root[i] = internal(target[i]);
+                    }
+                    return copyAllPropDescs(root, ([key])=>Number.isNaN(+key));
+                }
+            case target instanceof Map:
+                {
+                    const root = new Map();
+                    clonedNodes.set(target, root);
+                    for (const [k, v] of target.entries()){
+                        root.set(internal(k), internal(v));
+                    }
+                    Object.setPrototypeOf(root, prototype);
+                    return copyAllPropDescs(root);
+                }
+            case target instanceof Set:
+                {
+                    const root = new Set();
+                    clonedNodes.set(target, root);
+                    for (const v of target)root.add(internal(v));
+                    Object.setPrototypeOf(root, prototype);
+                    return copyAllPropDescs(root);
+                }
+            default:
+                {
+                    const clone = Object.create(prototype);
+                    clonedNodes.set(target, clone);
+                    return copyAllPropDescs(clone);
+                }
+        }
+    }(object);
+}
+function mergeDeep(target, ...sources) {
+    if (!sources.length) return target;
+    const [source, ...rest] = sources;
+    for (const key of Object.keys(source).concat(Object.getOwnPropertySymbols(source))){
+        const [sourceProp, targetProp] = [
+            source[key],
+            target[key]
+        ];
+        if (typeof sourceProp === "object" && !Array.isArray(sourceProp)) {
+            if (typeof targetProp === "object" && !Array.isArray(sourceProp)) {
+                mergeDeep(targetProp, sourceProp);
+            } else {
+                target[key] = cloneDeep(sourceProp);
+            }
+            continue;
+        }
+        target[key] = sourceProp;
+    }
+    return mergeDeep(target, ...rest);
+}
 class Definitions {
     value;
     constructor(){
         this.value = {};
     }
-    get(name = "") {
-        return this.value[name];
+    set(val) {
+        this.value[val.ID] = val;
     }
-    define(value, name = "") {
-        Object.defineProperty(this.value, name, {
-            value: value
-        });
+    get(id) {
+        return this.value[id];
     }
-    delete(name) {
-        delete this.value[name];
+    getSafe(id) {
+        return this.value[id] ?? null;
     }
-    list() {
-        return Object.keys(this.value);
+    exist(id) {
+        return Object.hasOwn(this.value, id);
+    }
+    extends(extend, val) {
+        this.set(mergeDeep(val, this.get(extend)));
     }
 }
 class Tree extends Definitions {
@@ -201,6 +279,21 @@ export { Definitions as Definitions };
 export { Tree as Tree };
 export { Server as Server };
 export { ExtendedMap as ExtendedMap };
+const random = Object.freeze({
+    int (min, max) {
+        return Math.floor(Math.random() * (max - min) + min);
+    },
+    float (min, max) {
+        return Math.random() * (max - min) + min;
+    },
+    choose (val) {
+        return val[Math.floor(Math.random() * val.length)];
+    },
+    id () {
+        return Math.floor(Math.random() * 4294967296);
+    }
+});
+export { random as random };
 function float32ToUint32(value) {
     const floatView = new Float32Array(1);
     const intView = new Uint32Array(floatView.buffer);
@@ -214,6 +307,18 @@ const Vec = Object.freeze({
         return {
             x,
             y
+        };
+    },
+    random (min, max) {
+        return {
+            x: random.float(min, max),
+            y: random.float(min, max)
+        };
+    },
+    random2 (min, max) {
+        return {
+            x: random.float(min.x, max.x),
+            y: random.float(min.y, max.y)
         };
     },
     add (x, y) {
@@ -233,6 +338,9 @@ const Vec = Object.freeze({
     },
     less (x, y) {
         return x.x < y.x && x.y < y.y;
+    },
+    is (x, y) {
+        return x.x == y.x && x.y == y.y;
     },
     scale (vector, scale) {
         return this.new(vector.x * scale, vector.y * scale);
@@ -267,6 +375,11 @@ const Vec = Object.freeze({
     from_DegAngle (angle) {
         const a = Angle.deg2rad(angle);
         return this.new(Math.cos(a), Math.sin(a));
+    },
+    distanceSquared (x, y) {
+        const dx = x.x - y.x;
+        const dy = x.y - y.y;
+        return dx * dx + dy * dy;
     },
     distance (x, y) {
         const dx = x.x - y.x;
@@ -389,6 +502,12 @@ class NullHitbox extends BaseHitbox {
     center() {
         return NullVector;
     }
+    randomPoint() {
+        return NullVector;
+    }
+    toRect() {
+        return new RectHitbox(this.position, Vec.new(0, 0));
+    }
     scale(_scale) {}
     is_null() {
         return true;
@@ -410,16 +529,18 @@ class CircleHitbox extends BaseHitbox {
         }
         return false;
     }
-    overlapCollision(other) {
+    overlapCollision(other, response_coef = 1.0) {
         if (other) {
             switch(other.type){
                 case HitboxType.circle:
                     {
-                        const r = this.radius + other.radius;
+                        const dists = Vec.distanceSquared(this.position, other.position);
                         const dis = Vec.sub(this.position, other.position);
-                        const dist = Vec.squared(dis);
-                        if (dist < r * r) {
-                            this.position = Vec.sub(this.position, Vec.scale(Vec.normalizeSafe(dis), r - Math.sqrt(dist)));
+                        if (dists < this.radius + other.radius && dists > 0.0001) {
+                            const dist = Vec.distance(this.position, other.position);
+                            const delta = response_coef * 0.5 * (this.radius + other.radius - dist);
+                            const ov = Vec.scale(Vec.dscale(dis, dist), delta);
+                            this.position = Vec.add(this.position, ov);
                             return true;
                         }
                         break;
@@ -446,6 +567,14 @@ class CircleHitbox extends BaseHitbox {
     scale(scale) {
         this.radius *= scale;
     }
+    randomPoint() {
+        const angle = random.float(0, Math.PI * 2);
+        const length = random.float(0, this.radius);
+        return Vec.new(this.position.x + Math.cos(angle) * length, this.position.y + Math.sin(angle) * length);
+    }
+    toRect() {
+        return new RectHitbox(this.position, Vec.new(this.radius, this.radius));
+    }
 }
 class RectHitbox extends BaseHitbox {
     type = HitboxType.rect;
@@ -470,7 +599,7 @@ class RectHitbox extends BaseHitbox {
             switch(other.type){
                 case HitboxType.rect:
                     {
-                        const ss = Vec.dscale(Vec.add(this.position, other.position), 2);
+                        const ss = Vec.dscale(Vec.add(this.size, other.size), 2);
                         const dist = Vec.sub(this.center(), other.center());
                         if (Vec.less(Vec.absolute(dist), ss)) {
                             const overlap = Vec.sub(ss, Vec.absolute(dist));
@@ -505,6 +634,12 @@ class RectHitbox extends BaseHitbox {
     scale(scale) {
         this.size = Vec.scale(this.size, scale);
     }
+    randomPoint() {
+        return Vec.add(this.position, Vec.random2(NullVector, this.size));
+    }
+    toRect() {
+        return this;
+    }
 }
 class BaseGameObject {
     hb;
@@ -514,6 +649,7 @@ class BaseGameObject {
     overlaps;
     collides;
     category;
+    static;
     get position() {
         return this.hb ? this.hb.position : NullVector;
     }
@@ -524,11 +660,13 @@ class BaseGameObject {
         this.category = "";
         this.hb = new NullHitbox();
         this.destroyed = false;
+        this.static = false;
         this.id = 0;
         this.parent = null;
         this.overlaps = [];
         this.collides = [];
     }
+    start() {}
     on_collide_with(_obj) {}
     on_overlap_with(_obj) {}
     copy() {
@@ -578,7 +716,7 @@ class SimpleGameObjectsManager {
         }
     }
     solve_collision_overlap(objA, objB) {
-        if (!(objA.id == objB.id && objA.category == objB.category) && this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)) {
+        if (!(objA.id == objB.id && objA.category == objB.category) && !this.categorys[objA.category].objs[objA.id].static && this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)) {
             this.categorys[objA.category].objs[objA.id].on_overlap_with(this.categorys[objB.category].objs[objB.id]);
         }
     }
@@ -589,13 +727,14 @@ class SimpleGameObjectsManager {
     }
     add_object(category, obj, id) {
         if (id === undefined) {
-            id = random_id();
+            id = random.id();
         }
         obj.id = id;
         obj.parent = this;
         obj.category = category;
         this.categorys[category].objs[id] = obj;
         this.categorys[category].orden.push(id);
+        obj.start();
     }
     get_object(category, id) {
         return this.categorys[category].objs[id];
@@ -693,10 +832,6 @@ class CellsGameObjectsManager extends SimpleGameObjectsManager {
         }
     }
 }
-var CATEGORYS;
-(function(CATEGORYS) {
-    CATEGORYS["PLAYERS"] = "players";
-})(CATEGORYS || (CATEGORYS = {}));
 var GenericEvents;
 (function(GenericEvents) {
     GenericEvents["GameStart"] = "Game Start";
@@ -741,7 +876,6 @@ class Game extends CellsGameObjectsManager {
         });
     }
 }
-export { CATEGORYS as CATEGORYS };
 export { GenericEvents as GenericEvents };
 export { GamePlugin as GamePlugin };
 export { Game as Game };
@@ -1110,14 +1244,6 @@ export { Packet as Packet };
 export { PacketsManager as PacketsManager };
 export { ConnectPacket as ConnectPacket };
 export { DisconnectPacket as DisconnectPacket };
-function random_int(min, max) {
-    return Math.floor(Math.random() * (max - min) + min);
-}
-function random_float(min, max) {
-    return Math.random() * (max - min) + min;
-}
-export { random_int as random_int };
-export { random_float as random_float };
 export { BaseGameObject as BaseGameObject, CellsGameObjectsManager as GameObjectsManager };
 export { Vec as Vec, Angle as Angle, NullVector as NullVector };
 export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };

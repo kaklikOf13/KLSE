@@ -1,7 +1,7 @@
-import { PlayerBase } from "common/scripts/gameObjects/player.ts";
-import { Game } from "../game.ts";
-import { NullVector, Vec, Vector } from "KLSE";
-import { ActionPacket } from "common/scripts/packets/action_packet.ts";
+import { PlayerBase } from "common/scripts/gameObjects/player.ts"
+import { Game } from "../game.ts"
+import { NullVector, Vec, Vector } from "KLSE"
+import { ActionPacket } from "common/scripts/packets/action_packet.ts"
 
 export class Player extends PlayerBase{
     velocity:Vector
@@ -13,7 +13,7 @@ export class Player extends PlayerBase{
     }
     update(): void {
         this.hb.position=Vec.add(this.position,this.velocity)
-        if(this.oldPosition.x!=this.position.x||this.oldPosition.y!=this.position.y){
+        if(!Vec.is(this.position,this.oldPosition)){
             (this.parent as Game).update_packet.updatedPlayers.push({id:this.id,pos:this.position})
             this.oldPosition=this.position
         }

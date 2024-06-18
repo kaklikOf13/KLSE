@@ -1,5 +1,5 @@
 import { Vector } from "../utils/geometry.ts"
-import { CircleHitbox, RectHitbox } from "../utils/hitbox.ts"
+import { CircleHitbox, Hitbox, HitboxType, RectHitbox } from "../utils/hitbox.ts"
 
 export interface Color{
     r:number //Red
@@ -31,6 +31,7 @@ export abstract class Renderer{
     }
     abstract draw_rect(rect:RectHitbox,color:Color):void
     abstract draw_circle(circle:CircleHitbox,color:Color):void
+    abstract draw_hitbox(hitbox:Hitbox,color:Color):void
     abstract clear():void
 }
 
@@ -140,6 +141,18 @@ export class WebglRenderer extends Renderer{
             vertices.push(x, y)
         }
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN)
+    }
+    draw_hitbox(hitbox: Hitbox, color: Color): void {
+        switch(hitbox.type){
+            case HitboxType.circle:
+                this.draw_circle(hitbox,color)
+                break
+            case HitboxType.rect:
+                this.draw_rect(hitbox,color)
+                break
+            default:
+                return
+        }
     }
     override clear() {
         this.gl.clearColor(this.background.r,this.background.g,this.background.b,this.background.a)

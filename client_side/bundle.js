@@ -37,6 +37,22 @@ class SignalManager {
         this.listeners.clear();
     }
 }
+Symbol("clone");
+Symbol("clone deep");
+const random = Object.freeze({
+    int (min, max) {
+        return Math.floor(Math.random() * (max - min) + min);
+    },
+    float (min, max) {
+        return Math.random() * (max - min) + min;
+    },
+    choose (val) {
+        return val[Math.floor(Math.random() * val.length)];
+    },
+    id () {
+        return Math.floor(Math.random() * 4294967296);
+    }
+});
 function float32ToUint32(value) {
     const floatView = new Float32Array(1);
     const intView = new Uint32Array(floatView.buffer);
@@ -50,6 +66,18 @@ const Vec = Object.freeze({
         return {
             x,
             y
+        };
+    },
+    random (min, max) {
+        return {
+            x: random.float(min, max),
+            y: random.float(min, max)
+        };
+    },
+    random2 (min, max) {
+        return {
+            x: random.float(min.x, max.x),
+            y: random.float(min.y, max.y)
         };
     },
     add (x, y) {
@@ -69,6 +97,9 @@ const Vec = Object.freeze({
     },
     less (x, y) {
         return x.x < y.x && x.y < y.y;
+    },
+    is (x, y) {
+        return x.x == y.x && x.y == y.y;
     },
     scale (vector, scale) {
         return this.new(vector.x * scale, vector.y * scale);
@@ -103,6 +134,11 @@ const Vec = Object.freeze({
     from_DegAngle (angle) {
         const a = Angle.deg2rad(angle);
         return this.new(Math.cos(a), Math.sin(a));
+    },
+    distanceSquared (x, y) {
+        const dx = x.x - y.x;
+        const dy = x.y - y.y;
+        return dx * dx + dy * dy;
     },
     distance (x, y) {
         const dx = x.x - y.x;
@@ -416,6 +452,208 @@ class Client {
         this.ws.close();
     }
 }
+const Collision = Object.freeze({
+    circle_with_rect (hb1, hb2) {
+        const cp = Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size));
+        const dist = Vec.distance(hb1.position, cp);
+        return dist < hb1.radius * hb1.radius || hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x;
+    },
+    circle_with_rect_ov (hb1, hb2) {
+        if (hb2.position.x <= hb1.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb2.position.y <= hb1.position.y && hb1.position.y <= hb2.position.y + hb2.size.y) {
+            const halfDim = Vec.dscale(Vec.sub(Vec.add(hb2.position, hb2.size), hb2.position), 2);
+            const p = Vec.sub(hb1.position, Vec.add(hb2.position, halfDim));
+            const p2 = Vec.sub(Vec.sub(Vec.absolute(p), halfDim), Vec.new(hb1.radius, hb1.radius));
+            return p2.x > p2.y ? [
+                Vec.new(p.x > 0 ? 1 : -1, 0),
+                -p2.x
+            ] : [
+                Vec.new(0, p.y > 0 ? 1 : -1),
+                -p2.y
+            ];
+        }
+        const dir = Vec.sub(Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size)), hb1.position);
+        const dstSqr = Vec.squared(dir);
+        if (dstSqr < hb1.radius * hb1.radius) {
+            const dst = Math.sqrt(dstSqr);
+            return [
+                Vec.normalizeSafe(dir),
+                hb1.radius - dst
+            ];
+        }
+        return null;
+    }
+});
+var HitboxType;
+(function(HitboxType) {
+    HitboxType[HitboxType["circle"] = 0] = "circle";
+    HitboxType[HitboxType["rect"] = 1] = "rect";
+    HitboxType[HitboxType["null"] = 2] = "null";
+})(HitboxType || (HitboxType = {}));
+class BaseHitbox {
+    position;
+    constructor(position){
+        this.position = position;
+    }
+    is_null() {
+        return false;
+    }
+}
+class NullHitbox extends BaseHitbox {
+    constructor(){
+        super(NullVector);
+    }
+    type = HitboxType.null;
+    collidingWith(_other) {
+        return false;
+    }
+    pointInside(_point) {
+        return false;
+    }
+    overlapCollision(_other) {
+        return false;
+    }
+    center() {
+        return NullVector;
+    }
+    randomPoint() {
+        return NullVector;
+    }
+    toRect() {
+        return new RectHitbox(this.position, Vec.new(0, 0));
+    }
+    scale(_scale) {}
+    is_null() {
+        return true;
+    }
+}
+class CircleHitbox extends BaseHitbox {
+    type = HitboxType.circle;
+    radius;
+    constructor(position, radius){
+        super(position);
+        this.radius = radius;
+    }
+    collidingWith(other) {
+        switch(other.type){
+            case HitboxType.circle:
+                return Vec.distance(this.position, other.position) < this.radius + other.radius;
+            case HitboxType.rect:
+                return Collision.circle_with_rect(this, other);
+        }
+        return false;
+    }
+    overlapCollision(other, response_coef = 1.0) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.circle:
+                    {
+                        const dists = Vec.distanceSquared(this.position, other.position);
+                        const dis = Vec.sub(this.position, other.position);
+                        if (dists < this.radius + other.radius && dists > 0.0001) {
+                            const dist = Vec.distance(this.position, other.position);
+                            const delta = response_coef * 0.5 * (this.radius + other.radius - dist);
+                            const ov = Vec.scale(Vec.dscale(dis, dist), delta);
+                            this.position = Vec.add(this.position, ov);
+                            return true;
+                        }
+                        break;
+                    }
+                case HitboxType.rect:
+                    {
+                        const result = Collision.circle_with_rect_ov(this, other);
+                        if (result) {
+                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
+                            return true;
+                        }
+                        break;
+                    }
+            }
+        }
+        return false;
+    }
+    pointInside(point) {
+        return Vec.distance(this.position, point) < this.radius;
+    }
+    center() {
+        return this.position;
+    }
+    scale(scale) {
+        this.radius *= scale;
+    }
+    randomPoint() {
+        const angle = random.float(0, Math.PI * 2);
+        const length = random.float(0, this.radius);
+        return Vec.new(this.position.x + Math.cos(angle) * length, this.position.y + Math.sin(angle) * length);
+    }
+    toRect() {
+        return new RectHitbox(this.position, Vec.new(this.radius, this.radius));
+    }
+}
+class RectHitbox extends BaseHitbox {
+    type = HitboxType.rect;
+    size;
+    constructor(position, size){
+        super(position);
+        this.size = size;
+    }
+    collidingWith(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y;
+                case HitboxType.circle:
+                    return Collision.circle_with_rect(other, this);
+            }
+        }
+        return false;
+    }
+    overlapCollision(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    {
+                        const ss = Vec.dscale(Vec.add(this.size, other.size), 2);
+                        const dist = Vec.sub(this.center(), other.center());
+                        if (Vec.less(Vec.absolute(dist), ss)) {
+                            const overlap = Vec.sub(ss, Vec.absolute(dist));
+                            if (overlap.x < overlap.y) {
+                                this.position.x = dist.x > 0 ? this.position.x + overlap.x : this.position.x - overlap.x;
+                            } else {
+                                this.position.y = dist.y > 0 ? this.position.y + overlap.y : this.position.y - overlap.y;
+                            }
+                            return true;
+                        }
+                        break;
+                    }
+                case HitboxType.circle:
+                    {
+                        const result = Collision.circle_with_rect_ov(other, this);
+                        if (result) {
+                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
+                            return true;
+                        }
+                        break;
+                    }
+            }
+        }
+        return false;
+    }
+    pointInside(point) {
+        return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y;
+    }
+    center() {
+        return Vec.add(this.position, Vec.dscale(this.size, 2));
+    }
+    scale(scale) {
+        this.size = Vec.scale(this.size, scale);
+    }
+    randomPoint() {
+        return Vec.add(this.position, Vec.random2(NullVector, this.size));
+    }
+    toRect() {
+        return this;
+    }
+}
 const RGBA = Object.freeze({
     new (r, g, b, a = 255) {
         return {
@@ -549,6 +787,18 @@ class WebglRenderer extends Renderer {
         }
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
     }
+    draw_hitbox(hitbox, color) {
+        switch(hitbox.type){
+            case HitboxType.circle:
+                this.draw_circle(hitbox, color);
+                break;
+            case HitboxType.rect:
+                this.draw_rect(hitbox, color);
+                break;
+            default:
+                return;
+        }
+    }
     clear() {
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -580,190 +830,6 @@ function applyShadow(elem) {
     elem.style.boxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
     elem.style.webkitBoxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
 }
-const Collision = Object.freeze({
-    circle_with_rect (hb1, hb2) {
-        const cp = Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size));
-        const dist = Vec.distance(hb1.position, cp);
-        return dist < hb1.radius * hb1.radius || hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x;
-    },
-    circle_with_rect_ov (hb1, hb2) {
-        if (hb2.position.x <= hb1.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb2.position.y <= hb1.position.y && hb1.position.y <= hb2.position.y + hb2.size.y) {
-            const halfDim = Vec.dscale(Vec.sub(Vec.add(hb2.position, hb2.size), hb2.position), 2);
-            const p = Vec.sub(hb1.position, Vec.add(hb2.position, halfDim));
-            const p2 = Vec.sub(Vec.sub(Vec.absolute(p), halfDim), Vec.new(hb1.radius, hb1.radius));
-            return p2.x > p2.y ? [
-                Vec.new(p.x > 0 ? 1 : -1, 0),
-                -p2.x
-            ] : [
-                Vec.new(0, p.y > 0 ? 1 : -1),
-                -p2.y
-            ];
-        }
-        const dir = Vec.sub(Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size)), hb1.position);
-        const dstSqr = Vec.squared(dir);
-        if (dstSqr < hb1.radius * hb1.radius) {
-            const dst = Math.sqrt(dstSqr);
-            return [
-                Vec.normalizeSafe(dir),
-                hb1.radius - dst
-            ];
-        }
-        return null;
-    }
-});
-var HitboxType;
-(function(HitboxType) {
-    HitboxType[HitboxType["circle"] = 0] = "circle";
-    HitboxType[HitboxType["rect"] = 1] = "rect";
-    HitboxType[HitboxType["null"] = 2] = "null";
-})(HitboxType || (HitboxType = {}));
-class BaseHitbox {
-    position;
-    constructor(position){
-        this.position = position;
-    }
-    is_null() {
-        return false;
-    }
-}
-class NullHitbox extends BaseHitbox {
-    constructor(){
-        super(NullVector);
-    }
-    type = HitboxType.null;
-    collidingWith(_other) {
-        return false;
-    }
-    pointInside(_point) {
-        return false;
-    }
-    overlapCollision(_other) {
-        return false;
-    }
-    center() {
-        return NullVector;
-    }
-    scale(_scale) {}
-    is_null() {
-        return true;
-    }
-}
-class CircleHitbox extends BaseHitbox {
-    type = HitboxType.circle;
-    radius;
-    constructor(position, radius){
-        super(position);
-        this.radius = radius;
-    }
-    collidingWith(other) {
-        switch(other.type){
-            case HitboxType.circle:
-                return Vec.distance(this.position, other.position) < this.radius + other.radius;
-            case HitboxType.rect:
-                return Collision.circle_with_rect(this, other);
-        }
-        return false;
-    }
-    overlapCollision(other) {
-        if (other) {
-            switch(other.type){
-                case HitboxType.circle:
-                    {
-                        const r = this.radius + other.radius;
-                        const dis = Vec.sub(this.position, other.position);
-                        const dist = Vec.squared(dis);
-                        if (dist < r * r) {
-                            this.position = Vec.sub(this.position, Vec.scale(Vec.normalizeSafe(dis), r - Math.sqrt(dist)));
-                            return true;
-                        }
-                        break;
-                    }
-                case HitboxType.rect:
-                    {
-                        const result = Collision.circle_with_rect_ov(this, other);
-                        if (result) {
-                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
-                            return true;
-                        }
-                        break;
-                    }
-            }
-        }
-        return false;
-    }
-    pointInside(point) {
-        return Vec.distance(this.position, point) < this.radius;
-    }
-    center() {
-        return this.position;
-    }
-    scale(scale) {
-        this.radius *= scale;
-    }
-}
-class RectHitbox extends BaseHitbox {
-    type = HitboxType.rect;
-    size;
-    constructor(position, size){
-        super(position);
-        this.size = size;
-    }
-    collidingWith(other) {
-        if (other) {
-            switch(other.type){
-                case HitboxType.rect:
-                    return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y;
-                case HitboxType.circle:
-                    return Collision.circle_with_rect(other, this);
-            }
-        }
-        return false;
-    }
-    overlapCollision(other) {
-        if (other) {
-            switch(other.type){
-                case HitboxType.rect:
-                    {
-                        const ss = Vec.dscale(Vec.add(this.position, other.position), 2);
-                        const dist = Vec.sub(this.center(), other.center());
-                        if (Vec.less(Vec.absolute(dist), ss)) {
-                            const overlap = Vec.sub(ss, Vec.absolute(dist));
-                            if (overlap.x < overlap.y) {
-                                this.position.x = dist.x > 0 ? this.position.x + overlap.x : this.position.x - overlap.x;
-                            } else {
-                                this.position.y = dist.y > 0 ? this.position.y + overlap.y : this.position.y - overlap.y;
-                            }
-                            return true;
-                        }
-                        break;
-                    }
-                case HitboxType.circle:
-                    {
-                        const result = Collision.circle_with_rect_ov(other, this);
-                        if (result) {
-                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
-                            return true;
-                        }
-                        break;
-                    }
-            }
-        }
-        return false;
-    }
-    pointInside(point) {
-        return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y;
-    }
-    center() {
-        return Vec.add(this.position, Vec.dscale(this.size, 2));
-    }
-    scale(scale) {
-        this.size = Vec.scale(this.size, scale);
-    }
-}
-var CATEGORYS;
-(function(CATEGORYS) {
-    CATEGORYS["PLAYERS"] = "players";
-})(CATEGORYS || (CATEGORYS = {}));
 var GenericEvents;
 (function(GenericEvents) {
     GenericEvents["GameStart"] = "Game Start";

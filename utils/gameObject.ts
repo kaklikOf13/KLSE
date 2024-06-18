@@ -1,6 +1,7 @@
 import { HashVector, NullVector, Vec, Vector } from "./geometry.ts"
 import { Hitbox, NullHitbox } from "./hitbox.ts"
-import { ID,Tags,combineWithoutEqual,random_id } from "./_utils.ts"
+import { ID,Tags,combineWithoutEqual } from "./_utils.ts"
+import { random } from "./random.ts";
 
 export type GameObjectID=ID
 export type Categorys=Tags
@@ -12,6 +13,7 @@ export abstract class BaseGameObject{
     public overlaps:Categorys
     public collides:Categorys
     public category:string
+    public static:boolean
     public get position():Vector{
         return this.hb ? this.hb.position : NullVector
     }
@@ -22,12 +24,14 @@ export abstract class BaseGameObject{
         this.category=""
         this.hb=new NullHitbox()
         this.destroyed=false
+        this.static=false
         this.id=0
         this.parent=null
         this.overlaps=[]
         this.collides=[]
     }
     abstract update():void
+    start():void{}
     on_collide_with(_obj:BaseGameObject):void{}
     on_overlap_with(_obj:BaseGameObject):void{}
     copy():BaseGameObject{
@@ -82,7 +86,7 @@ export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGam
         }
     }
     protected solve_collision_overlap(objA:ObjectKey,objB:ObjectKey){
-        if(!(objA.id==objB.id&&objA.category==objB.category)&&this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)){
+        if(!(objA.id==objB.id&&objA.category==objB.category)&&!this.categorys[objA.category].objs[objA.id].static&&this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)){
             this.categorys[objA.category].objs[objA.id].on_overlap_with(this.categorys[objB.category].objs[objB.id])
         }
     }
@@ -93,13 +97,14 @@ export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGam
     }
     add_object(category:string,obj:GameObjectB,id?:GameObjectID){
         if(id===undefined){
-            id=random_id()
+            id=random.id()
         }
         obj.id=id
         obj.parent=this
         obj.category=category
         this.categorys[category].objs[id]=obj
         this.categorys[category].orden.push(id)
+        obj.start()
     }
     get_object<Type extends GameObjectB>(category:string,id:GameObjectID):Type{
         return this.categorys[category].objs[id] as Type

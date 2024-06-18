@@ -6,9 +6,13 @@ export abstract class PlayerBase extends BaseGameObject{
     Name:string
     constructor(){
         super()
-        this.hb=new CircleHitbox(Vec.new(0,0),.5)
+        this.hb=new CircleHitbox(Vec.new(0,0),.25)
+        //this.hb=new RectHitbox(Vec.new(0,0),Vec.new(.25,.25))
         this.Name=GameConstants.player.defaultName
     }
+    /*start(){
+        this.hb=(this.parent as Game).categorys[CATEGORYS.PLAYERS].orden.length==1?new CircleHitbox(Vec.new(0,0),.25):new RectHitbox(Vec.new(0,0),Vec.new(.25,.25))
+    }*/
     fromNewPlayer(np:NewPlayer){
         this.Name=np.Name
         this.position=np.Position

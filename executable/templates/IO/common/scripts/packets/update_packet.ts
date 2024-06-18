@@ -1,4 +1,4 @@
-import { ID, NetStream, Packet, type ObjectKey } from "KLSE"
+import { NetStream, Packet, type ObjectKey } from "KLSE"
 import { NewPlayer, UpdatedPlayer, decodeNewPlayer, encodeNewPlayer } from "common/scripts/gameObjects/objectsDefinitions.ts"
 export class UpdatePacket extends Packet{
     ID=1

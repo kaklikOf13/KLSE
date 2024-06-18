@@ -8,8 +8,8 @@ export default {
     alias: {
       "common":path.resolve(__dirname,"../common"),
 
-      "KLSE/CLIENT":"https://deno.land/x/klse@0.2/client_side/bundle.js",
-      "KLSE":"https://deno.land/x/klse@0.2/bundle.js"
+      "KLSE/CLIENT":"https://deno.land/x/klse@0.2.1/client_side/bundle.js",
+      "KLSE":"https://deno.land/x/klse@0.2.1/bundle.js"
 
       /*"KLSE/CLIENT":path.resolve(__dirname,"../../../../client_side/bundle.js"),
       "KLSE":path.resolve(__dirname,"../../../../bundle.js"),*/
