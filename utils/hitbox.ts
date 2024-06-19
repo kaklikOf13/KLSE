@@ -1,4 +1,5 @@
 import { NullVector, Vec, Vector } from "./geometry.ts"
+import { random } from "./random.ts";
 
 export const Collision=Object.freeze({
     circle_with_rect(hb1:CircleHitbox,hb2:RectHitbox):boolean{
@@ -29,15 +30,15 @@ export const Collision=Object.freeze({
 export enum HitboxType{
     circle,
     rect,
-    null
     //group,
+    null,
 }
 
 export interface HitboxMapping {
     [HitboxType.circle]:CircleHitbox
     [HitboxType.rect]:RectHitbox
-    [HitboxType.null]:NullHitbox
     //[HitboxType.group]:HitboxGroup
+    [HitboxType.null]:NullHitbox
 }
 
 export type Hitbox = HitboxMapping[HitboxType]
@@ -49,6 +50,8 @@ export abstract class BaseHitbox{
     abstract pointInside(point:Vector):boolean
     abstract center():Vector
     abstract scale(scale:number):void
+    abstract randomPoint():Vector
+    abstract toRect():RectHitbox
     position:Vector
     constructor(position:Vector){
         this.position=position
@@ -74,6 +77,12 @@ export class NullHitbox extends BaseHitbox{
     override center(): Vector {
         return NullVector
     }
+    override randomPoint(): Vector {
+      return NullVector
+    }
+    override toRect():RectHitbox{
+        return new RectHitbox(this.position,Vec.new(0,0))
+    }
     override scale(_scale: number): void {}
     override is_null():boolean{
         return true
@@ -96,16 +105,19 @@ export class CircleHitbox extends BaseHitbox{
         }
         return false
     }
-    override overlapCollision(other: Hitbox): boolean {
+    override overlapCollision(other: Hitbox,response_coef:number = 1.0): boolean {
         if(other){
             switch(other.type){
                 case HitboxType.circle:{
-                    const r = this.radius + other.radius
-                    const dis = Vec.sub(this.position, other.position)
-                    const dist = Vec.squared(dis)
-
-                    if (dist < r * r){
-                        this.position=Vec.sub(this.position,Vec.scale(Vec.normalizeSafe(dis),r - Math.sqrt(dist)))
+                    const dists = Vec.distanceSquared(this.position,other.position)
+                    const dis=Vec.sub(this.position,other.position)
+                    const eps=0.0001;
+                    if (dists < this.radius + other.radius && dists > eps){
+                        const dist=Vec.distance(this.position,other.position)
+                        const delta  = response_coef * 0.5 * (((this.radius + other.radius)) - dist)
+                        const ov=Vec.scale(Vec.dscale(dis,(dist)),delta)
+                        this.position=Vec.add(this.position,ov)
+                        //other.position=Vec.sub(other.position,ov) // push
                         return true
                     }
                     break
@@ -132,7 +144,14 @@ export class CircleHitbox extends BaseHitbox{
     override scale(scale: number): void {
       this.radius*=scale
     }
-
+    override randomPoint(): Vector {
+        const angle = random.float(0,Math.PI*2)
+        const length = random.float(0,this.radius)
+        return Vec.new(this.position.x+(Math.cos(angle)*length),this.position.y+(Math.sin(angle)*length))
+    }
+    override toRect():RectHitbox{
+        return new RectHitbox(this.position,Vec.new(this.radius,this.radius))
+    }
 }
 
 export class RectHitbox extends BaseHitbox{
@@ -157,7 +176,7 @@ export class RectHitbox extends BaseHitbox{
         if(other){
             switch(other.type){
                 case HitboxType.rect:{
-                    const ss=Vec.dscale(Vec.add(this.position,other.position),2)
+                    const ss=Vec.dscale(Vec.add(this.size,other.size),2)
                     const dist=Vec.sub(this.center(),other.center())
                     if(Vec.less(Vec.absolute(dist),ss)){
                         const overlap=Vec.sub(ss,Vec.absolute(dist))
@@ -190,5 +209,11 @@ export class RectHitbox extends BaseHitbox{
     }
     override scale(scale:number){
         this.size=Vec.scale(this.size,scale)
+    }
+    override randomPoint(): Vector {
+        return Vec.add(this.position,Vec.random2(NullVector,this.size))
+    }
+    override toRect():RectHitbox{
+        return this
     }
 }

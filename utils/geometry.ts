@@ -1,4 +1,4 @@
-
+import { random } from "./random.ts"
 export interface Vector{
     x:number
     y:number
@@ -25,6 +25,15 @@ export const Vec = Object.freeze({
      */
     new(x:number, y:number):Vector {
         return {x, y}
+    },
+    /**
+     * Return Random Vector
+     */
+    random(min:number, max:number):Vector {
+        return {x:random.float(min,max),y:random.float(min,max)}
+    },
+    random2(min:Vector, max:Vector):Vector {
+        return {x:random.float(min.x,max.x),y:random.float(min.y,max.y)}
     },
     /**
      * @param x `Vector1`
@@ -73,6 +82,14 @@ export const Vec = Object.freeze({
      */
     less(x:Vector, y:Vector):boolean {
         return x.x<y.x&&x.y<y.y
+    },
+    /**
+     * @param x `Vector1`
+     * @param y `Vector2`
+     * @returns `boolean` of operation `x`<`y`
+     */
+    is(x:Vector, y:Vector):boolean {
+        return x.x==y.x&&x.y==y.y
     },
     /**
      * @param vector `Vector`
@@ -176,6 +193,16 @@ export const Vec = Object.freeze({
      * @param x `Vector1`
      * @param y `Vector2`
      * @returns A new `Vector` With distance of `Vector1` and `Vector2`
+     */
+    distanceSquared(x:Vector,y:Vector):number{
+        const dx=x.x-y.x
+        const dy=x.y-y.y
+        return dx*dx+dy*dy
+    },
+    /**
+     * @param x `Vector1`
+     * @param y `Vector2`
+     * @returns A new `Vector` With distance squared of `Vector1` and `Vector2`
      */
     distance(x:Vector,y:Vector):number{
         const dx=x.x-y.x
