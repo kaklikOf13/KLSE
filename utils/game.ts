@@ -1,8 +1,5 @@
 import { Clock, SignalManager } from "./_utils.ts"
 import { CellsGameObjectsManager } from "./gameObject.ts"
-export enum CATEGORYS{
-    PLAYERS="players"
-}
 export enum GenericEvents{
     GameStart="Game Start",
     GameTick="Game Tick"
