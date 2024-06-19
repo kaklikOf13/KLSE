@@ -31,6 +31,7 @@ export class Game extends GameBase{
         return player
     }
     update(): void {
+      this.renderer.clear()
       GameBase.prototype.update.call(this)
       if(this.input.keyPress(Key.A)){
         this.action_packet.Movement.x=-1
