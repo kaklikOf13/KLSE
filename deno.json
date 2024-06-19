@@ -7,7 +7,7 @@
         "bundle":"deno bundle mod.ts bundle.js && deno bundle client_side/mod.ts client_side/bundle.js",
         "clear":"rm -rf dist rm -rf bundle.js rm -rf client_side/bundle.js"
     },
-    "version": "0.2",
+    "version": "0.2.1",
     "compilerOptions": {
         "lib": ["dom", "deno.ns"]
     }
