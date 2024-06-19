@@ -1,24 +1,30 @@
-import { splitPath } from "./_utils.ts"
+import { mergeDeep, splitPath } from "./_utils.ts";
 
-export class Definitions<Type>{
-    value:Record<string,Type>
+export interface Definition{
+    ID:string
+}
+export class Definitions<Type extends Definition>{
+    public value:Record<string,Type>
     constructor(){
         this.value={}
     }
-    get(name:string=""):Type{
-        return this.value[name]
+    set(val:Type){
+        this.value[val.ID]=val
     }
-    define(value:Type,name:string=""){
-        Object.defineProperty(this.value,name,{value:value})
+    get(id:string):Type{
+        return this.value[id]
     }
-    delete(name:string){
-        delete this.value[name]
+    getSafe(id:string):Type|null{
+        return this.value[id] ?? null
     }
-    list():string[]{
-        return Object.keys(this.value)
+    exist(id:string):boolean{
+        return Object.hasOwn(this.value,id)
+    }
+    extends(extend:string,val:Type){
+        this.set(mergeDeep<Type>(val,this.get(extend)!))
     }
 }
-export class Tree<Type> extends Definitions<Type>{
+export class Tree<Type extends Definition> extends Definitions<Type>{
     childs:Record<string,Tree<Type>>
     constructor(){
         super()
@@ -76,7 +82,7 @@ export class ExtendedMap<K, V> extends Map<K, V> {
     private _get(key: K): V {
         // it's up to callers to verify that the key is valid
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return super.get(key)!;
+        return super.get(key)!
     }
 
     /**
@@ -90,10 +96,10 @@ export class ExtendedMap<K, V> extends Map<K, V> {
     getAndSetIfAbsent(key: K, fallback: V): V {
         // pretty obvious why this is okay
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        if (this.has(key)) return this.get(key)!;
+        if (this.has(key)) return this.get(key)!
 
-        this.set(key, fallback);
-        return fallback;
+        this.set(key, fallback)
+        return fallback
     }
 
     /**
@@ -108,30 +114,30 @@ export class ExtendedMap<K, V> extends Map<K, V> {
     getAndGetDefaultIfAbsent(key: K, fallback: () => V): V {
         // pretty obvious why this is okay
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        if (this.has(key)) return this.get(key)!;
+        if (this.has(key)) return this.get(key)!
 
-        const value = fallback();
-        this.set(key, value);
-        return value;
+        const value = fallback()
+        this.set(key, value)
+        return value
     }
 
     ifPresent(key: K, callback: (obstacle: V) => void): void {
-        this.ifPresentOrElse(key, callback, () => { /* no-op */ });
+        this.ifPresentOrElse(key, callback, () => { /* no-op */ })
     }
 
     ifPresentOrElse(key: K, callback: (obstacle: V) => void, ifAbsent: () => void): void {
-        const mappingPresent = super.has(key);
+        const mappingPresent = super.has(key)
 
         if (!mappingPresent) {
-            return ifAbsent();
+            return ifAbsent()
         }
 
-        callback(this._get(key));
+        callback(this._get(key))
     }
 
     mapIfPresent<U = V>(key: K, mapper: (value: V) => U): U | undefined {
-        if (!super.has(key)) return undefined;
+        if (!super.has(key)) return undefined
 
-        return mapper(this._get(key));
+        return mapper(this._get(key))
     }
 }
