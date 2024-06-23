@@ -12,7 +12,7 @@ import { server } from "./config.ts";
 
     const mouseML=new MousePosListener(renderer.meter_size)
     const KeyL=new KeyListener()
-    mouseML.bind(canvas)
+    mouseML.bind(canvas,canvas)
     KeyL.bind(document.body)
 
     const g=new Game(`ws${server.toString()}/${await getGame("http://localhost:8080")}`,KeyL,mouseML,renderer)
