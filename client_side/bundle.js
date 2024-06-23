@@ -126,7 +126,7 @@ const Vec = Object.freeze({
         return this.new(Math.max(Math.min(vector.x, max.x), min.x), Math.max(Math.min(vector.y, max.y), min.y));
     },
     lookTo (x, y) {
-        return Math.atan2(x.y - y.y, x.x - y.x);
+        return Math.atan2(y.y - x.y, y.x - x.x);
     },
     from_RadAngle (angle) {
         return this.new(Math.cos(angle), Math.sin(angle));
@@ -1069,15 +1069,16 @@ class MousePosListener {
     _position;
     meter_size;
     get position() {
-        return Vec.scale(this._position, this.meter_size);
+        return Vec.dscale(this._position, this.meter_size);
     }
     constructor(meter_size){
         this._position = Vec.new(0, 0);
         this.meter_size = meter_size;
     }
-    bind(elem) {
+    bind(elem, canvas) {
         elem.addEventListener("mousemove", (e)=>{
-            this._position = Vec.new(e.clientX, e.clientY);
+            const rect = canvas.getBoundingClientRect();
+            this._position = Vec.new(e.x - rect.left, e.y - rect.top);
         });
     }
 }

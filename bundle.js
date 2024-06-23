@@ -367,7 +367,7 @@ const Vec = Object.freeze({
         return this.new(Math.max(Math.min(vector.x, max.x), min.x), Math.max(Math.min(vector.y, max.y), min.y));
     },
     lookTo (x, y) {
-        return Math.atan2(x.y - y.y, x.x - y.x);
+        return Math.atan2(y.y - x.y, y.x - x.x);
     },
     from_RadAngle (angle) {
         return this.new(Math.cos(angle), Math.sin(angle));
@@ -650,6 +650,7 @@ class BaseGameObject {
     collides;
     category;
     static;
+    calldestroy = true;
     get position() {
         return this.hb ? this.hb.position : NullVector;
     }
@@ -694,7 +695,9 @@ class SimpleGameObjectsManager {
                 const i = this.categorys[c].orden[j];
                 this.categorys[c].objs[i].update();
                 if (this.categorys[c].objs[i].destroyed) {
-                    this.destroyCallback(this.categorys[c].objs[i]);
+                    if (this.categorys[c].objs[i].calldestroy) {
+                        this.destroyCallback(this.categorys[c].objs[i]);
+                    }
                     this.categorys[c].orden.splice(j, 1);
                     delete this.categorys[c].objs[i];
                     j -= 1;
@@ -780,6 +783,9 @@ class CellsGameObjectsManager extends SimpleGameObjectsManager {
         const c = Vec.floor(Vec.dscale(this.categorys[obj.category].objs[obj.id].position, this.cellSize));
         const ch = Vec.hash(c);
         if (this.cells.get(ch)) {
+            if (!this.cells.get(ch).objs[obj.category]) {
+                this.cells.get(ch).objs[obj.category] = [];
+            }
             this.cells.get(ch).objs[obj.category].push(obj.id);
         } else {
             this.cells.set(ch, {
