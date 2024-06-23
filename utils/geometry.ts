@@ -170,7 +170,7 @@ export const Vec = Object.freeze({
      * @returns A `RadAngle` of 2 Vectors
      */
     lookTo(x:Vector, y:Vector):RadAngle {
-        return Math.atan2(x.y-y.y,x.x-y.x)
+        return Math.atan2(y.y-x.y,y.x-x.x)
     },
     /**
      * 

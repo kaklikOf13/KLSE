@@ -14,6 +14,7 @@ export abstract class BaseGameObject{
     public collides:Categorys
     public category:string
     public static:boolean
+    public calldestroy:boolean=true
     public get position():Vector{
         return this.hb ? this.hb.position : NullVector
     }
@@ -64,7 +65,9 @@ export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGam
                 const i=this.categorys[c].orden[j]
                 this.categorys[c].objs[i].update()
                 if (this.categorys[c].objs[i].destroyed){
-                    this.destroyCallback(this.categorys[c].objs[i])
+                    if(this.categorys[c].objs[i].calldestroy){
+                        this.destroyCallback(this.categorys[c].objs[i])
+                    }
                     this.categorys[c].orden.splice(j,1)
                     delete this.categorys[c].objs[i]
                     j-=1
@@ -152,9 +155,10 @@ export class CellsGameObjectsManager extends SimpleGameObjectsManager{
         const c=Vec.floor(Vec.dscale(this.categorys[obj.category].objs[obj.id].position,this.cellSize))
         const ch=Vec.hash(c)
         if(this.cells.get(ch)){
-            // deno-lint-ignore ban-ts-comment
-            //@ts-expect-error
-            this.cells.get(ch).objs[obj.category].push(obj.id)
+            if(!this.cells.get(ch)!.objs[obj.category]){
+                this.cells.get(ch)!.objs[obj.category]=[]
+            }
+            this.cells.get(ch)!.objs[obj.category].push(obj.id)
         }else{
             this.cells.set(ch,{objs:{[obj.category]:[obj.id]},pos:c})
         }
