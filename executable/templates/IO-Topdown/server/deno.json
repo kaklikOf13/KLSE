@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "dev": "deno run --watch -A ./src/main.ts",
+    "build": "deno compile ./src/main.ts"
+  },
+  "importMap": "../common/config/deps.json"
+}

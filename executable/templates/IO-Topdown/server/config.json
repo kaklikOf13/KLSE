@@ -1,0 +1,26 @@
+{
+    "site":{
+        "enable":true,
+        "host":{
+            "port":3000,
+            "https":false,
+            "key":"./private/key.key",
+            "cert":"./private/cert.crt"
+        },
+        "dir":"../dist/client"
+    },
+    "game":{
+        "config":{
+            "maxPlayers":5,
+            "player":{
+                "speed":0.05
+            }
+        }
+    },
+    "game_server":{
+        "enable":true,
+        "host":{
+            "port":8080
+        }
+    }
+}

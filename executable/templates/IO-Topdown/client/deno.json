@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run -A npm:vite",
+    "build": "deno run -A npm:vite build"
+  },
+  "importMap": "../common/config/deps.json",
+  "compilerOptions": {
+        "lib": ["dom", "deno.ns"]
+    }
+}
