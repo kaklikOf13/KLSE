@@ -255,15 +255,16 @@ export class MousePosListener{
     private _position:Vector
     private readonly meter_size:number
     get position():Vector{
-        return Vec.scale(this._position,this.meter_size)
+        return Vec.dscale(this._position,this.meter_size)
     }
     constructor(meter_size:number){
         this._position=Vec.new(0,0)
         this.meter_size=meter_size
     }
-    bind(elem:HTMLElement){
+    bind(elem:HTMLElement,canvas:HTMLCanvasElement){
         elem.addEventListener("mousemove",(e:MouseEvent)=>{
-            this._position=Vec.new(e.clientX,e.clientY)
+            const rect=canvas.getBoundingClientRect()
+            this._position=Vec.new(e.x-rect.left,e.y-rect.top)
         })
     }
 }
