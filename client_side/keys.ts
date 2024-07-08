@@ -1,4 +1,4 @@
-import { Vec, Vector } from "../mod.ts";
+import { Vec2, v2 } from "../mod.ts";
 import { SignalManager } from "../utils/_utils.ts";
 
 export enum Key{
@@ -252,19 +252,19 @@ export class KeyListener{
 }
 
 export class MousePosListener{
-    private _position:Vector
+    private _position:Vec2
     private readonly meter_size:number
-    get position():Vector{
-        return Vec.dscale(this._position,this.meter_size)
+    get position():Vec2{
+        return v2.dscale(this._position,this.meter_size)
     }
     constructor(meter_size:number){
-        this._position=Vec.new(0,0)
+        this._position=v2.new(0,0)
         this.meter_size=meter_size
     }
     bind(elem:HTMLElement,canvas:HTMLCanvasElement){
         elem.addEventListener("mousemove",(e:MouseEvent)=>{
             const rect=canvas.getBoundingClientRect()
-            this._position=Vec.new(e.x-rect.left,e.y-rect.top)
+            this._position=v2.new(e.x-rect.left,e.y-rect.top)
         })
     }
 }

@@ -18,6 +18,8 @@ export class PacketsManager{
         this.packets=new Map()
         this.add_packet(ConnectPacket)
         this.add_packet(DisconnectPacket)
+        this.add_packet(SteamPacket)
+        this.add_packet(ObjectsPacket)
     }
     encode(packet:Packet,stream?:NetStream):NetStream{
         if(!stream){
@@ -75,5 +77,39 @@ export class DisconnectPacket extends Packet{
     }
     decode(stream: NetStream): void {
       this.client_id=stream.readID()
+    }
+}
+export class SteamPacket extends Packet{
+    readonly ID=65533
+    readonly Name="stream"
+    stream:NetStream
+    constructor(stream:NetStream=new NetStream()){
+        super()
+        this.stream=stream
+    }
+    encode(stream: NetStream): void {
+        stream.writeUInt32(stream.buffer.length)
+        stream.insert(stream.buffer)
+    }
+    decode(stream: NetStream): void {
+        const size=stream.readUInt32()
+        this.stream=new NetStream(this.stream.buffer.subarray(this.stream.pos,this.stream.pos+size))
+    }
+}
+export class ObjectsPacket extends Packet{
+    readonly ID=65532
+    readonly Name="objects"
+    stream:NetStream
+    constructor(stream:NetStream=new NetStream()){
+        super()
+        this.stream=stream
+    }
+    encode(stream: NetStream): void {
+        stream.writeUInt32(stream.buffer.length)
+        stream.insert(stream.buffer)
+    }
+    decode(stream: NetStream): void {
+        const size=stream.readUInt32()
+        this.stream=new NetStream(this.stream.buffer.subarray(this.stream.pos,this.stream.pos+size))
     }
 }

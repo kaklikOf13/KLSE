@@ -1,202 +1,182 @@
-import { HashVector, NullVector, Vec, Vector } from "./geometry.ts"
+import { NullVec2, v2, Vec2 } from "./geometry.ts"
 import { Hitbox, NullHitbox } from "./hitbox.ts"
-import { ID,Tags,combineWithoutEqual } from "./_utils.ts"
+import { ID, Tags } from "./_utils.ts"
+import { NetStream } from "../mod.ts";
 import { random } from "./random.ts";
-
+import { ObjectsPacket } from "./packets.ts";
 export type GameObjectID=ID
-export type Categorys=Tags
-export abstract class BaseGameObject{
+export abstract class BaseObject2D{
     public hb:Hitbox
     public destroyed:boolean
-    public id:GameObjectID
-    public parent:SimpleGameObjectsManager|null
-    public overlaps:Categorys
-    public collides:Categorys
-    public category:string
-    public static:boolean
+    public id!:GameObjectID
+    public category!:string
     public calldestroy:boolean=true
-    public get position():Vector{
-        return this.hb ? this.hb.position : NullVector
+    public dirty:boolean=false
+    public dirtyPart:boolean=false
+    public manager!:GameObjectManager2D
+    public get position():Vec2{
+        return this.hb ? this.hb.position : NullVec2
     }
-    set position(val:Vector){
+    set position(val:Vec2){
         this.hb.position=val
     }
     constructor(){
-        this.category=""
         this.hb=new NullHitbox()
         this.destroyed=false
-        this.static=false
-        this.id=0
-        this.parent=null
-        this.overlaps=[]
-        this.collides=[]
     }
     abstract update():void
-    start():void{}
-    on_collide_with(_obj:BaseGameObject):void{}
-    on_overlap_with(_obj:BaseGameObject):void{}
-    copy():BaseGameObject{
-        return Object.assign({}, this)
+    abstract create():void
+    abstract encodePart(stream:NetStream):void
+    abstract decodePart(stream:NetStream):void
+    abstract encodeComplete(stream:NetStream):void
+    abstract decodeComplete(stream:NetStream):void
+    get_key():ObjectKey{
+        return {category:this.category,id:this.id}
     }
 }
+
 
 export interface ObjectKey {category:string,id:GameObjectID}
-function newObjectKey(category:string,id:GameObjectID):ObjectKey{
-    return {category:category,id:id}
-}
-interface Category<GameObjectB extends BaseGameObject> {objs:Record<GameObjectID,GameObjectB>,orden:GameObjectID[]}
-
-export class SimpleGameObjectsManager<GameObjectB extends BaseGameObject=BaseGameObject>{
-    public categorys:Record<string,Category<GameObjectB>>
-    constructor(){
-        this.categorys={}
+export interface Category<GameObject extends BaseObject2D> {objects:Record<GameObjectID,GameObject>,orden:number[]}
+export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
+    objects:Record<string,Record<GameObjectID,GameObject>>={}
+    cellSize:number
+    cells:Record<number,Record<number,Record<string,GameObject[]>>>
+    constructor(cellSize:number=32){
+        this.cellSize=cellSize
+        this.cells={}
     }
-    public destroyCallback(_obj:GameObjectB){
 
+    registry(obj:GameObject){
+        if(!this.objects[obj.category]){
+            this.objects[obj.category]={}
+        }
+        if(this.objects[obj.category][obj.id]){
+            throw new Error(`Existent Object ${obj.id} In Cell`)
+        }
+        this.objects[obj.category][obj.id]=obj
     }
-    // deno-lint-ignore no-explicit-any
-    protected after_update():any{}
-    protected begin_update(){}
-    // deno-lint-ignore no-explicit-any
-    update():any{
-        this.begin_update()
-        for(const c in this.categorys){
-            for(let j=0;j<this.categorys[c].orden.length;j++){
-                const i=this.categorys[c].orden[j]
-                this.categorys[c].objs[i].update()
-                if (this.categorys[c].objs[i].destroyed){
-                    if(this.categorys[c].objs[i].calldestroy){
-                        this.destroyCallback(this.categorys[c].objs[i])
-                    }
-                    this.categorys[c].orden.splice(j,1)
-                    delete this.categorys[c].objs[i]
-                    j-=1
+    unregistry(obj:ObjectKey){
+        if(!(this.objects[obj.category]&&this.objects[obj.category][obj.id])){
+            throw new Error(`Invalid Object ${obj}`)
+        }
+        delete this.objects[obj.category][obj.id]
+    }
+    update(){
+        this.cells={}
+        for(const c of Object.keys(this.objects)){
+            for(const obj of Object.values(this.objects[c])){
+                const cp=this.cellPos(obj.position)
+                if(!this.cells[cp.y]){
+                    this.cells[cp.y]={}
+                }
+                if(!this.cells[cp.y][cp.x]){
+                    this.cells[cp.y][cp.x]={}
+                }
+                if(!(this.cells[cp.y][cp.x][obj.category])){
+                    this.cells[cp.y][cp.x][obj.category]=[]
+                }
+                this.cells[cp.y][cp.x][obj.category].push(obj)
+            }
+        }
+    }
+    get_objects(hitbox:Hitbox,categorys:Tags):Record<string,GameObject[]>{
+        const rect=hitbox.toRect()
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v2.add(rect.position,rect.size));
+        const objects:Record<string,GameObject[]> = {};
+
+        for (let x = min.x, maxX = max.x;x <= maxX;x++) {
+            for (let y = min.y, maxY = max.y;y <= maxY;y++) {
+                if(!(this.cells[y]&&this.cells[y][x])){
                     continue
                 }
-                this.update_object(newObjectKey(c,i))
+                for (const c of categorys) {
+                    if(!objects[c]){
+                        objects[c]=[]
+                    }
+                    objects[c].push(...Object.values(this.cells[y][x][c]))
+                }
             }
         }
-        return this.after_update()
+        return objects
     }
-    protected update_object(obj:ObjectKey){
-        const obji=this.categorys[obj.category].objs[obj.id]
-        const a=combineWithoutEqual(obji.collides,obji.overlaps)
-        for(const c2 of a){
-            for(const [_j2,i2] of this.categorys[c2].orden.entries()){
-                this.solve_collision_normal(obj,newObjectKey(c2,i2))
-                this.solve_collision_overlap(obj,newObjectKey(c2,i2))
-            }
-        }
-    }
-    protected solve_collision_overlap(objA:ObjectKey,objB:ObjectKey){
-        if(!(objA.id==objB.id&&objA.category==objB.category)&&!this.categorys[objA.category].objs[objA.id].static&&this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)){
-            this.categorys[objA.category].objs[objA.id].on_overlap_with(this.categorys[objB.category].objs[objB.id])
-        }
-    }
-    protected solve_collision_normal(objA:ObjectKey,objB:ObjectKey){
-        if(!(objA.id==objB.id&&objA.category==objB.category)&&this.categorys[objA.category].objs[objA.id].hb.collidingWith(this.categorys[objB.category].objs[objB.id].hb)){
-            this.categorys[objA.category].objs[objA.id].on_collide_with(this.categorys[objB.category].objs[objB.id])
-        }
-    }
-    add_object(category:string,obj:GameObjectB,id?:GameObjectID){
-        if(id===undefined){
-            id=random.id()
-        }
-        obj.id=id
-        obj.parent=this
-        obj.category=category
-        this.categorys[category].objs[id]=obj
-        this.categorys[category].orden.push(id)
-        obj.start()
-    }
-    get_object<Type extends GameObjectB>(category:string,id:GameObjectID):Type{
-        return this.categorys[category].objs[id] as Type
-    }
-    exist_object(category:string,id:GameObjectID):boolean{
-        return Object.hasOwn(this.categorys[category].objs,id)
-    }
-    add_category(name:string){
-        this.categorys[name]={objs:{},orden:[]}
+    cellPos(pos:Vec2):Vec2{
+        return v2.floor(v2.dscale(pos,this.cellSize))
     }
 }
-
-interface Cell {pos:Vector,objs:Record<string,GameObjectID[]>}
-
-export class CellsGameObjectsManager extends SimpleGameObjectsManager{
-    public cells:Map<HashVector,Cell>
-    //public cells:Map<HashVector,GameObjectID[]>
-    public cellSize:number
-    public threads:number
-    constructor(threads=5,cellSize=32){
-        super()
-        this.threads=threads
-        this.cellSize=cellSize
-        this.cells=new Map()
+export class GameObjectManager2D<GameObject extends BaseObject2D=BaseObject2D>{
+    cells:CellsManager2D<GameObject>
+    objects:Record<string,Category<GameObject>>={}
+    stream:NetStream
+    constructor(cellsSize?:number){
+        this.cells=new CellsManager2D(cellsSize)
+        this.stream=new NetStream(new Uint8Array())
     }
-    override begin_update() {
-        this.cells.clear()
-    }
-    // deno-lint-ignore no-explicit-any
-    override after_update():any{
-        const promisses=[]
-        const ckeys=Array.from(this.cells.keys())
-        const nf=Math.ceil(ckeys.length/this.threads)
-        const nff=ckeys.length/nf
-        for(let p=0;p<this.threads;p++){
-            if((p+1)*nff>=ckeys.length){
-                promisses.push(this.update_especific_cells(ckeys.slice(p*nff,ckeys.length)))
-            }else{
-                promisses.push(this.update_especific_cells(ckeys.slice(p*nff,(p+1)*nff)))
+    add_object(obj:GameObject,category:string,id?:number){
+        if(!this.objects[category]){
+            throw new Error(`Invalid Category ${category}`)
+        }
+        if(id===undefined){
+            while(id===undefined){
+                id=random.id()
+                if(this.objects[category].objects[id]){
+                    id=undefined
+                }
             }
         }
-        return Promise.all(promisses)
+        obj.id=id
+        obj.category=category
+        obj.dirty=true
+        obj.manager=this
+        this.objects[category].objects[obj.id]=obj
+        this.objects[category].orden.push(obj.id)
+        obj.create()
+        this.cells.registry(obj)
     }
-    override update_object(obj: ObjectKey): void {
-        const c=Vec.floor(Vec.dscale(this.categorys[obj.category].objs[obj.id].position,this.cellSize))
-        const ch=Vec.hash(c)
-        if(this.cells.get(ch)){
-            if(!this.cells.get(ch)!.objs[obj.category]){
-                this.cells.get(ch)!.objs[obj.category]=[]
+    add_category(category:string){
+        this.objects[category]={orden:[],objects:{}}
+    }
+    proccess(packet:ObjectsPacket){
+        const csize=packet.stream.readUInt16()
+        for(let i=0;i<csize;i++){
+            const category=packet.stream.readString()
+            if(!this.objects[category]){
+                continue
             }
-            this.cells.get(ch)!.objs[obj.category].push(obj.id)
-        }else{
-            this.cells.set(ch,{objs:{[obj.category]:[obj.id]},pos:c})
+            const osize=packet.stream.readUInt16()
+            for(let j=0;j<osize;j++){
+                const oid=this.stream.readID()
+                if(!this.objects[category].objects[oid]){
+                    continue
+                }
+                const dir=this.stream.readUInt8()
+                if(dir>0){
+                    this.objects[category].objects[oid].dirtyPart=true
+                    this.objects[category].objects[oid].decodePart(packet.stream)
+                    if(dir>1){
+                        this.objects[category].objects[oid].dirty=true
+                        this.objects[category].objects[oid].decodeComplete(packet.stream)
+                    }
+                }
+            }
         }
     }
-    private update_especific_cells(keys:HashVector[]):Promise<void>{
-        return new Promise((resolve, _reject)=>{
-            for(const cc of keys){
-                this.update_cell(cc)
-            }
-            resolve()
-        })
-    }
-    private update_cell(c:HashVector){
-        const cp=this.cells.get(c)!.pos
-        for(let yy=-1; yy<=1; yy++){
-            for(let xx=-1; xx<=1; xx++){
-                const oc=Vec.new(cp.x+xx,cp.y+yy)
-                const och=Vec.hash(oc)
-                if(this.cells.get(och)){
-                    for(const cat1 of Object.keys(this.cells.get(c)!.objs)){
-                        if (!this.cells.get(c)!.objs[cat1]) continue
-                        for(const objA of this.cells.get(c)!.objs[cat1]){
-                            const objAk=newObjectKey(cat1,objA)
-                            for(const cat2 of this.categorys[cat1].objs[objA].collides){
-                                if (this.cells.get(c)!.objs[cat2]){
-                                    for(const objB of this.cells.get(c)!.objs[cat2]){
-                                        this.solve_collision_normal(objAk,newObjectKey(cat2,objB))
-                                    }
-                                }
-                            }
-                            for(const cat2 of this.categorys[cat1].objs[objA].overlaps){
-                                if (this.cells.get(c)!.objs[cat2]){
-                                    for(const objB of this.cells.get(c)!.objs[cat2]){
-                                        this.solve_collision_overlap(objAk,newObjectKey(cat2,objB))
-                                    }
-                                }
-                            }
-                        }
+    update(){
+        this.cells.update()
+        this.stream.clear()
+        this.stream.writeUInt16(Object.keys(this.objects).length)
+        for(const c in this.objects){
+            this.stream.writeString(c)
+            this.stream.writeUInt16(this.objects[c].orden.length)
+            for(const o of this.objects[c].orden){
+                this.objects[c].objects[o].update()
+                this.stream.writeID(o)
+                this.stream.writeUInt8(((this.objects[c].objects[o].dirtyPart?1:0)*1)+((this.objects[c].objects[o].dirty?1:0)*10))
+                if(this.objects[c].objects[o].dirtyPart||this.objects[c].objects[o].dirty){
+                    this.objects[c].objects[o].encodePart(this.stream)
+                    if(this.objects[c].objects[o].dirty){
+                        this.objects[c].objects[o].encodeComplete(this.stream)
                     }
                 }
             }

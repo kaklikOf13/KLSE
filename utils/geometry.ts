@@ -1,7 +1,14 @@
 import { random } from "./random.ts"
-export interface Vector{
+export interface Vec2{
     x:number
     y:number
+}
+
+export interface Vec3 {
+    x: number
+    y: number
+    z: number
+
 }
 export type RadAngle=number
 export type DegAngle=number
@@ -11,298 +18,349 @@ function float32ToUint32(value: number): number {
     floatView[0] = value
     return intView[0]
 }
+
+
 const prime1 = BigInt("2654435761")
 const prime2 = BigInt("2246822519")
 
-export type HashVector=bigint
+export type HashVec2=bigint
 
-export const Vec = Object.freeze({
+export const v3 = Object.freeze({
+
     /**
-     * Creates a new `Vector`
+     * Creates a new `Vec2 3`
+     * * @param x The hortizontal (x-axis) coordinate
+     * @param y The vertical (y-axis) coordinate
+     * @returns A new `Vec23` With X and Y and Z Cords
+     * 
+     */
+
+
+    new(x: number, y: number, z: number): Vec3 {
+        return {x, y, z}
+    },
+
+    random(min:number, max:number):Vec3 {
+        return {x:random.float(min,max),y:random.float(min,max), z:random.float(min, max)}
+    },
+
+    add(x: Vec3, y: Vec3): Vec3 {
+        return this.new(x.x+y.x, x.y+y.y, x.z+y.z)
+    },
+    Dot(vec: Vec3, other: Vec3) {
+        const result = vec.x * other.x + vec.y * other.y + vec.z * other.z;
+        return result;
+    },
+
+    Cross(vec: Vec3, other: Vec3) {
+        const resultX = vec.y * other.z - vec.z * other.y;
+        const resultY = vec.z * other.x - vec.x * other.z;
+        const resultZ = vec.x * other.y - vec.y * other.x;
+
+        return {resultX, resultY, resultZ};
+    },
+})
+
+export const v2 = Object.freeze({
+    /**
+     * Creates a new `v2tor`
      * @param x The horizontal (x-axis) coordinate
      * @param y The vertical (y-axis) coordinate
-     * @returns A new `Vector` With X and Y Cords
+     * @returns A new `v2tor` With X and Y Cords
      */
-    new(x:number, y:number):Vector {
+    new(x:number, y:number): Vec2 {
         return {x, y}
     },
     /**
-     * Return Random Vector
+     * Return Random Vec2
      */
-    random(min:number, max:number):Vector {
+    random(min:number, max:number):Vec2 {
         return {x:random.float(min,max),y:random.float(min,max)}
     },
-    random2(min:Vector, max:Vector):Vector {
+    random2(min:Vec2, max:Vec2):Vec2 {
         return {x:random.float(min.x,max.x),y:random.float(min.y,max.y)}
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With `x`+`y`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With `x`+`y`
      */
-    add(x:Vector, y:Vector):Vector {
+    add(x:Vec2, y:Vec2):Vec2 {
         return this.new(x.x+y.x,x.y+y.y)
     },
+
+    cross(vec: Vec2, other: Vec2) {
+        const result = vec.x * other.y - vec.y * other.x;
+        return result;
+    },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With `x`-`y`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With `x`-`y`
      */
-    sub(x:Vector, y:Vector):Vector {
+    sub(x:Vec2, y:Vec2):Vec2 {
         return this.new(x.x-y.x,x.y-y.y)
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With `x`*`y`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With `x`*`y`
      */
-    mult(x:Vector, y:Vector):Vector {
+    mult(x:Vec2, y:Vec2):Vec2 {
         return this.new(x.x*y.x,x.y*y.y)
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With `x`/`y`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With `x`/`y`
      */
-    div(x:Vector, y:Vector):Vector {
+    div(x:Vec2, y:Vec2):Vec2 {
         return this.new(x.x/y.x,x.y/y.y)
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
+     * @param x `Vec21`
+     * @param y `Vec22`
      * @returns `boolean` of operation `x`>`y`
      */
-    greater(x:Vector, y:Vector):boolean {
+    greater(x:Vec2, y:Vec2):boolean {
         return x.x>y.x&&x.y>y.y
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
+     * @param x `Vec21`
+     * @param y `Vec22`
      * @returns `boolean` of operation `x`<`y`
      */
-    less(x:Vector, y:Vector):boolean {
+    less(x:Vec2, y:Vec2):boolean {
         return x.x<y.x&&x.y<y.y
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns `boolean` of operation `x`<`y`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns `boolean` of operation `x`==`y`
      */
-    is(x:Vector, y:Vector):boolean {
+    is(x:Vec2, y:Vec2):boolean {
         return x.x==y.x&&x.y==y.y
     },
     /**
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param scale `Scale`
-     * @returns A new `Vector` With `Vector`*`scale`
+     * @returns A new `Vec2` With `Vec2`*`scale`
      */
-    scale(vector:Vector, scale:number):Vector {
-        return this.new(vector.x*scale,vector.y*scale)
+    scale(Vec2:Vec2, scale:number):Vec2 {
+        return this.new(Vec2.x*scale,Vec2.y*scale)
     },
     /**
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param dscale `DeScale`
-     * @returns A new `Vector` With `Vector`/`dscale`
+     * @returns A new `Vec2` With `Vec2`/`dscale`
      */
-    dscale(vector:Vector, dscale:number):Vector {
-        return this.new(vector.x/dscale,vector.y/dscale)
+    dscale(Vec2:Vec2, dscale:number):Vec2 {
+        return this.new(Vec2.x/dscale,Vec2.y/dscale)
     },
     /**
      * 
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param min `Limit`
-     * @returns A new `Vector` With Limit down 
+     * @returns A new `Vec2` With Limit down 
      */
-    min1(vector:Vector,min:number):Vector{
-        return this.new(Math.max(vector.x,min),Math.max(vector.y,min))
+    min1(Vec2:Vec2,min:number):Vec2{
+        return this.new(Math.max(Vec2.x,min),Math.max(Vec2.y,min))
     },
     /**
      * 
-     * @param x `Vector`
+     * @param x `Vec2`
      * @param y `Limit`
-     * @returns A new `Vector` With Limit down
+     * @returns A new `Vec2` With Limit down
      */
-    min2(x:Vector,y:Vector):Vector{
+    min2(x:Vec2,y:Vec2):Vec2{
         return this.new(Math.max(x.x,y.x),Math.max(x.y,y.y))
     },
     /**
      * 
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param max `Limit`
-     * @returns A new `Vector` With Limit down 
+     * @returns A new `Vec2` With Limit down 
      */
-    max1(vector:Vector,max:number):Vector{
-        return this.new(Math.min(vector.x,max),Math.min(vector.y,max))
+    max1(Vec2:Vec2,max:number):Vec2{
+        return this.new(Math.min(Vec2.x,max),Math.min(Vec2.y,max))
     },
     /**
      * 
-     * @param x `Vector`
+     * @param x `Vec2`
      * @param y `Limit`
-     * @returns A new `Vector` With Limit up
+     * @returns A new `Vec2` With Limit up
      */
-    max2(x:Vector,y:Vector):Vector{
+    max2(x:Vec2,y:Vec2):Vec2{
         return this.new(Math.min(x.x,y.x),Math.min(x.y,y.y))
     },
 
     /**
      * 
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param min `Min Limit`
      * @param max `Max Limit`
-     * @returns A new `Vector` With Limit
+     * @returns A new `Vec2` With Limit
      */
-    clamp1(vector:Vector,min:number,max:number):Vector{
-        return this.new(Math.max(Math.min(vector.x,max),min),Math.max(Math.min(vector.y,max),min))
+    clamp1(Vec2:Vec2,min:number,max:number):Vec2{
+        return this.new(Math.max(Math.min(Vec2.x,max),min),Math.max(Math.min(Vec2.y,max),min))
     },
     /**
      * 
-     * @param vector `Vector`
+     * @param Vec2 `Vec2`
      * @param min `Min Limit`
      * @param max `Max Limit`
-     * @returns A new `Vector` With Limit
+     * @returns A new `Vec2` With Limit
      */
-    clamp2(vector:Vector,min:Vector,max:Vector):Vector{
-        return this.new(Math.max(Math.min(vector.x,max.x),min.x),Math.max(Math.min(vector.y,max.y),min.y))
+    clamp2(Vec2:Vec2,min:Vec2,max:Vec2):Vec2{
+        return this.new(Math.max(Math.min(Vec2.x,max.x),min.x),Math.max(Math.min(Vec2.y,max.y),min.y))
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A `RadAngle` of 2 Vectors
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A `RadAngle` of 2 Vec2s
      */
-    lookTo(x:Vector, y:Vector):RadAngle {
+    lookTo(x:Vec2, y:Vec2):RadAngle {
         return Math.atan2(y.y-x.y,y.x-x.x)
     },
     /**
      * 
      * @param angle `Radians Angle`
-     * @returns A new `Vector` With angle pos
+     * @returns A new `Vec2` With angle pos
      */
-    from_RadAngle(angle:RadAngle):Vector {
+    from_RadAngle(angle:RadAngle):Vec2 {
         return this.new(Math.cos(angle),Math.sin(angle) )
     },
     /**
      * 
      * @param angle `Degrese Angle`
-     * @returns A new `Vector` With angle pos
+     * @returns A new `Vec2` With angle pos
      */
-    from_DegAngle(angle:DegAngle):Vector {
+    from_DegAngle(angle:DegAngle):Vec2 {
         const a=Angle.deg2rad(angle)
         return this.new(Math.cos(a),Math.sin(a))
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With distance of `Vector1` and `Vector2`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With distance of `Vec21` and `Vec22`
      */
-    distanceSquared(x:Vector,y:Vector):number{
+    distanceSquared(x:Vec2,y:Vec2):number{
         const dx=x.x-y.x
         const dy=x.y-y.y
         return dx*dx+dy*dy
     },
     /**
-     * @param x `Vector1`
-     * @param y `Vector2`
-     * @returns A new `Vector` With distance squared of `Vector1` and `Vector2`
+     * @param x `Vec21`
+     * @param y `Vec22`
+     * @returns A new `Vec2` With distance squared of `Vec21` and `Vec22`
      */
-    distance(x:Vector,y:Vector):number{
+    distance(x:Vec2,y:Vec2):number{
         const dx=x.x-y.x
         const dy=x.y-y.y
         return Math.sqrt(dx*dx+dy*dy)
     },
     /**
-     * @param vector `Vector`
-     * @returns A new `Vector` With squared of `Vector1`
+     * @param Vec2 `Vec2`
+     * @returns A new `Vec2` With squared of `Vec21`
      */
-    squared(vector:Vector):number{
-        return vector.x*vector.x+vector.y*vector.y
+    squared(Vec2:Vec2):number{
+        return Vec2.x*Vec2.x+Vec2.y*Vec2.y
     },
     /**
-     * @param vector The `Vector` used in lenght
+     * @param Vec2 The `Vec2` used in lenght
      * @returns 
      */
-    length(vector: Vector): number {
-        return Math.sqrt(Vec.squared(vector))
+    length(Vec2: Vec2): number {
+        return Math.sqrt(v2.squared(Vec2))
     },
     
     /**
      * 
-     * @param vector `Vector`
-     * @returns A new Absolute `Vector`
+     * @param Vec2 `Vec2`
+     * @returns A new Absolute `Vec2`
      */
-    absolute(vector:Vector):Vector{
-        return this.new(Math.abs(vector.x),Math.abs(vector.y))
+    absolute(Vec2:Vec2):Vec2{
+        return this.new(Math.abs(Vec2.x),Math.abs(Vec2.y))
     },
     /**
      * 
-     * @param vector `Vector`
-     * @returns A new Interger `Vector`
+     * @param Vec2 `Vec2`
+     * @returns A new Interger `Vec2`
      */
-    floor(vector:Vector):Vector{
-        return this.new(Math.floor(vector.x),Math.floor(vector.y))
+    floor(Vec2:Vec2):Vec2{
+        return this.new(Math.floor(Vec2.x),Math.floor(Vec2.y))
     },
     /**
      * 
-     * @param current The current `Vector` Position
-     * @param end The Final `Vector` Position
+     * @param Vec2 `Vec2`
+     * @returns A new Ceil `Vec2`
+     */
+    ceil(Vec2:Vec2):Vec2{
+        return this.new(Math.ceil(Vec2.x),Math.ceil(Vec2.y))
+    },
+    /**
+     * 
+     * @param current The current `Vec2` Position
+     * @param end The Final `Vec2` Position
      * @param interpolation 
      * @returns 
      */
-    lerp(current: Vector, end: Vector,interpolation: number): Vector {
-        return Vec.add(Vec.scale(current,1-interpolation), Vec.scale(end,interpolation))
+    lerp(current: Vec2, end: Vec2,interpolation: number): Vec2 {
+        return v2.add(v2.scale(current,1-interpolation), v2.scale(end,interpolation))
     },
     /**
-     * @param vector The `Vector` to normalize
-     * @param fallback A `Vector` to clone and return in case the normalization operation fails
-     * @returns A `Vector` whose length is 1 and is parallel to the original vector
+     * @param Vec2 The `Vec2` to normalize
+     * @param fallback A `Vec2` to clone and return in case the normalization operation fails
+     * @returns A `Vec2` whose length is 1 and is parallel to the original Vec2
      */
-    normalizeSafe(vector:Vector,fallback:Vector=NullVector):Vector {
+    normalizeSafe(Vec2:Vec2,fallback:Vec2=NullVec2):Vec2 {
         fallback ??= this.new(1.0, 0.0)
         const eps = 0.000001
-        const len = Vec.length(vector)
+        const len = v2.length(Vec2)
         return len > eps
             ? {
-                x:vector.x/len,
-                y:vector.y/len
-            }:Vec.duplicate(fallback)
+                x:Vec2.x/len,
+                y:Vec2.y/len
+            }:v2.duplicate(fallback)
     },
     /**
-     * @param vector The `Vector` to normalize
-     * @returns A `Vector` whose length is 1 and is parallel to the original vector
+     * @param Vec2 The `Vec2` to normalize
+     * @returns A `Vec2` whose length is 1 and is parallel to the original Vec2
      */
-    normalize(vector:Vector): Vector {
+    normalize(Vec2:Vec2): Vec2 {
         const eps = 0.000001
-        const len = Vec.length(vector)
+        const len = v2.length(Vec2)
         return eps
             ? {
-                x:vector.x/len,
-                y:vector.y/len
-            }: Vec.duplicate(vector)
+                x:Vec2.x/len,
+                y:Vec2.y/len
+            }: v2.duplicate(Vec2)
     },
     /**
      * 
-     * @param vector The `Vector` To Duplication
-     * @returns The Duplicated Vector
+     * @param Vec2 The `Vec2` To Duplication
+     * @returns The Duplicated Vec2
      */
-    duplicate(vector:Vector):Vector{
-        return this.new(vector.x,vector.y)
+    duplicate(Vec2:Vec2):Vec2{
+        return this.new(Vec2.x,Vec2.y)
     },
     /**
      * 
-     * @param vector The `Vector` To hash
-     * @returns Hashed Vector
+     * @param Vec2 The `Vec2` To hash
+     * @returns Hashed Vec2
      */
-    hash(vector:Vector):HashVector{
-        let hash = BigInt(float32ToUint32(vector.x))
+    hash(Vec2:Vec2):HashVec2{
+        let hash = BigInt(float32ToUint32(Vec2.x))
         hash = (hash * prime1) & BigInt("4294967295")
-        hash ^= BigInt(float32ToUint32(vector.y))
+        hash ^= BigInt(float32ToUint32(Vec2.y))
         hash = (hash * prime2) & BigInt("4294967295")
         return hash
     },
-    toString(vector:Vector):string{
-        return `{${vector.x},${vector.y}}`
+    toString(Vec2:Vec2):string{
+        return `{${Vec2.x},${Vec2.y}}`
     }
 })
-export const NullVector:Vector=Vec.new(0,0)
+export const NullVec2:Vec2=v2.new(0,0)
 export const Angle=Object.freeze({
     deg2rad(angle:DegAngle):RadAngle{
         return angle* Math.PI / 180

@@ -1,71 +1,48 @@
-import { BaseGameObject, CellsGameObjectsManager,SimpleGameObjectsManager } from "../utils/gameObject.ts"
+import { BaseObject2D, CellsManager2D, GameObjectManager2D } from "../utils/gameObject.ts"
 import { RectHitbox } from "../utils/hitbox.ts"
-import { Vec } from "../utils/geometry.ts"
+import { v2 } from "../utils/geometry.ts"
 import { random } from "../utils/random.ts";
-import { assertEquals } from "https://deno.land/std/testing/asserts.ts"
-const randl=Vec.new(-1000,1000)
-const randl2=Vec.new(-1,1)
-
-class TestObject extends BaseGameObject{
-    constructor(){
-        super()
-        this.overlaps=["test"]
-        this.hb=new RectHitbox(Vec.new(random.float(randl.x,randl.y),random.float(randl.x,randl.y)),Vec.new(2,2))
+import { NetStream } from "../mod.ts";
+const randl=v2.new(-1000,1000)
+let collision=0
+class TestObject extends BaseObject2D{
+    cls!:CellsManager2D
+    create(): void {
+        this.hb=new RectHitbox(v2.new(random.float(randl.x,randl.y),random.float(randl.x,randl.y)),v2.new(2,2))
     }
-    override update(): void {
+    update() {
+        const objs=this.cls.get_objects(this.hb,["objs"])
+        for(const c in objs){
+            for(const o in objs[c]){
+                if(this.hb.collidingWith(objs[c][o].hb)){
+                    //console.log("Object",this.id,"collide with:",objs[c][o].id)
+                    collision++
+                }
+            }
+        }
+    }
+    override decodePart(_stream: NetStream): void {
         
     }
-    /*override on_overlap_with(obj: GameObject): void {
-        console.log(`${this.id} Is Overlaping With ${obj.id}, ${Vec.toString(this.hb.position)} ${Vec.toString(obj.hb.position)}`)
-    }*/
-}
-
-class TestObject2 extends BaseGameObject{
-    constructor(){
-        super()
-        this.collides=["test"]
-        this.hb=new RectHitbox(Vec.new(random.float(randl2.x,randl2.y),random.float(randl2.x,randl2.y)),Vec.new(2,2))
-    }
-    override update(): void {
+    override encodePart(_stream: NetStream): void {
         
     }
-    override on_collide_with(_obj: BaseGameObject): void {
-        this.destroyed=true
+    override encodeComplete(_stream: NetStream): void {
+        
+    }
+    override decodeComplete(_stream: NetStream): void {
+        
     }
 }
-
-Deno.test("Opimisation",async()=>{
-    const m=new CellsGameObjectsManager(20)
-    m.add_category("test")
+Deno.test("Optimisation",()=>{
+    const m=new GameObjectManager2D()
+    m.add_category("objs")
     for(let i=0;i<5000;i++){
-        m.add_object("test",new TestObject())
+        const obj=new TestObject()
+        obj.cls=m.cells
+        m.add_object(obj,"objs")
     }
     console.log(new Date(),"Start")
-    await m.update()
-    console.log(new Date(),"End")
-})
-
-Deno.test("Destroing",async()=>{
-    const m=new CellsGameObjectsManager(20)
-    m.add_category("test")
-    for(let i=0;i<30;i++){
-        m.add_object("test",new TestObject2())
-    }
-    console.log(new Date(),"Start")
-    await m.update()
-    //console.log(m.categorys)
-    await m.update()
-    console.log(new Date(),"End")
-    assertEquals(m.categorys["test"].orden.length,0)
-})
-
-Deno.test("Bad Opimisation",async()=>{
-    const m=new SimpleGameObjectsManager()
-    m.add_category("test")
-    for(let i=0;i<5000;i++){
-        m.add_object("test",new TestObject())
-    }
-    console.log(new Date(),"Start")
-    await m.update()
-    console.log(new Date(),"End")
+    m.update()
+    console.log(new Date(),"End With",collision,"collision")
 })
