@@ -1,9 +1,9 @@
 import { NullVec2, v2, Vec2 } from "./geometry.ts"
-import { Hitbox, NullHitbox } from "./hitbox.ts"
-import { ID, Tags } from "./_utils.ts"
-import { NetStream } from "../mod.ts";
+import { type Hitbox, NullHitbox } from "./hitbox.ts"
+import { type ID, type Tags } from "./_utils.ts"
+import { NetStream } from "./stream.ts";
 import { random } from "./random.ts";
-import { ObjectsPacket } from "./packets.ts";
+import { type ObjectsPacket } from "./packets.ts";
 export type GameObjectID=ID
 export abstract class BaseObject2D{
     public hb:Hitbox
@@ -13,7 +13,8 @@ export abstract class BaseObject2D{
     public calldestroy:boolean=true
     public dirty:boolean=false
     public dirtyPart:boolean=false
-    public manager!:GameObjectManager2D
+    // deno-lint-ignore no-explicit-any
+    public manager!:GameObjectManager2D<any>
     public get position():Vec2{
         return this.hb ? this.hb.position : NullVec2
     }
@@ -95,8 +96,24 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
                     if(!objects[c]){
                         objects[c]=[]
                     }
-                    objects[c].push(...Object.values(this.cells[y][x][c]))
+                    objects[c].push(...this.cells[y][x][c])
                 }
+            }
+        }
+        return objects
+    }
+    get_objects2(hitbox:Hitbox,categorys:string):GameObject[]{
+        const rect=hitbox.toRect()
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v2.add(rect.position,rect.size));
+        const objects:GameObject[] = [];
+
+        for (let x = min.x, maxX = max.x;x <= maxX;x++) {
+            for (let y = min.y, maxY = max.y;y <= maxY;y++) {
+                if(!(this.cells[y]&&this.cells[y][x])){
+                    continue
+                }
+                objects.push(...this.cells[y][x][categorys])
             }
         }
         return objects
@@ -105,10 +122,11 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         return v2.floor(v2.dscale(pos,this.cellSize))
     }
 }
-export class GameObjectManager2D<GameObject extends BaseObject2D=BaseObject2D>{
+export class GameObjectManager2D<GameObject extends BaseObject2D>{
     cells:CellsManager2D<GameObject>
     objects:Record<string,Category<GameObject>>={}
     stream:NetStream
+    ondestroy:(obj:GameObject)=>void=(_)=>{}
     constructor(cellsSize?:number){
         this.cells=new CellsManager2D(cellsSize)
         this.stream=new NetStream(new Uint8Array())
@@ -128,13 +146,21 @@ export class GameObjectManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         obj.id=id
         obj.category=category
         obj.dirty=true
+        // deno-lint-ignore ban-ts-comment
+        //@ts-ignore
         obj.manager=this
         this.objects[category].objects[obj.id]=obj
         this.objects[category].orden.push(obj.id)
         obj.create()
         this.cells.registry(obj)
     }
-    add_category(category:string){
+    get_object(obj:ObjectKey):GameObject{
+        return this.objects[obj.category].objects[obj.id]
+    }
+    alive_count(category:keyof typeof this.objects):number{
+        return this.objects[category].orden.length
+    }
+    add_category(category:keyof typeof this.objects){
         this.objects[category]={orden:[],objects:{}}
     }
     proccess(packet:ObjectsPacket){
@@ -169,7 +195,8 @@ export class GameObjectManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         for(const c in this.objects){
             this.stream.writeString(c)
             this.stream.writeUInt16(this.objects[c].orden.length)
-            for(const o of this.objects[c].orden){
+            for(let j=0;j<this.objects[c].orden.length;j++){
+                const o=this.objects[c].orden[j]
                 this.objects[c].objects[o].update()
                 this.stream.writeID(o)
                 this.stream.writeUInt8(((this.objects[c].objects[o].dirtyPart?1:0)*1)+((this.objects[c].objects[o].dirty?1:0)*10))
@@ -178,6 +205,16 @@ export class GameObjectManager2D<GameObject extends BaseObject2D=BaseObject2D>{
                     if(this.objects[c].objects[o].dirty){
                         this.objects[c].objects[o].encodeComplete(this.stream)
                     }
+                }
+                if(this.objects[c].objects[o].destroyed){
+                    if(this.objects[c].objects[o].calldestroy){
+                        this.ondestroy(this.objects[c].objects[o])
+                    }
+                    this.cells.unregistry(this.objects[c].objects[o].get_key())
+                    delete this.objects[c].objects[o]
+                    this.objects[c].orden.splice(j,1)
+                    j--
+                    continue
                 }
             }
         }

@@ -5,12 +5,16 @@ export enum DefaultEvents{
     GameRun="game-run"
 }
 export interface DefaultEventsMap{
-    [DefaultEvents.GameRun]:Game
-    [DefaultEvents.GameTick]:Game
+    // deno-lint-ignore no-explicit-any
+    [DefaultEvents.GameRun]:Game<any,any,any>
+    // deno-lint-ignore no-explicit-any
+    [DefaultEvents.GameTick]:Game<any,any,any>
 }
 export abstract class GamePlugin<Events extends DefaultEvents,Map extends DefaultEventsMap>{
-    game:Game
-    constructor(game:Game){
+    // deno-lint-ignore no-explicit-any
+    public game!:Game<any,any,any>
+    // deno-lint-ignore no-explicit-any
+    constructor(game:Game<any,any,any>){
         this.game=game
     }
     abstract init_signals():void
@@ -55,12 +59,13 @@ export class EventsManager<Events extends DefaultEvents,Map extends DefaultEvent
     }
 }
 export abstract class BaseGameObject2D extends BaseObject2D{
-    public game!:Game
+    // deno-lint-ignore no-explicit-any
+    public game!:Game<any,any,any>
     constructor(){
         super()
     }
 }
-export abstract class Game<Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap=DefaultEventsMap,DefaultGameObject extends BaseGameObject2D=BaseGameObject2D>{
+export abstract class Game<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap=DefaultEventsMap>{
     readonly tps:number
 
     private readonly clock:Clock
@@ -68,13 +73,12 @@ export abstract class Game<Events extends DefaultEvents=DefaultEvents,Map extend
     readonly events:EventsManager<Events,Map>
     readonly objects:GameObjectManager2D<DefaultGameObject>
 
-    constructor(tps: number,objects:GameObjectManager2D<DefaultGameObject>=new GameObjectManager2D(32)){
+    constructor(tps: number,objects?:GameObjectManager2D<DefaultGameObject>){
         this.tps=tps
         this.events=new EventsManager()
         this.clock=new Clock(tps,1)
-        this.objects=objects
+        this.objects=objects??new GameObjectManager2D(32)
         this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined)=>{
-            obj.game=this
             GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id)
         }
     }

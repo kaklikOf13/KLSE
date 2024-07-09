@@ -1,6 +1,6 @@
 export * from "./utils/definitions.ts"
-export * from "./utils/game.ts"
 export * from "./utils/gameObject.ts"
+export * from "./utils/game.ts"
 export * from "./utils/geometry.ts"
 export { CircleHitbox,RectHitbox,type Hitbox,HitboxType } from "./utils/hitbox.ts"
 export { Inventory,Slot,Item } from "./utils/inventory.ts"
