@@ -1,8 +1,9 @@
-import { RGBA, Renderer, createCanvas } from "../../../../client_side/mod.ts"
+import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/mod.ts"
+import { ResourcesManager } from "../../../../client_side/resources.ts";
 import { RectHitbox, CircleHitbox, v2 } from "../../../../mod.ts"
 const canvas=createCanvas(v2.new(500,500),true)
 document.body.appendChild(canvas)
-const renderer=new Renderer(canvas,50)
+const renderer=new WebglRenderer(canvas,50)
 renderer.clear()
 console.log("begin",new Date().getMilliseconds())
 for(let i=0;i<5000;i++){
@@ -68,7 +69,21 @@ function circle_with_circle(){
         console.log(collision)
         if(!collision.collided){
             clearInterval(interval)
+            setTimeout(test_image,800)
             console.log("end",new Date().getMilliseconds())
         }
     },5)
+}
+async function test_image(){
+    const svg=`<svg version="1.1" baseProfile="full" width="300" height="200"
+    xmlns="http://www.w3.org/2000/svg">
+    <circle cx="150" cy="100" r="80" fill="green" />
+    <text x="150" y="125" font-size="60" text-anchor="middle" fill="white">SVG</text></svg>`
+    const source=new ResourcesManager()
+    // deno-lint-ignore ban-ts-comment
+    //@ts-expect-error
+    const img=await source.load_svg("svg.img",source.domp.parseFromString(svg, 'image/svg+xml').querySelector("svg"),.3)
+    document.body.appendChild(img.source)
+    renderer.clear()
+    renderer.draw_image(img,v2.new(0,0),v2.new(1,1))
 }

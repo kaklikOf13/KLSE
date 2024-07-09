@@ -1,5 +1,6 @@
 import { Vec2 } from "../utils/geometry.ts"
 import { CircleHitbox, Hitbox, HitboxType, RectHitbox } from "../utils/hitbox.ts"
+import { type Sprite } from "./resources.ts";
 
 export interface Color {
     r: number; // Red
@@ -32,7 +33,7 @@ export abstract class Renderer {
     abstract draw_rect(rect: RectHitbox, color: Color): void;
     abstract draw_circle(circle: CircleHitbox, color: Color): void;
     abstract draw_hitbox(hitbox: Hitbox, color: Color): void;
-    abstract draw_image(image: HTMLImageElement, position: Vec2, size: Vec2): void;
+    abstract draw_image(image: Sprite, position: Vec2, size: Vec2): void;
     abstract clear(): void;
 }
 
@@ -163,7 +164,7 @@ export class WebglRenderer extends Renderer {
         }
     }
 
-    draw_image(image: HTMLImageElement, position: Vec2, size: Vec2): void {
+    draw_image(image: Sprite, position: Vec2, size: Vec2): void {
         const x1 = position.x;
         const y1 = position.y;
         const x2 = position.x + size.x;
@@ -209,7 +210,7 @@ export class WebglRenderer extends Renderer {
     
         const texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image.source);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);

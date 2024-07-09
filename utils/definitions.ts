@@ -65,7 +65,7 @@ export class Tree<Type extends Definition> extends Definitions<Type>{
         }
     }
 }
-export class Server{
+export class WebPath{
     IP:string
     Port:number
     HTTP:boolean
