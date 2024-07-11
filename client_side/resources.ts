@@ -1,4 +1,4 @@
-import { Vec2 } from "../mod.ts";
+import { EaseFunction, ease } from "../utils/_utils.ts";
 
 export interface SoundDef{
     volume:number
@@ -11,6 +11,17 @@ export class Sprite{
         this.source=source
     }
 }
+export interface KeyFrame{
+    ease:EaseFunction
+    // deno-lint-ignore no-explicit-any
+    value:any
+    dest:string
+    delay:number
+}
+export type Animation={
+    type:SourceType.Animation
+    keys:Record<string,KeyFrame[]>
+}
 export interface Sound extends SoundDef{
     volume:number
     buffer:AudioBuffer
@@ -18,9 +29,10 @@ export interface Sound extends SoundDef{
 }
 export enum SourceType{
     Sprite,
+    Animation,
     Sound
 }
-export type Source=Sprite|Sound
+export type Source=Sprite|Animation|Sound
 function getSvgUrl(svg:string) {
     return  URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
 }
@@ -102,6 +114,25 @@ export class ResourcesManager{
             xhr.addEventListener("timeout", onfailure);
             xhr.send();
         })
+    }
+    get_animation(id:string):Animation{
+        return this.sources[id] as Animation
+    }
+    async load_animation(id:string,path:string):Promise<Animation>{
+        const json=await(await fetch(path)).json()
+        let anim!:Animation
+        for(const k of Object.keys(json["keys"])){
+            anim={type:SourceType.Animation,keys:{}}
+            anim.keys[k]=[]
+            for(const f of json.keys){
+                anim.keys[k].push({ease:ease[f.ease as (keyof typeof ease)],delay:f.delay,value:f.value,dest:f.dest})
+            }
+        }
+        this.sources[id]=anim
+        return this.sources[id] as Animation
+    }
+    unload(id:string){
+        delete this.sources[id]
     }
 }
 export enum AudioState{

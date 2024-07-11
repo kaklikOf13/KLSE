@@ -1,3 +1,4 @@
+export const halfpi=Math.PI/2
 export type ID=number
 export function splitPath(path:string):string[]{
     const ret=path.split(/[\\/]/)
@@ -220,3 +221,66 @@ export function mergeDeep<T extends object>(target:T,...sources: Array<DeepParti
 
     return mergeDeep(target,...rest)
 }
+type NameGenerator<T extends string> = `${T}In` | `${T}Out` | `${T}InOut`
+function generatePolynomialEasingTriplet<T extends string>(degree: number, type: T): { readonly [K in NameGenerator<T>]: (t: number) => number } {
+    const coeffCache = 2 ** (degree - 1);
+
+    return Object.freeze({
+        [`${type}In`]: (t: number) => t ** degree,
+        [`${type}Out`]: (t: number) => 1 - (1 - t) ** degree,
+        [`${type}InOut`]: (t: number) => t < 0.5
+            ? coeffCache * t ** degree
+            : 1 - (coeffCache * (1 - t) ** degree)
+    } as { [K in NameGenerator<T>]: (t: number) => number });
+}
+export type EaseFunction=(time:number)=>number
+export const ease=Object.freeze({
+    linear: (t: number) => t,
+
+    sineIn: (t: number) => 1 - Math.cos(t * halfpi),
+    sineOut: (t: number) => Math.sin(t * halfpi),
+    sineInOut: (t: number) => (1 - Math.cos(Math.PI * t)) / 2,
+
+    circIn: (t: number) => 1 - Math.sqrt(1 - (t * t)),
+    circOut: (t: number) => Math.sqrt(1 - (t - 1) ** 2),
+    circInOut: (t: number) => t < 0.5
+        ? (1 - Math.sqrt(1 - (2 * t) ** 2)) / 2
+        : (Math.sqrt(1 - (-2 * (1 - t)) ** 2) + 1) / 2,
+
+    elasticIn: (t: number) => t === 0 || t === 1
+        ? t
+        : -(2 ** (10 * (t - 1))) * Math.sin(Math.PI * (40 * (t - 1) - 3) / 6),
+    elasticOut: (t: number) => t === 0 || t === 1
+        ? t
+        : 2 ** (-10 * t) * Math.sin(Math.PI * (40 * t - 3) / 6) + 1,
+    elasticInOut: (t: number) => t === 0 || t === 1
+        ? t
+        : t < 0.5
+            ? -(2 ** (10 * (2 * t - 1) - 1)) * Math.sin(Math.PI * (80 * (2 * t - 1) - 9) / 18)
+            : 2 ** (-10 * (2 * t - 1) - 1) * Math.sin(Math.PI * (80 * (2 * t - 1) - 9) / 18) + 1,
+    elasticOut2: (t: number) => (Math.pow(2, t * -10) * Math.sin(((t - 0.75 / 4) * (Math.PI * 2)) / 0.75) + 1),
+
+    ...generatePolynomialEasingTriplet(2, "quadratic"),
+    ...generatePolynomialEasingTriplet(3, "cubic"),
+    ...generatePolynomialEasingTriplet(4, "quartic"),
+    ...generatePolynomialEasingTriplet(5, "quintic"),
+    ...generatePolynomialEasingTriplet(6, "sextic"),
+
+    expoIn: (t: number) => t <= 0
+        ? 0
+        : 2 ** (-10 * (1 - t)),
+    expoOut: (t: number) => t >= 1
+        ? 1
+        : 1 - 2 ** -(10 * t),
+    expoInOut: (t: number) => t === 0 || t === 1
+        ? t
+        : t < 0.5
+            ? 2 ** (10 * (2 * t - 1) - 1)
+            : 1 - 2 ** (-10 * (2 * t - 1) - 1),
+
+    backIn: (t: number) => (Math.sqrt(3) * (t - 1) + t) * t ** 2,
+    backOut: (t: number) => 1 + ((Math.sqrt(3) + 1) * t - 1) * (t - 1) ** 2,
+    backInOut: (t: number) => t < 0.5
+        ? 4 * t * t * (3.6 * t - 1.3)
+        : 4 * (t - 1) ** 2 * (3.6 * t - 2.3) + 1
+})
