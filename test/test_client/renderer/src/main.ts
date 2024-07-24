@@ -214,12 +214,12 @@ v 0 1.000000 0
 v 0 0 0
 v 0 1.000000 1.000000
 v 0 0 1.000000
-vn -0.0000 1.0000 -0.0000
-vn -0.0000 -0.0000 1.0000
-vn -1.0000 -0.0000 -0.0000
-vn -0.0000 -1.0000 -0.0000
-vn 1.0000 -0.0000 -0.0000
-vn -0.0000 -0.0000 -1.0000
+vn 0.0000 1.0000 0.0000
+vn 0.0000 0.0000 1.0000
+vn -1.0000 0.0000 0.0000
+vn 0.0000 -1.0000 0.0000
+vn 1.0000 0.0000 0.0000
+vn 0.0000 0.0000 -1.0000
 vt 0.875000 0.500000
 vt 0.625000 0.750000
 vt 0.625000 0.500000
@@ -264,6 +264,8 @@ f 5/12/6 1/3/6 2/9/6
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
+            model.addFace3({p1:v3.new(1,1,1),p2:v3.new(-4,-1,-4),p3:v3.new(-4,-4,4)})
+            renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(0,0,255))
             clearInterval(interval)
             console.log("end",new Date().getMilliseconds())
         }

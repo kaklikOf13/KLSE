@@ -1,6 +1,56 @@
-import { v3 } from "./geometry.ts";
+import { type Vec3, v3 } from "./geometry.ts";
 import { RectHitbox3D } from "./hitbox.ts";
-
+export interface Face3{
+    p1:Vec3
+    p2:Vec3
+    p3:Vec3
+    normal?:{
+        p1:Vec3
+        p2:Vec3
+        p3:Vec3
+    }
+    texture?:{
+        p1:Vec3
+        p2:Vec3
+        p3:Vec3
+    }
+}
+export interface Face4{
+    p1:Vec3 // Left Top
+    p2:Vec3 // Right Top
+    p3:Vec3 // Right Bottom
+    p4:Vec3 // Left Bottom
+    normal?:{
+        p1:Vec3 // Left Top
+        p2:Vec3 // Right Top
+        p3:Vec3 // Right Bottom
+        p4:Vec3 // Left Bottom
+    }
+    texture?:{
+        p1:Vec3 // Left Top
+        p2:Vec3 // Right Top
+        p3:Vec3 // Right Bottom
+        p4:Vec3 // Left Bottom
+    }
+}
+export interface FaceId{
+    p1:number
+    p2:number
+    p3:number
+    i:number
+    normal?:{
+        p1:number
+        p2:number
+        p3:number
+        i:number
+    }
+    texture?:{
+        p1:number
+        p2:number
+        p3:number
+        i:number
+    }
+}
 export class Model3D{
     _vertices: number[]
     _indices: number[]
@@ -44,6 +94,97 @@ export class Model3D{
             }
         }
         return new RectHitbox3D(v3.new(0,0,0),v3.add(v3.absolute(min),v3.absolute(max)))
+    }
+    addFace3(face:Face3):FaceId{
+        const ret:FaceId={p1:0,p2:0,p3:0,i:0}
+
+        this._indices.push(Math.floor(this._vertices.length/3))
+        ret.p1=this._vertices.length
+        ret.i=this._indices.length
+        this._vertices.push(face.p1.x,face.p1.y,face.p1.z)
+
+        this._indices.push(Math.floor(this._vertices.length/3))
+        ret.p2=this._vertices.length
+        this._vertices.push(face.p2.x,face.p2.y,face.p2.z)
+
+        this._indices.push(Math.floor(this._vertices.length/3))
+        ret.p3=this._vertices.length
+        this._vertices.push(face.p3.x,face.p3.y,face.p3.z)
+
+        if(face.normal){
+
+            this._normalsM.push(Math.floor(this._normals.length/3))
+            ret.normal={
+                p1:this._normals.length,
+                p2:0,
+                p3:0,
+                i:this._normalsM.length
+            }
+            this._normals.push(face.normal.p1.x,face.normal.p1.y,face.normal.p1.z)
+
+            this._normalsM.push(Math.floor(this._normals.length/3))
+            ret.normal.p2=this._normals.length
+            this._normals.push(face.normal.p2.x,face.normal.p2.y,face.normal.p2.z)
+
+            this._normalsM.push(Math.floor(this._normals.length/3))
+            ret.normal.p3=this._normals.length
+            this._normals.push(face.normal.p3.x,face.normal.p3.y,face.normal.p3.z)
+        }
+        if(face.texture){
+
+            ret.texture={
+                p1:this._texCoords.length,
+                p2:0,
+                p3:0,
+                i:this._texCoordsM.length
+            }
+            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+
+            this._texCoords.push(face.texture.p1.x,face.texture.p1.y,face.texture.p1.z)
+
+            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+            ret.p2=this._texCoords.length
+            this._texCoords.push(face.texture.p2.x,face.texture.p2.y,face.texture.p2.z)
+
+            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+            ret.p3=this._texCoords.length
+            this._texCoords.push(face.texture.p3.x,face.texture.p3.y,face.texture.p3.z)
+
+        }
+        return ret
+    }
+    addFace4(face:Face4):{0:FaceId,1:FaceId}{
+        const f1=this.addFace3({
+            p1:face.p1,
+            p2:face.p2,
+            p3:face.p4,
+            normal:face.normal?{
+                p1:face.normal.p1,
+                p2:face.normal.p2,
+                p3:face.normal.p4,
+            }:undefined,
+            texture:face.texture?{
+                p1:face.texture.p1,
+                p2:face.texture.p2,
+                p3:face.texture.p4,
+            }:undefined
+        })
+        const f2=this.addFace3({
+            p1:face.p1,
+            p2:face.p2,
+            p3:face.p3,
+            normal:face.normal?{
+                p1:face.normal.p1,
+                p2:face.normal.p2,
+                p3:face.normal.p3,
+            }:undefined,
+            texture:face.texture?{
+                p1:face.texture.p1,
+                p2:face.texture.p2,
+                p3:face.texture.p3,
+            }:undefined
+        })
+        return {0:f1,1:f2}
     }
 }
 export const m3=Object.freeze({
@@ -103,7 +244,7 @@ export const m3=Object.freeze({
               ret._normalsM.push(...normals)
               ret._texCoordsM.push(...textures)
             }
-          }
+        }
         return ret
     }
 })
