@@ -70,7 +70,7 @@ export class Model3D{
         const min=v3.new(0,0,0)
         const max=v3.new(0,0,0)
         for(let i=0;i+2<=this._vertices.length;i+=3){
-            const p=v3.new(this._vertices[i],this._vertices[i+1],this._vertices[i+2])
+            const p=v3.new(this._vertices[i],-this._vertices[i+1],this._vertices[i+2])
             if(v3.lessOr(p,min)){
                 if(p.x<min.x){
                     min.x=p.x
@@ -193,12 +193,12 @@ export const m3=Object.freeze({
         ret._vertices=[
             0, 0, 0, // 0
             s, 0, 0, // 1
-            0, s, 0, // 2
-            s, s, 0, // 3
+            0, -s, 0, // 2
+            s, -s, 0, // 3
             0, 0, s, // 4
             s, 0, s, // 5
-            0, s, s, // 6
-            s, s, s  // 7
+            0, -s, s, // 6
+            s, -s, s  // 7
         ]
         ret._indices=[
             0, 1, 2, 1, 3, 2,
@@ -218,6 +218,7 @@ export const m3=Object.freeze({
             if (line.startsWith('v ')) {
               const parts = line.split(/\s+/)
               const vertex = parts.slice(1).map(parseFloat)
+              vertex[1]*=-1
               ret._vertices.push(...vertex)
             } else if (line.startsWith('vn ')) {
               const parts = line.split(/\s+/)

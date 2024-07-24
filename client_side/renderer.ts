@@ -25,19 +25,20 @@ export const RGBA = Object.freeze({
 });
 
 export abstract class Renderer {
-    canvas: HTMLCanvasElement;
-    meter_size: number;
+    canvas: HTMLCanvasElement
+    meter_size: number
     constructor(canvas: HTMLCanvasElement, meter_size: number = 100) {
-        this.canvas = canvas;
-        this.meter_size = meter_size;
+        this.canvas = canvas
+        this.meter_size = meter_size
     }
-    abstract draw_rect2D(rect: RectHitbox2D, color: Color): void;
-    abstract draw_circle2D(circle: CircleHitbox2D, color: Color): void;
-    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color): void;
-    abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void;
+    abstract draw_rect2D(rect: RectHitbox2D, color: Color): void
+    abstract draw_circle2D(circle: CircleHitbox2D, color: Color): void
+    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color): void
+    abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void
 
-    abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void;
-    abstract clear(): void;
+    abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void
+    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe?:boolean):void
+    abstract clear(): void
 }
 
 const rectVertexShaderSource = `
@@ -273,7 +274,7 @@ export class WebglRenderer extends Renderer {
         gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
 
         const translationLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Translation");
-        gl.uniform3f(translationLocation, pos.x, pos.y, -pos.z)
+        gl.uniform3f(translationLocation, pos.x, -pos.y, -pos.z)
 
         const scaleLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Scale")
         gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
@@ -297,12 +298,12 @@ export class WebglRenderer extends Renderer {
         this._iso_draw_vertices([
             0, 0, 0, // 0
             1, 0, 0, // 1
-            0, 1, 0, // 2
-            1, 1, 0, // 3
+            0, -1, 0, // 2
+            1, -1, 0, // 3
             0, 0, 1, // 4
             1, 0, 1, // 5
-            0, 1, 1, // 6
-            1, 1, 1  // 7
+            0, -1, 1, // 6
+            1, -1, 1  // 7
         ],[
             0, 1, 2, 1, 3, 2,
             4, 5, 6, 5, 7, 6,
@@ -310,13 +311,10 @@ export class WebglRenderer extends Renderer {
             2, 3, 6, 3, 7, 6,
             0, 2, 4, 2, 6, 4,
             1, 3, 5, 3, 7, 5
-        ],rect.position,rect.size, color, wireframe);
+        ],rect.position,rect.size, color, wireframe)
     }
-    wireframe_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color){
-        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color,true)
-    }
-    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color){
-        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color)
+    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe:boolean=false){
+        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color,wireframe)
     }
 
     clear() {

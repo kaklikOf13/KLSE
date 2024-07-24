@@ -1,9 +1,9 @@
 import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/renderer.ts"
 import { ResourcesManager } from "../../../../client_side/resources.ts";
-import { v2, v3 } from "../../../../utils/geometry.ts";
+import { NullVec3, v2, v3 } from "../../../../utils/geometry.ts";
 import { RectHitbox2D, CircleHitbox2D, RectHitbox3D } from "../../../../utils/hitbox.ts"
 import { m3 } from "../../../../utils/models.ts";
-const canvas=createCanvas(v2.new(500,500),true)
+const canvas=createCanvas(v2.new(600,600),true)
 document.body.appendChild(canvas)
 const renderer=new WebglRenderer(canvas,50)
 renderer.clear()
@@ -248,6 +248,7 @@ f 2/9/4 4/5/4 8/10/4
 f 1/3/5 3/2/5 4/5/5
 f 5/12/6 1/3/6 2/9/6
 `)
+    console.log(model)
     const chb1=model.toRect()
     chb1.position=v3.new(6,0,3)
     const chb2=new RectHitbox3D(v3.new(3,0,3),v3.new(1,1,1))
@@ -259,7 +260,7 @@ f 5/12/6 1/3/6 2/9/6
             chb2.position.x+=.1
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
-        renderer.wireframe_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(255,0,0))
+        renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(255,0,0),true)
         renderer.draw_iso_rect(chb2,RGBA.new(255,0,0))
         ok=ok||collision.collided
         console.log(collision)
@@ -268,6 +269,24 @@ f 5/12/6 1/3/6 2/9/6
             renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(0,0,255))
             clearInterval(interval)
             console.log("end",new Date().getMilliseconds())
+            setTimeout(model2_obj_iso,800)
         }
     },5)
+}
+
+//model2 obj iso
+async function model2_obj_iso(){
+    console.log("begin",new Date().getMilliseconds())
+    const model=m3.parseObj(await (await fetch("/mountains.obj")).text())
+    renderer.clear()
+    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(.05,.05,.05),RGBA.new(0,0,255),true)
+    setTimeout(model3_obj_iso,800)
+}
+
+//model3 obj iso
+async function model3_obj_iso(){
+    console.log("begin",new Date().getMilliseconds())
+    const model=m3.parseObj(await (await fetch("/teapot.obj")).text())
+    renderer.clear()
+    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(1,1,1),RGBA.new(0,0,255),true)
 }
