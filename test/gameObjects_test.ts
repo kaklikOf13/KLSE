@@ -1,5 +1,5 @@
 import { BaseObject2D, CellsManager2D, GameObjectManager2D } from "../utils/gameObject.ts"
-import { RectHitbox } from "../utils/hitbox.ts"
+import { RectHitbox2D } from "../utils/hitbox.ts"
 import { v2 } from "../utils/geometry.ts"
 import { random } from "../utils/random.ts";
 import { NetStream } from "../utils/stream.ts";
@@ -9,7 +9,7 @@ let collision=0
 class TestObject extends BaseObject2D{
     cls!:CellsManager2D
     create(): void {
-        this.hb=new RectHitbox(v2.new(random.float(randl.x,randl.y),random.float(randl.x,randl.y)),v2.new(2,2))
+        this.hb=new RectHitbox2D(v2.new(random.float(randl.x,randl.y),random.float(randl.x,randl.y)),v2.new(2,2))
     }
     update() {
         const objs=this.cls.get_objects2(this.hb,"objs")
@@ -36,7 +36,7 @@ class TestObject extends BaseObject2D{
 class TestObject2 extends BaseObject2D{
     cls!:CellsManager2D
     create(): void {
-        this.hb=new RectHitbox(v2.new(random.float(randl2.x,randl2.y),random.float(randl2.x,randl2.y)),v2.new(2,2))
+        this.hb=new RectHitbox2D(v2.new(random.float(randl2.x,randl2.y),random.float(randl2.x,randl2.y)),v2.new(2,2))
     }
     update() {
         const objs=this.cls.get_objects2(this.hb,"objs")

@@ -1,4 +1,4 @@
-import { Vec2,v2 } from "./geometry.ts"
+import { Vec2,Vec3,v2, v3 } from "./geometry.ts"
 import { ID } from "./_utils.ts"
 
 export class NetStream {
@@ -185,12 +185,21 @@ export class NetStream {
     }
     
     // Expecial Types
-    writeVector(vec:Vec2){
+    writeVec2(vec:Vec2){
         this.writeFloat32(vec.x)
         this.writeFloat32(vec.y)
     }
-    readVector():Vec2{
+    readVec2():Vec2{
         return v2.new(this.readFloat32(),this.readFloat32())
+    }
+
+    writeVec3(vec:Vec3){
+        this.writeFloat32(vec.x)
+        this.writeFloat32(vec.y)
+        this.writeFloat32(vec.z)
+    }
+    readVec3():Vec3{
+        return v3.new(this.readFloat32(),this.readFloat32(),this.readFloat32())
     }
 
     writeID(id:ID){

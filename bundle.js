@@ -2,6 +2,7 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+const halfpi = Math.PI / 2;
 function splitPath(path) {
     const ret = path.split(/[\\/]/);
     for(let i = 0; i < ret.length; i++){
@@ -92,7 +93,7 @@ class Clock {
         }, next_frame);
     }
 }
-Symbol("clone");
+const cloneSymbol = Symbol("clone");
 const cloneDeepSymbol = Symbol("clone deep");
 function cloneDeep(object) {
     const clonedNodes = new Map();
@@ -172,6 +173,59 @@ function mergeDeep(target, ...sources) {
     }
     return mergeDeep(target, ...rest);
 }
+function generatePolynomialEasingTriplet(degree, type) {
+    const coeffCache = 2 ** (degree - 1);
+    return Object.freeze({
+        [`${type}In`]: (t)=>t ** degree,
+        [`${type}Out`]: (t)=>1 - (1 - t) ** degree,
+        [`${type}InOut`]: (t)=>t < 0.5 ? coeffCache * t ** degree : 1 - coeffCache * (1 - t) ** degree
+    });
+}
+const ease = Object.freeze({
+    linear: (t)=>t,
+    sineIn: (t)=>1 - Math.cos(t * halfpi),
+    sineOut: (t)=>Math.sin(t * halfpi),
+    sineInOut: (t)=>(1 - Math.cos(Math.PI * t)) / 2,
+    circIn: (t)=>1 - Math.sqrt(1 - t * t),
+    circOut: (t)=>Math.sqrt(1 - (t - 1) ** 2),
+    circInOut: (t)=>t < 0.5 ? (1 - Math.sqrt(1 - (2 * t) ** 2)) / 2 : (Math.sqrt(1 - (-2 * (1 - t)) ** 2) + 1) / 2,
+    elasticIn: (t)=>t === 0 || t === 1 ? t : -(2 ** (10 * (t - 1))) * Math.sin(Math.PI * (40 * (t - 1) - 3) / 6),
+    elasticOut: (t)=>t === 0 || t === 1 ? t : 2 ** (-10 * t) * Math.sin(Math.PI * (40 * t - 3) / 6) + 1,
+    elasticInOut: (t)=>t === 0 || t === 1 ? t : t < 0.5 ? -(2 ** (10 * (2 * t - 1) - 1)) * Math.sin(Math.PI * (80 * (2 * t - 1) - 9) / 18) : 2 ** (-10 * (2 * t - 1) - 1) * Math.sin(Math.PI * (80 * (2 * t - 1) - 9) / 18) + 1,
+    elasticOut2: (t)=>Math.pow(2, t * -10) * Math.sin((t - 0.75 / 4) * (Math.PI * 2) / 0.75) + 1,
+    ...generatePolynomialEasingTriplet(2, "quadratic"),
+    ...generatePolynomialEasingTriplet(3, "cubic"),
+    ...generatePolynomialEasingTriplet(4, "quartic"),
+    ...generatePolynomialEasingTriplet(5, "quintic"),
+    ...generatePolynomialEasingTriplet(6, "sextic"),
+    expoIn: (t)=>t <= 0 ? 0 : 2 ** (-10 * (1 - t)),
+    expoOut: (t)=>t >= 1 ? 1 : 1 - 2 ** -(10 * t),
+    expoInOut: (t)=>t === 0 || t === 1 ? t : t < 0.5 ? 2 ** (10 * (2 * t - 1) - 1) : 1 - 2 ** (-10 * (2 * t - 1) - 1),
+    backIn: (t)=>(Math.sqrt(3) * (t - 1) + t) * t ** 2,
+    backOut: (t)=>1 + ((Math.sqrt(3) + 1) * t - 1) * (t - 1) ** 2,
+    backInOut: (t)=>t < 0.5 ? 4 * t * t * (3.6 * t - 1.3) : 4 * (t - 1) ** 2 * (3.6 * t - 2.3) + 1
+});
+function mixin(...bases) {
+    class MixinClass {
+    }
+    for (const base of bases){
+        Object.assign(MixinClass.prototype, base.prototype);
+    }
+    return MixinClass;
+}
+export { halfpi as halfpi };
+export { splitPath as splitPath };
+export { hasTag as hasTag };
+export { hasTags as hasTags };
+export { combineWithoutEqual as combineWithoutEqual };
+export { SignalManager as SignalManager };
+export { Clock as Clock };
+export { cloneSymbol as cloneSymbol };
+export { cloneDeepSymbol as cloneDeepSymbol };
+export { cloneDeep as cloneDeep };
+export { mergeDeep as mergeDeep };
+export { ease as ease };
+export { mixin as mixin };
 class Definitions {
     value;
     constructor(){
@@ -232,7 +286,7 @@ class Tree extends Definitions {
         }
     }
 }
-class Server {
+class WebPath {
     IP;
     Port;
     HTTP;
@@ -277,7 +331,7 @@ class ExtendedMap extends Map {
 }
 export { Definitions as Definitions };
 export { Tree as Tree };
-export { Server as Server };
+export { WebPath as WebPath };
 export { ExtendedMap as ExtendedMap };
 const random = Object.freeze({
     int (min, max) {
@@ -302,7 +356,118 @@ function float32ToUint32(value) {
 }
 const prime1 = BigInt("2654435761");
 const prime2 = BigInt("2246822519");
-const Vec = Object.freeze({
+const v3 = Object.freeze({
+    new (x, y, z) {
+        return {
+            x,
+            y,
+            z
+        };
+    },
+    random (min, max) {
+        return {
+            x: random.float(min, max),
+            y: random.float(min, max),
+            z: random.float(min, max)
+        };
+    },
+    random3 (min, max) {
+        return {
+            x: random.float(min.x, max.x),
+            y: random.float(min.y, max.y),
+            z: random.float(min.z, max.z)
+        };
+    },
+    add (x, y) {
+        return this.new(x.x + y.x, x.y + y.y, x.z + y.z);
+    },
+    sub (x, y) {
+        return this.new(x.x - y.x, x.y - y.y, x.z - y.z);
+    },
+    mult (x, y) {
+        return this.new(x.x * y.x, x.y * y.y, x.z * y.z);
+    },
+    div (x, y) {
+        return this.new(x.x / y.x, x.y / y.y, x.z / y.z);
+    },
+    scale (x, y) {
+        return this.new(x.x * y, x.y * y, x.z * y);
+    },
+    dscale (x, y) {
+        return this.new(x.x / y, x.y / y, x.z / y);
+    },
+    greater (x, y) {
+        return x.x > y.x && x.y > y.y && x.z > y.z;
+    },
+    less (x, y) {
+        return x.x < y.x && x.y < y.y && x.z < y.z;
+    },
+    is (x, y) {
+        return x.x == y.x && x.y == y.y && x.z == y.z;
+    },
+    greaterOr (x, y) {
+        return x.x > y.x || x.y > y.y || x.z > y.z;
+    },
+    lessOr (x, y) {
+        return x.x < y.x && x.y < y.y && x.z < y.z;
+    },
+    isOr (x, y) {
+        return x.x == y.x && x.y == y.y && x.z == y.z;
+    },
+    absolute (Vec3) {
+        return this.new(Math.abs(Vec3.x), Math.abs(Vec3.y), Math.abs(Vec3.z));
+    },
+    normalizeSafe (Vec3, fallback = NullVec3) {
+        const len = this.length(Vec3);
+        return len > 0.000001 ? {
+            x: Vec3.x / len,
+            y: Vec3.y / len,
+            z: Vec3.z / len
+        } : this.duplicate(fallback);
+    },
+    normalize (Vec3) {
+        const len = this.length(Vec3);
+        return 0.000001 ? {
+            x: Vec3.x / len,
+            y: Vec3.y / len,
+            z: Vec3.z / len
+        } : this.duplicate(Vec3);
+    },
+    duplicate (Vec3) {
+        return this.new(Vec3.x, Vec3.y, Vec3.z);
+    },
+    neg (Vec3) {
+        return this.new(-Vec3.x, -Vec3.y, -Vec3.z);
+    },
+    squared (vec) {
+        return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+    },
+    distanceSquared (x, y) {
+        const dx = x.x - y.x;
+        const dy = x.y - y.y;
+        const dz = x.z - y.z;
+        return dx * dx + dy * dy + dz * dz;
+    },
+    distance (x, y) {
+        const dx = x.x - y.x;
+        const dy = x.y - y.y;
+        const dz = x.z - y.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    },
+    cross (vec, other) {
+        return v3.new(vec.y * other.z - vec.z * other.y, vec.z * other.x - vec.x * other.z, vec.x * other.y - vec.y * other.x);
+    },
+    floor (Vec2) {
+        return this.new(Math.floor(Vec2.x), Math.floor(Vec2.y), Math.floor(Vec2.z));
+    },
+    ceil (Vec2) {
+        return this.new(Math.ceil(Vec2.x), Math.ceil(Vec2.y), Math.ceil(Vec2.z));
+    },
+    length (Vec3) {
+        return Math.sqrt(this.squared(Vec3));
+    }
+});
+const v2 = Object.freeze({
     new (x, y) {
         return {
             x,
@@ -342,29 +507,29 @@ const Vec = Object.freeze({
     is (x, y) {
         return x.x == y.x && x.y == y.y;
     },
-    scale (vector, scale) {
-        return this.new(vector.x * scale, vector.y * scale);
+    scale (Vec2, scale) {
+        return this.new(Vec2.x * scale, Vec2.y * scale);
     },
-    dscale (vector, dscale) {
-        return this.new(vector.x / dscale, vector.y / dscale);
+    dscale (Vec2, dscale) {
+        return this.new(Vec2.x / dscale, Vec2.y / dscale);
     },
-    min1 (vector, min) {
-        return this.new(Math.max(vector.x, min), Math.max(vector.y, min));
+    min1 (Vec2, min) {
+        return this.new(Math.max(Vec2.x, min), Math.max(Vec2.y, min));
     },
     min2 (x, y) {
         return this.new(Math.max(x.x, y.x), Math.max(x.y, y.y));
     },
-    max1 (vector, max) {
-        return this.new(Math.min(vector.x, max), Math.min(vector.y, max));
+    max1 (Vec2, max) {
+        return this.new(Math.min(Vec2.x, max), Math.min(Vec2.y, max));
     },
     max2 (x, y) {
         return this.new(Math.min(x.x, y.x), Math.min(x.y, y.y));
     },
-    clamp1 (vector, min, max) {
-        return this.new(Math.max(Math.min(vector.x, max), min), Math.max(Math.min(vector.y, max), min));
+    clamp1 (Vec2, min, max) {
+        return this.new(Math.max(Math.min(Vec2.x, max), min), Math.max(Math.min(Vec2.y, max), min));
     },
-    clamp2 (vector, min, max) {
-        return this.new(Math.max(Math.min(vector.x, max.x), min.x), Math.max(Math.min(vector.y, max.y), min.y));
+    clamp2 (Vec2, min, max) {
+        return this.new(Math.max(Math.min(Vec2.x, max.x), min.x), Math.max(Math.min(Vec2.y, max.y), min.y));
     },
     lookTo (x, y) {
         return Math.atan2(y.y - x.y, y.x - x.x);
@@ -386,51 +551,57 @@ const Vec = Object.freeze({
         const dy = x.y - y.y;
         return Math.sqrt(dx * dx + dy * dy);
     },
-    squared (vector) {
-        return vector.x * vector.x + vector.y * vector.y;
+    squared (Vec2) {
+        return Vec2.x * Vec2.x + Vec2.y * Vec2.y;
     },
-    length (vector) {
-        return Math.sqrt(Vec.squared(vector));
+    length (Vec2) {
+        return Math.sqrt(v2.squared(Vec2));
     },
-    absolute (vector) {
-        return this.new(Math.abs(vector.x), Math.abs(vector.y));
+    absolute (Vec2) {
+        return this.new(Math.abs(Vec2.x), Math.abs(Vec2.y));
     },
-    floor (vector) {
-        return this.new(Math.floor(vector.x), Math.floor(vector.y));
+    floor (Vec2) {
+        return this.new(Math.floor(Vec2.x), Math.floor(Vec2.y));
+    },
+    ceil (Vec2) {
+        return this.new(Math.ceil(Vec2.x), Math.ceil(Vec2.y));
+    },
+    neg (Vec2) {
+        return this.new(-Vec2.x, -Vec2.y);
     },
     lerp (current, end, interpolation) {
-        return Vec.add(Vec.scale(current, 1 - interpolation), Vec.scale(end, interpolation));
+        return this.add(v2.scale(current, 1 - interpolation), this.scale(end, interpolation));
     },
-    normalizeSafe (vector, fallback = NullVector) {
-        fallback ??= this.new(1.0, 0.0);
-        const len = Vec.length(vector);
+    normalizeSafe (Vec2, fallback = NullVec2) {
+        const len = this.length(Vec2);
         return len > 0.000001 ? {
-            x: vector.x / len,
-            y: vector.y / len
-        } : Vec.duplicate(fallback);
+            x: Vec2.x / len,
+            y: Vec2.y / len
+        } : this.duplicate(fallback);
     },
-    normalize (vector) {
-        const len = Vec.length(vector);
+    normalize (Vec2) {
+        const len = v2.length(Vec2);
         return 0.000001 ? {
-            x: vector.x / len,
-            y: vector.y / len
-        } : Vec.duplicate(vector);
+            x: Vec2.x / len,
+            y: Vec2.y / len
+        } : v2.duplicate(Vec2);
     },
-    duplicate (vector) {
-        return this.new(vector.x, vector.y);
+    duplicate (Vec2) {
+        return this.new(Vec2.x, Vec2.y);
     },
-    hash (vector) {
-        let hash = BigInt(float32ToUint32(vector.x));
+    hash (Vec2) {
+        let hash = BigInt(float32ToUint32(Vec2.x));
         hash = hash * prime1 & BigInt("4294967295");
-        hash ^= BigInt(float32ToUint32(vector.y));
+        hash ^= BigInt(float32ToUint32(Vec2.y));
         hash = hash * prime2 & BigInt("4294967295");
         return hash;
     },
-    toString (vector) {
-        return `{${vector.x},${vector.y}}`;
+    toString (Vec2) {
+        return `{${Vec2.x},${Vec2.y}}`;
     }
 });
-const NullVector = Vec.new(0, 0);
+const NullVec2 = v2.new(0, 0);
+const NullVec3 = v3.new(0, 0, 0);
 const Angle = Object.freeze({
     deg2rad (angle) {
         return angle * Math.PI / 180;
@@ -439,31 +610,33 @@ const Angle = Object.freeze({
         return angle * 180 / Math.PI;
     }
 });
+export { v3 as v3 };
+export { v2 as v2 };
+export { NullVec2 as NullVec2 };
+export { NullVec3 as NullVec3 };
+export { Angle as Angle };
 const Collision = Object.freeze({
     circle_with_rect (hb1, hb2) {
-        const cp = Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size));
-        const dist = Vec.distance(hb1.position, cp);
+        const cp = v2.clamp2(hb1.position, hb2.position, v2.add(hb2.position, hb2.size));
+        const dist = v2.distance(hb1.position, cp);
         return dist < hb1.radius * hb1.radius || hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb1.position.x >= hb2.position.x && hb1.position.x <= hb2.position.x + hb2.size.x;
     },
     circle_with_rect_ov (hb1, hb2) {
         if (hb2.position.x <= hb1.position.x && hb1.position.x <= hb2.position.x + hb2.size.x && hb2.position.y <= hb1.position.y && hb1.position.y <= hb2.position.y + hb2.size.y) {
-            const halfDim = Vec.dscale(Vec.sub(Vec.add(hb2.position, hb2.size), hb2.position), 2);
-            const p = Vec.sub(hb1.position, Vec.add(hb2.position, halfDim));
-            const p2 = Vec.sub(Vec.sub(Vec.absolute(p), halfDim), Vec.new(hb1.radius, hb1.radius));
-            return p2.x > p2.y ? [
-                Vec.new(p.x > 0 ? 1 : -1, 0),
-                -p2.x
-            ] : [
-                Vec.new(0, p.y > 0 ? 1 : -1),
-                -p2.y
+            const halfDim = v2.dscale(v2.sub(v2.add(hb2.position, hb2.size), hb2.position), 2);
+            const p = v2.sub(hb1.position, v2.add(hb2.position, halfDim));
+            const p2 = v2.sub(v2.sub(v2.absolute(p), halfDim), v2.new(hb1.radius, hb1.radius));
+            return [
+                v2.new(p.x > 0 ? 1 : -1, p.y > 0 ? 1 : -1),
+                p2.x
             ];
         }
-        const dir = Vec.sub(Vec.clamp2(hb1.position, hb2.position, Vec.add(hb2.position, hb2.size)), hb1.position);
-        const dstSqr = Vec.squared(dir);
+        const dir = v2.sub(v2.clamp2(hb1.position, hb2.position, v2.add(hb2.position, hb2.size)), hb1.position);
+        const dstSqr = v2.squared(dir);
         if (dstSqr < hb1.radius * hb1.radius) {
             const dst = Math.sqrt(dstSqr);
             return [
-                Vec.normalizeSafe(dir),
+                v2.normalizeSafe(dir),
                 hb1.radius - dst
             ];
         }
@@ -476,7 +649,7 @@ var HitboxType;
     HitboxType[HitboxType["rect"] = 1] = "rect";
     HitboxType[HitboxType["null"] = 2] = "null";
 })(HitboxType || (HitboxType = {}));
-class BaseHitbox {
+class BaseHitbox2D {
     position;
     constructor(position){
         this.position = position;
@@ -485,9 +658,9 @@ class BaseHitbox {
         return false;
     }
 }
-class NullHitbox extends BaseHitbox {
+class NullHitbox2D extends BaseHitbox2D {
     constructor(){
-        super(NullVector);
+        super(NullVec2);
     }
     type = HitboxType.null;
     collidingWith(_other) {
@@ -497,23 +670,26 @@ class NullHitbox extends BaseHitbox {
         return false;
     }
     overlapCollision(_other) {
-        return false;
+        return {
+            overlap: NullVec2,
+            collided: false
+        };
     }
     center() {
-        return NullVector;
+        return NullVec2;
     }
     randomPoint() {
-        return NullVector;
+        return NullVec2;
     }
     toRect() {
-        return new RectHitbox(this.position, Vec.new(0, 0));
+        return new RectHitbox2D(this.position, v2.new(0, 0));
     }
     scale(_scale) {}
     is_null() {
         return true;
     }
 }
-class CircleHitbox extends BaseHitbox {
+class CircleHitbox2D extends BaseHitbox2D {
     type = HitboxType.circle;
     radius;
     constructor(position, radius){
@@ -523,25 +699,31 @@ class CircleHitbox extends BaseHitbox {
     collidingWith(other) {
         switch(other.type){
             case HitboxType.circle:
-                return Vec.distance(this.position, other.position) < this.radius + other.radius;
+                return v2.distance(this.position, other.position) < this.radius + other.radius;
             case HitboxType.rect:
                 return Collision.circle_with_rect(this, other);
         }
         return false;
     }
-    overlapCollision(other, response_coef = 1.0) {
+    overlapCollision(other) {
         if (other) {
             switch(other.type){
                 case HitboxType.circle:
                     {
-                        const dists = Vec.distanceSquared(this.position, other.position);
-                        const dis = Vec.sub(this.position, other.position);
-                        if (dists < this.radius + other.radius && dists > 0.0001) {
-                            const dist = Vec.distance(this.position, other.position);
-                            const delta = response_coef * 0.5 * (this.radius + other.radius - dist);
-                            const ov = Vec.scale(Vec.dscale(dis, dist), delta);
-                            this.position = Vec.add(this.position, ov);
-                            return true;
+                        const dists = v2.distanceSquared(this.position, other.position);
+                        const dis = v2.sub(this.position, other.position);
+                        if (dists < 0.0001) {
+                            return {
+                                overlap: v2.new(1, 1),
+                                collided: true
+                            };
+                        }
+                        if (dists < (this.radius + other.radius) * 2) {
+                            const dist = v2.distance(this.position, other.position);
+                            return {
+                                overlap: v2.absolute(v2.dscale(dis, dist || 1)),
+                                collided: true
+                            };
                         }
                         break;
                     }
@@ -549,17 +731,26 @@ class CircleHitbox extends BaseHitbox {
                     {
                         const result = Collision.circle_with_rect_ov(this, other);
                         if (result) {
-                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
-                            return true;
+                            const pos = v2.normalizeSafe(v2.scale(result[0], result[1] * 2));
+                            if (v2.is(pos, NullVec2)) {
+                                break;
+                            }
+                            return {
+                                overlap: pos,
+                                collided: true
+                            };
                         }
                         break;
                     }
             }
         }
-        return false;
+        return {
+            overlap: NullVec2,
+            collided: false
+        };
     }
     pointInside(point) {
-        return Vec.distance(this.position, point) < this.radius;
+        return v2.distance(this.position, point) < this.radius;
     }
     center() {
         return this.position;
@@ -570,13 +761,13 @@ class CircleHitbox extends BaseHitbox {
     randomPoint() {
         const angle = random.float(0, Math.PI * 2);
         const length = random.float(0, this.radius);
-        return Vec.new(this.position.x + Math.cos(angle) * length, this.position.y + Math.sin(angle) * length);
+        return v2.new(this.position.x + Math.cos(angle) * length, this.position.y + Math.sin(angle) * length);
     }
     toRect() {
-        return new RectHitbox(this.position, Vec.new(this.radius, this.radius));
+        return new RectHitbox2D(this.position, v2.new(this.radius, this.radius));
     }
 }
-class RectHitbox extends BaseHitbox {
+class RectHitbox2D extends BaseHitbox2D {
     type = HitboxType.rect;
     size;
     constructor(position, size){
@@ -599,16 +790,20 @@ class RectHitbox extends BaseHitbox {
             switch(other.type){
                 case HitboxType.rect:
                     {
-                        const ss = Vec.dscale(Vec.add(this.size, other.size), 2);
-                        const dist = Vec.sub(this.center(), other.center());
-                        if (Vec.less(Vec.absolute(dist), ss)) {
-                            const overlap = Vec.sub(ss, Vec.absolute(dist));
-                            if (overlap.x < overlap.y) {
-                                this.position.x = dist.x > 0 ? this.position.x + overlap.x : this.position.x - overlap.x;
+                        const ss = v2.dscale(v2.add(this.size, other.size), 2);
+                        const dist = v2.sub(this.position, other.position);
+                        if (v2.less(v2.absolute(dist), ss)) {
+                            const ov = v2.normalizeSafe(v2.sub(ss, v2.absolute(dist)));
+                            const ov2 = v2.duplicate(ov);
+                            if (ov.x < ov.y) {
+                                ov2.x = dist.x > 0 ? -ov2.x : ov2.x;
                             } else {
-                                this.position.y = dist.y > 0 ? this.position.y + overlap.y : this.position.y - overlap.y;
+                                ov2.y = dist.y > 0 ? -ov2.y : ov2.y;
                             }
-                            return true;
+                            return {
+                                overlap: ov2,
+                                collided: !v2.is(ov2, NullVec2)
+                            };
                         }
                         break;
                     }
@@ -616,399 +811,222 @@ class RectHitbox extends BaseHitbox {
                     {
                         const result = Collision.circle_with_rect_ov(other, this);
                         if (result) {
-                            this.position = Vec.sub(this.position, Vec.scale(result[0], result[1]));
-                            return true;
+                            const pos = v2.normalizeSafe(v2.scale(result[0], result[1] * -2));
+                            if (v2.is(pos, NullVec2)) {
+                                break;
+                            }
+                            return {
+                                overlap: pos,
+                                collided: true
+                            };
                         }
                         break;
                     }
             }
         }
-        return false;
+        return {
+            overlap: NullVec2,
+            collided: false
+        };
     }
     pointInside(point) {
         return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y;
     }
     center() {
-        return Vec.add(this.position, Vec.dscale(this.size, 2));
+        return v2.add(this.position, v2.dscale(this.size, 2));
     }
     scale(scale) {
-        this.size = Vec.scale(this.size, scale);
+        this.size = v2.scale(this.size, scale);
     }
     randomPoint() {
-        return Vec.add(this.position, Vec.random2(NullVector, this.size));
+        return v2.add(this.position, v2.random2(NullVec2, this.size));
     }
     toRect() {
         return this;
     }
 }
-class BaseGameObject {
-    hb;
-    destroyed;
-    id;
-    parent;
-    overlaps;
-    collides;
-    category;
-    static;
-    calldestroy = true;
-    get position() {
-        return this.hb ? this.hb.position : NullVector;
+class BaseHitbox3D {
+    position;
+    constructor(position){
+        this.position = position;
     }
-    set position(val) {
-        this.hb.position = val;
-    }
-    constructor(){
-        this.category = "";
-        this.hb = new NullHitbox();
-        this.destroyed = false;
-        this.static = false;
-        this.id = 0;
-        this.parent = null;
-        this.overlaps = [];
-        this.collides = [];
-    }
-    start() {}
-    on_collide_with(_obj) {}
-    on_overlap_with(_obj) {}
-    copy() {
-        return Object.assign({}, this);
+    is_null() {
+        return false;
     }
 }
-function newObjectKey(category, id) {
-    return {
-        category: category,
-        id: id
-    };
-}
-class SimpleGameObjectsManager {
-    categorys;
+class NullHitbox3D extends BaseHitbox3D {
     constructor(){
-        this.categorys = {};
+        super(NullVec3);
     }
-    destroyCallback(_obj) {}
-    after_update() {}
-    begin_update() {}
-    update() {
-        this.begin_update();
-        for(const c in this.categorys){
-            for(let j = 0; j < this.categorys[c].orden.length; j++){
-                const i = this.categorys[c].orden[j];
-                this.categorys[c].objs[i].update();
-                if (this.categorys[c].objs[i].destroyed) {
-                    if (this.categorys[c].objs[i].calldestroy) {
-                        this.destroyCallback(this.categorys[c].objs[i]);
-                    }
-                    this.categorys[c].orden.splice(j, 1);
-                    delete this.categorys[c].objs[i];
-                    j -= 1;
-                    continue;
-                }
-                this.update_object(newObjectKey(c, i));
-            }
-        }
-        return this.after_update();
+    type = HitboxType.null;
+    collidingWith(_other) {
+        return false;
     }
-    update_object(obj) {
-        const obji = this.categorys[obj.category].objs[obj.id];
-        const a = combineWithoutEqual(obji.collides, obji.overlaps);
-        for (const c2 of a){
-            for (const [_j2, i2] of this.categorys[c2].orden.entries()){
-                this.solve_collision_normal(obj, newObjectKey(c2, i2));
-                this.solve_collision_overlap(obj, newObjectKey(c2, i2));
-            }
-        }
+    pointInside(_point) {
+        return false;
     }
-    solve_collision_overlap(objA, objB) {
-        if (!(objA.id == objB.id && objA.category == objB.category) && !this.categorys[objA.category].objs[objA.id].static && this.categorys[objA.category].objs[objA.id].hb.overlapCollision(this.categorys[objB.category].objs[objB.id].hb)) {
-            this.categorys[objA.category].objs[objA.id].on_overlap_with(this.categorys[objB.category].objs[objB.id]);
-        }
-    }
-    solve_collision_normal(objA, objB) {
-        if (!(objA.id == objB.id && objA.category == objB.category) && this.categorys[objA.category].objs[objA.id].hb.collidingWith(this.categorys[objB.category].objs[objB.id].hb)) {
-            this.categorys[objA.category].objs[objA.id].on_collide_with(this.categorys[objB.category].objs[objB.id]);
-        }
-    }
-    add_object(category, obj, id) {
-        if (id === undefined) {
-            id = random.id();
-        }
-        obj.id = id;
-        obj.parent = this;
-        obj.category = category;
-        this.categorys[category].objs[id] = obj;
-        this.categorys[category].orden.push(id);
-        obj.start();
-    }
-    get_object(category, id) {
-        return this.categorys[category].objs[id];
-    }
-    exist_object(category, id) {
-        return Object.hasOwn(this.categorys[category].objs, id);
-    }
-    add_category(name) {
-        this.categorys[name] = {
-            objs: {},
-            orden: []
+    overlapCollision(_other) {
+        return {
+            overlap: NullVec3,
+            collided: false
         };
     }
-}
-class CellsGameObjectsManager extends SimpleGameObjectsManager {
-    cells;
-    cellSize;
-    threads;
-    constructor(threads = 5, cellSize = 32){
-        super();
-        this.threads = threads;
-        this.cellSize = cellSize;
-        this.cells = new Map();
+    center() {
+        return NullVec3;
     }
-    begin_update() {
-        this.cells.clear();
+    randomPoint() {
+        return NullVec3;
     }
-    after_update() {
-        const promisses = [];
-        const ckeys = Array.from(this.cells.keys());
-        const nf = Math.ceil(ckeys.length / this.threads);
-        const nff = ckeys.length / nf;
-        for(let p = 0; p < this.threads; p++){
-            if ((p + 1) * nff >= ckeys.length) {
-                promisses.push(this.update_especific_cells(ckeys.slice(p * nff, ckeys.length)));
-            } else {
-                promisses.push(this.update_especific_cells(ckeys.slice(p * nff, (p + 1) * nff)));
-            }
-        }
-        return Promise.all(promisses);
+    toRect() {
+        return new RectHitbox3D(this.position, v3.new(0, 0, 0));
     }
-    update_object(obj) {
-        const c = Vec.floor(Vec.dscale(this.categorys[obj.category].objs[obj.id].position, this.cellSize));
-        const ch = Vec.hash(c);
-        if (this.cells.get(ch)) {
-            if (!this.cells.get(ch).objs[obj.category]) {
-                this.cells.get(ch).objs[obj.category] = [];
-            }
-            this.cells.get(ch).objs[obj.category].push(obj.id);
-        } else {
-            this.cells.set(ch, {
-                objs: {
-                    [obj.category]: [
-                        obj.id
-                    ]
-                },
-                pos: c
-            });
-        }
-    }
-    update_especific_cells(keys) {
-        return new Promise((resolve, _reject)=>{
-            for (const cc of keys){
-                this.update_cell(cc);
-            }
-            resolve();
-        });
-    }
-    update_cell(c) {
-        const cp = this.cells.get(c).pos;
-        for(let yy = -1; yy <= 1; yy++){
-            for(let xx = -1; xx <= 1; xx++){
-                const oc = Vec.new(cp.x + xx, cp.y + yy);
-                const och = Vec.hash(oc);
-                if (this.cells.get(och)) {
-                    for (const cat1 of Object.keys(this.cells.get(c).objs)){
-                        if (!this.cells.get(c).objs[cat1]) continue;
-                        for (const objA of this.cells.get(c).objs[cat1]){
-                            const objAk = newObjectKey(cat1, objA);
-                            for (const cat2 of this.categorys[cat1].objs[objA].collides){
-                                if (this.cells.get(c).objs[cat2]) {
-                                    for (const objB of this.cells.get(c).objs[cat2]){
-                                        this.solve_collision_normal(objAk, newObjectKey(cat2, objB));
-                                    }
-                                }
-                            }
-                            for (const cat2 of this.categorys[cat1].objs[objA].overlaps){
-                                if (this.cells.get(c).objs[cat2]) {
-                                    for (const objB of this.cells.get(c).objs[cat2]){
-                                        this.solve_collision_overlap(objAk, newObjectKey(cat2, objB));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    scale(_scale) {}
+    is_null() {
+        return true;
     }
 }
-var GenericEvents;
-(function(GenericEvents) {
-    GenericEvents["GameStart"] = "Game Start";
-    GenericEvents["GameTick"] = "Game Tick";
-})(GenericEvents || (GenericEvents = {}));
-class GamePlugin {
-    game;
-    constructor(game){
-        this.game = game;
+class RectHitbox3D extends BaseHitbox3D {
+    type = HitboxType.rect;
+    size;
+    constructor(position, size){
+        super(position);
+        this.size = size;
     }
-    on(signal, callback) {
-        this.game.events.on(signal, callback);
-    }
-}
-class Game extends CellsGameObjectsManager {
-    tps;
-    clock;
-    running = true;
-    events;
-    constructor(tps, thread, chunksize){
-        super(thread, chunksize);
-        this.tps = tps;
-        this.events = new SignalManager();
-        this.clock = new Clock(tps, 1);
-    }
-    add_plugin(plugin) {
-        new plugin(this);
-    }
-    clear_plugins() {
-        this.events.clearAll();
-    }
-    update() {
-        CellsGameObjectsManager.prototype.update.call(this);
-        this.events.emit(GenericEvents.GameTick);
-        this.clock.tick(this.update.bind(this));
-    }
-    mainloop() {
-        return new Promise((resolve)=>{
-            this.events.emit(GenericEvents.GameStart);
-            this.update();
-            resolve();
-        });
-    }
-}
-export { GenericEvents as GenericEvents };
-export { GamePlugin as GamePlugin };
-export { Game as Game };
-class Item {
-    limit_per_slot = 1;
-    tags = [];
-}
-class Slot {
-    item;
-    quantity;
-    accept_tags;
-    constructor(accept_tags = []){
-        this.accept_tags = accept_tags;
-        this.quantity = 0;
-        this.item = null;
-    }
-    add(item, quantity = 1) {
-        if (this.item == null) {
-            if (this.accept_tags.length == 0 || hasTags(this.accept_tags, item.tags)) {
-                this.item = item;
-            } else {
-                return quantity;
-            }
-        } else if (!this.item.is(item)) {
-            return quantity;
-        }
-        const add = this.quantity + quantity;
-        const ret = Math.max(add - this.item.limit_per_slot, 0);
-        this.quantity = add - ret;
-        return ret;
-    }
-    remove(quantity) {
-        if (this.item == null) {
-            return quantity;
-        }
-        this.quantity -= quantity;
-        const ret = Math.max(-this.quantity, 0);
-        if (ret != 0) {
-            this.item = null;
-            this.quantity = 0;
-        }
-        return ret;
-    }
-}
-class Inventory {
-    slots;
-    constructor(slots_quatity = 10){
-        this.slots = [];
-        for(let i = 0; i < slots_quatity; i++){
-            this.slots.push(new Slot());
-        }
-    }
-    add(item, quantity = 1) {
-        let ret = quantity;
-        for(const i in this.slots){
-            ret = this.slots[i].add(item, ret);
-            if (ret == 0) {
-                break;
-            }
-        }
-        return ret;
-    }
-    consume(item, quantity = 1) {
-        const has_slots = [];
-        let has = 0;
-        for(const i in this.slots){
-            if (this.slots[i].item != null && this.slots[i].item.is(item)) {
-                has = Math.min(has + this.slots[i].quantity, quantity);
-                has_slots.push(parseInt(i));
-                if (has == quantity) {
-                    for (const j of has_slots){
-                        has = this.slots[j].remove(has);
-                        if (has == 0) {
-                            break;
-                        }
-                    }
-                    return true;
-                }
+    collidingWith(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y && this.position.z + this.size.z > other.position.z && this.position.z < other.position.z + other.size.z;
             }
         }
         return false;
     }
-    remove(item, quantity = 1) {
-        let ret = quantity;
-        for(const i in this.slots){
-            if (this.slots[i].item != null && this.slots[i].item.is(item)) {
-                ret = this.slots[i].remove(ret);
-                if (ret == 0) {
-                    break;
-                }
+    overlapCollision(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.rect:
+                    {
+                        const ss = v3.dscale(v3.add(this.size, other.size), 2);
+                        const dist = v3.sub(this.position, other.position);
+                        if (v3.less(v3.absolute(dist), ss)) {
+                            const ov = v3.sub(ss, v3.absolute(dist));
+                            let ov2 = v3.duplicate(ov);
+                            if (ov.x > ov.y || ov.x > ov.z) {
+                                ov2.x = 0;
+                            }
+                            if (ov.y > ov.x || ov.y > ov.z) {
+                                ov2.y = 0;
+                            }
+                            if (ov.z > ov.y || ov.z > ov.x) {
+                                ov2.z = 0;
+                            }
+                            ov2 = v3.normalizeSafe(v3.new(dist.x < 0 ? ov2.x : -ov2.x, dist.y < 0 ? ov2.y : -ov2.y, dist.z < 0 ? ov2.z : -ov2.z));
+                            return {
+                                overlap: ov2,
+                                collided: !v3.is(ov2, NullVec3)
+                            };
+                        }
+                        break;
+                    }
+                case HitboxType.circle:
             }
         }
-        return ret;
+        return {
+            overlap: NullVec3,
+            collided: false
+        };
     }
-    consumeTag(tag, quantity = 1) {
-        const has_slots = [];
-        let has = 0;
-        for(const i in this.slots){
-            if (this.slots[i].item != null && hasTag(this.slots[i].item, tag)) {
-                has = Math.min(has + this.slots[i].quantity, quantity);
-                has_slots.push(parseInt(i));
-                if (has == quantity) {
-                    for (const j of has_slots){
-                        has = this.slots[j].remove(has);
-                        if (has == 0) {
-                            break;
-                        }
-                    }
-                    return true;
-                }
-            }
+    pointInside(point) {
+        return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y && this.position.z + this.size.z >= point.z && this.position.z <= point.z;
+    }
+    center() {
+        return v3.add(this.position, v3.dscale(this.size, 2));
+    }
+    scale(scale) {
+        this.size = v3.scale(this.size, scale);
+    }
+    randomPoint() {
+        return v3.add(this.position, v3.random3(NullVec3, this.size));
+    }
+    toRect() {
+        return this;
+    }
+}
+class CircleHitbox3D extends BaseHitbox3D {
+    type = HitboxType.circle;
+    radius;
+    constructor(position, radius){
+        super(position);
+        this.radius = radius;
+    }
+    collidingWith(other) {
+        switch(other.type){
+            case HitboxType.circle:
+                return v3.distance(this.position, other.position) < this.radius + other.radius;
+            case HitboxType.rect:
+                return Collision.circle_with_rect(this, other);
         }
         return false;
     }
-    removeTag(tag, quantity = 1) {
-        let ret = quantity;
-        for(const i in this.slots){
-            if (this.slots[i].item != null && hasTag(this.slots[i].item, tag)) {
-                ret = this.slots[i].remove(ret);
-                if (ret == 0) {
-                    break;
-                }
+    overlapCollision(other) {
+        if (other) {
+            switch(other.type){
+                case HitboxType.circle:
+                    {
+                        const dists = v3.distanceSquared(this.position, other.position);
+                        const dis = v3.sub(this.position, other.position);
+                        if (dists < 0.0001) {
+                            return {
+                                overlap: v3.new(1, 1, 1),
+                                collided: true
+                            };
+                        }
+                        if (dists < (this.radius + other.radius) * 2) {
+                            const dist = v3.distance(this.position, other.position);
+                            return {
+                                overlap: v3.absolute(v3.dscale(dis, dist || 1)),
+                                collided: true
+                            };
+                        }
+                        break;
+                    }
+                case HitboxType.rect:
             }
         }
-        return ret;
+        return {
+            overlap: NullVec3,
+            collided: false
+        };
+    }
+    pointInside(point) {
+        return v2.distance(this.position, point) < this.radius;
+    }
+    center() {
+        return this.position;
+    }
+    scale(scale) {
+        this.radius *= scale;
+    }
+    randomPoint() {
+        const angle1 = random.float(0, Math.PI * 2);
+        const angle2 = random.float(0, Math.PI);
+        const radius = random.float(0, this.radius);
+        return v3.new(this.position.x + radius * Math.sin(angle2) * Math.cos(angle1), this.position.y + radius * Math.sin(angle2) * Math.sin(angle1), this.position.z + radius * Math.cos(angle2));
+    }
+    toRect() {
+        return new RectHitbox3D(this.position, v3.new(this.radius, this.radius, this.radius));
     }
 }
+export { Collision as Collision };
+export { HitboxType as HitboxType };
+export { BaseHitbox2D as BaseHitbox2D };
+export { NullHitbox2D as NullHitbox2D };
+export { CircleHitbox2D as CircleHitbox2D };
+export { RectHitbox2D as RectHitbox2D };
+export { BaseHitbox3D as BaseHitbox3D };
+export { NullHitbox3D as NullHitbox3D };
+export { RectHitbox3D as RectHitbox3D };
+export { CircleHitbox3D as CircleHitbox3D };
 class NetStream {
     buffer;
     pos;
@@ -1164,12 +1182,20 @@ class NetStream {
         }
         return array;
     }
-    writeVector(vec) {
+    writeVec2(vec) {
         this.writeFloat32(vec.x);
         this.writeFloat32(vec.y);
     }
-    readVector() {
-        return Vec.new(this.readFloat32(), this.readFloat32());
+    readVec2() {
+        return v2.new(this.readFloat32(), this.readFloat32());
+    }
+    writeVec3(vec) {
+        this.writeFloat32(vec.x);
+        this.writeFloat32(vec.y);
+        this.writeFloat32(vec.z);
+    }
+    readVec3() {
+        return v3.new(this.readFloat32(), this.readFloat32(), this.readFloat32());
     }
     writeID(id) {
         this.writeUInt32(id);
@@ -1190,6 +1216,8 @@ class PacketsManager {
         this.packets = new Map();
         this.add_packet(ConnectPacket);
         this.add_packet(DisconnectPacket);
+        this.add_packet(SteamPacket);
+        this.add_packet(ObjectsPacket);
     }
     encode(packet, stream) {
         if (!stream) {
@@ -1246,13 +1274,842 @@ class DisconnectPacket extends Packet {
         this.client_id = stream.readID();
     }
 }
+class SteamPacket extends Packet {
+    ID = 65533;
+    Name = "stream";
+    stream;
+    constructor(stream = new NetStream()){
+        super();
+        this.stream = stream;
+    }
+    encode(stream) {
+        stream.writeUInt32(stream.buffer.length);
+        stream.insert(stream.buffer);
+    }
+    decode(stream) {
+        const size = stream.readUInt32();
+        this.stream = new NetStream(this.stream.buffer.subarray(this.stream.pos, this.stream.pos + size));
+    }
+}
+class ObjectsPacket extends Packet {
+    ID = 65532;
+    Name = "objects";
+    stream;
+    constructor(stream = new NetStream()){
+        super();
+        this.stream = stream;
+    }
+    encode(stream) {
+        stream.writeUInt32(this.stream.buffer.length);
+        stream.insert(this.stream.buffer);
+    }
+    decode(stream) {
+        const size = stream.readUInt32();
+        this.stream = new NetStream(stream.buffer.subarray(stream.pos, stream.pos + size));
+    }
+}
 export { Packet as Packet };
 export { PacketsManager as PacketsManager };
 export { ConnectPacket as ConnectPacket };
 export { DisconnectPacket as DisconnectPacket };
-export { BaseGameObject as BaseGameObject, CellsGameObjectsManager as GameObjectsManager };
-export { Vec as Vec, Angle as Angle, NullVector as NullVector };
-export { CircleHitbox as CircleHitbox, RectHitbox as RectHitbox, HitboxType as HitboxType };
+export { SteamPacket as SteamPacket };
+export { ObjectsPacket as ObjectsPacket };
+class BaseObject2D {
+    hb;
+    destroyed;
+    id;
+    category;
+    calldestroy = true;
+    dirty = false;
+    dirtyPart = false;
+    manager;
+    get position() {
+        return this.hb ? this.hb.position : NullVec2;
+    }
+    set position(val) {
+        this.hb.position = val;
+    }
+    constructor(){
+        this.hb = new NullHitbox2D();
+        this.destroyed = false;
+    }
+    onDestroy() {}
+    get_key() {
+        return {
+            category: this.category,
+            id: this.id
+        };
+    }
+}
+class BaseObject3D {
+    hb;
+    destroyed;
+    id;
+    category;
+    calldestroy = true;
+    dirty = false;
+    dirtyPart = false;
+    manager;
+    get position() {
+        return this.hb ? this.hb.position : NullVec3;
+    }
+    set position(val) {
+        this.hb.position = val;
+    }
+    constructor(){
+        this.hb = new NullHitbox3D();
+        this.destroyed = false;
+    }
+    onDestroy() {}
+    get_key() {
+        return {
+            category: this.category,
+            id: this.id
+        };
+    }
+}
+class CellsManager2D {
+    objects = {};
+    cellSize;
+    cells;
+    constructor(cellSize = 32){
+        this.cellSize = cellSize;
+        this.cells = {};
+    }
+    registry(obj) {
+        if (!this.objects[obj.category]) {
+            this.objects[obj.category] = {};
+        }
+        if (this.objects[obj.category][obj.id]) {
+            throw new Error(`Existent Object ${obj.id} In Cell`);
+        }
+        this.objects[obj.category][obj.id] = obj;
+    }
+    unregistry(obj) {
+        if (!(this.objects[obj.category] && this.objects[obj.category][obj.id])) {
+            throw new Error(`Invalid Object ${obj}`);
+        }
+        delete this.objects[obj.category][obj.id];
+    }
+    update() {
+        this.cells = {};
+        for (const c of Object.keys(this.objects)){
+            for (const obj of Object.values(this.objects[c])){
+                const cp = this.cellPos(obj.position);
+                if (!this.cells[cp.y]) {
+                    this.cells[cp.y] = {};
+                }
+                if (!this.cells[cp.y][cp.x]) {
+                    this.cells[cp.y][cp.x] = {};
+                }
+                if (!this.cells[cp.y][cp.x][obj.category]) {
+                    this.cells[cp.y][cp.x][obj.category] = [];
+                }
+                this.cells[cp.y][cp.x][obj.category].push(obj);
+            }
+        }
+    }
+    get_objects(hitbox, categorys) {
+        const rect = hitbox.toRect();
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v2.add(rect.position, rect.size));
+        const objects = {};
+        for(let x = min.x, maxX = max.x; x <= maxX; x++){
+            for(let y = min.y, maxY = max.y; y <= maxY; y++){
+                if (!(this.cells[y] && this.cells[y][x])) {
+                    continue;
+                }
+                for (const c of categorys){
+                    if (!objects[c]) {
+                        objects[c] = [];
+                    }
+                    objects[c].push(...this.cells[y][x][c]);
+                }
+            }
+        }
+        return objects;
+    }
+    get_objects2(hitbox, categorys) {
+        const rect = hitbox.toRect();
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v2.add(rect.position, rect.size));
+        const objects = [];
+        for(let y = min.y; y <= max.y; y++){
+            if (!this.cells[y]) {
+                continue;
+            }
+            for(let x = min.x; x <= max.x; x++){
+                if (!this.cells[y][x]) {
+                    continue;
+                }
+                objects.push(...this.cells[y][x][categorys]);
+            }
+        }
+        return objects;
+    }
+    cellPos(pos) {
+        return v2.floor(v2.dscale(pos, this.cellSize));
+    }
+}
+class CellsManager3D {
+    objects = {};
+    cellSize;
+    cells;
+    constructor(cellSize = 32){
+        this.cellSize = cellSize;
+        this.cells = {};
+    }
+    registry(obj) {
+        if (!this.objects[obj.category]) {
+            this.objects[obj.category] = {};
+        }
+        if (this.objects[obj.category][obj.id]) {
+            throw new Error(`Existent Object ${obj.id} In Cell`);
+        }
+        this.objects[obj.category][obj.id] = obj;
+    }
+    unregistry(obj) {
+        if (!(this.objects[obj.category] && this.objects[obj.category][obj.id])) {
+            throw new Error(`Invalid Object ${obj}`);
+        }
+        delete this.objects[obj.category][obj.id];
+    }
+    update() {
+        this.cells = {};
+        for (const c of Object.keys(this.objects)){
+            for (const obj of Object.values(this.objects[c])){
+                const cp = this.cellPos(obj.position);
+                if (!this.cells[cp.z]) {
+                    this.cells[cp.z] = {};
+                }
+                if (!this.cells[cp.z][cp.y]) {
+                    this.cells[cp.z][cp.y] = {};
+                }
+                if (!this.cells[cp.z][cp.y][cp.x]) {
+                    this.cells[cp.z][cp.y][cp.x] = {};
+                }
+                if (!this.cells[cp.z][cp.y][cp.x][obj.category]) {
+                    this.cells[cp.z][cp.y][cp.x][obj.category] = [];
+                }
+                this.cells[cp.z][cp.y][cp.x][obj.category].push(obj);
+            }
+        }
+    }
+    get_objects(hitbox, categorys) {
+        const rect = hitbox.toRect();
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v3.add(rect.position, rect.size));
+        const objects = {};
+        for(let z = min.z; z <= max.z; z++){
+            if (!this.cells[z]) {
+                continue;
+            }
+            for(let y = min.y; y <= max.y; y++){
+                if (!this.cells[z][y]) {
+                    continue;
+                }
+                for(let x = min.x; min.x <= max.x; x++){
+                    if (!this.cells[z][y][x]) {
+                        continue;
+                    }
+                    for (const c of categorys){
+                        if (!objects[c]) {
+                            objects[c] = [];
+                        }
+                        objects[c].push(...this.cells[z][y][x][c]);
+                    }
+                }
+            }
+        }
+        return objects;
+    }
+    get_objects2(hitbox, categorys) {
+        const rect = hitbox.toRect();
+        const min = this.cellPos(rect.position);
+        const max = this.cellPos(v3.add(rect.position, rect.size));
+        const objects = [];
+        for(let z = min.z; z <= max.z; z++){
+            if (!this.cells[z]) {
+                continue;
+            }
+            for(let y = min.y; y <= max.y; y++){
+                if (!this.cells[z][y]) {
+                    continue;
+                }
+                for(let x = min.x; min.x <= max.x; x++){
+                    if (!this.cells[z][y][x]) {
+                        continue;
+                    }
+                    objects.push(...this.cells[z][y][x][categorys]);
+                }
+            }
+        }
+        return objects;
+    }
+    cellPos(pos) {
+        return v3.floor(v3.dscale(pos, this.cellSize));
+    }
+}
+class GameObjectManager2D {
+    cells;
+    objects = {};
+    stream;
+    ondestroy = (_)=>{};
+    constructor(cellsSize){
+        this.cells = new CellsManager2D(cellsSize);
+        this.stream = new NetStream(new Uint8Array());
+    }
+    add_object(obj, category, id) {
+        if (!this.objects[category]) {
+            throw new Error(`Invalid Category ${category}`);
+        }
+        if (id === undefined) {
+            while(id === undefined){
+                id = random.id();
+                if (this.objects[category].objects[id]) {
+                    id = undefined;
+                }
+            }
+        }
+        obj.id = id;
+        obj.category = category;
+        obj.dirty = true;
+        obj.manager = this;
+        this.objects[category].objects[obj.id] = obj;
+        this.objects[category].orden.push(obj.id);
+        obj.create();
+        this.cells.registry(obj);
+    }
+    get_object(obj) {
+        return this.objects[obj.category].objects[obj.id];
+    }
+    exist(obj) {
+        return Object.hasOwn(this.objects, obj.category) && Object.hasOwn(this.objects[obj.category].objects, obj.id);
+    }
+    alive_count(category) {
+        return this.objects[category].orden.length;
+    }
+    add_category(category) {
+        this.objects[category] = {
+            orden: [],
+            objects: {}
+        };
+    }
+    proccess(packet, oncreate) {
+        const csize = packet.stream.readUInt16();
+        for(let i = 0; i < csize; i++){
+            const category = packet.stream.readString();
+            if (!this.objects[category]) {
+                continue;
+            }
+            const osize = packet.stream.readUInt16();
+            for(let j = 0; j < osize; j++){
+                const oid = this.stream.readID();
+                if (!this.objects[category].objects[oid]) {
+                    oncreate({
+                        category: category,
+                        id: oid
+                    });
+                }
+                const dir = this.stream.readUInt8();
+                if (dir > 0) {
+                    if (dir >= 100) {
+                        this.objects[category].objects[oid].destroyed = true;
+                        continue;
+                    }
+                    this.objects[category].objects[oid].dirtyPart = true;
+                    this.objects[category].objects[oid].decodePart(packet.stream);
+                    if (dir > 1) {
+                        this.objects[category].objects[oid].dirty = true;
+                        this.objects[category].objects[oid].decodeComplete(packet.stream);
+                    }
+                }
+            }
+        }
+    }
+    encode() {
+        const stream = new NetStream();
+        stream.writeUInt16(Object.keys(this.objects).length);
+        for(const c in this.objects){
+            stream.writeString(c);
+            stream.writeUInt16(this.objects[c].orden.length);
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                stream.writeID(o);
+                stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                this.objects[c].objects[o].encodePart(stream);
+                this.objects[c].objects[o].encodeComplete(stream);
+            }
+        }
+        return new ObjectsPacket(stream);
+    }
+    update() {
+        this.cells.update();
+        this.stream.clear();
+        this.stream.writeUInt16(Object.keys(this.objects).length);
+        for(const c in this.objects){
+            this.stream.writeString(c);
+            this.stream.writeUInt16(this.objects[c].orden.length);
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                this.objects[c].objects[o].update();
+                this.stream.writeID(o);
+                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
+                    this.objects[c].objects[o].encodePart(this.stream);
+                    if (this.objects[c].objects[o].dirty) {
+                        this.objects[c].objects[o].dirty = false;
+                        this.objects[c].objects[o].encodeComplete(this.stream);
+                    }
+                    this.objects[c].objects[o].dirtyPart = true;
+                }
+                if (this.objects[c].objects[o].destroyed) {
+                    if (this.objects[c].objects[o].calldestroy) {
+                        this.ondestroy(this.objects[c].objects[o]);
+                        this.objects[c].objects[o].onDestroy();
+                    }
+                    this.cells.unregistry(this.objects[c].objects[o].get_key());
+                    delete this.objects[c].objects[o];
+                    this.objects[c].orden.splice(j, 1);
+                    j--;
+                    continue;
+                }
+            }
+        }
+    }
+}
+class GameObjectManager3D extends GameObjectManager2D {
+    cells;
+    constructor(cellsSize){
+        super(cellsSize);
+        this.cells = new CellsManager3D(cellsSize);
+    }
+}
+export { BaseObject2D as BaseObject2D };
+export { BaseObject3D as BaseObject3D };
+export { CellsManager2D as CellsManager2D };
+export { CellsManager3D as CellsManager3D };
+export { GameObjectManager2D as GameObjectManager2D };
+export { GameObjectManager3D as GameObjectManager3D };
+var DefaultEvents;
+(function(DefaultEvents) {
+    DefaultEvents["GameTick"] = "game-tick";
+    DefaultEvents["GameRun"] = "game-run";
+})(DefaultEvents || (DefaultEvents = {}));
+class Game2DPlugin {
+    game;
+    constructor(game){
+        this.game = game;
+    }
+    on(signal, cb) {
+        this.game.events.on(signal, cb);
+    }
+}
+class Game3DPlugin {
+    game;
+    constructor(game){
+        this.game = game;
+    }
+    on(signal, cb) {
+        this.game.events.on(signal, cb);
+    }
+}
+class EventsManager {
+    signals;
+    constructor(){
+        this.signals = {};
+    }
+    on(signal, cb) {
+        (this.signals[signal] ??= new Set()).add(cb);
+    }
+    off(eventType, cb) {
+        if (!cb) {
+            delete this.signals[eventType];
+            return;
+        }
+        this.signals[eventType]?.delete(cb);
+    }
+    emit(eventType, data) {
+        for (const cb of this.signals[eventType] || []){
+            if (cb) {
+                cb(data);
+            }
+        }
+    }
+    clear(eventType) {
+        this.signals[eventType] = [];
+    }
+    clearAll() {
+        this.signals = {};
+    }
+}
+class BaseGameObject2D extends BaseObject2D {
+    game;
+    constructor(){
+        super();
+    }
+}
+class BaseGameObject3D extends BaseObject3D {
+    game;
+    constructor(){
+        super();
+    }
+}
+class Game2D {
+    tps;
+    clock;
+    running = true;
+    events;
+    objects;
+    constructor(tps, objects){
+        this.tps = tps;
+        this.events = new EventsManager();
+        this.clock = new Clock(tps, 1);
+        this.objects = objects ?? new GameObjectManager2D(32);
+        this.objects.add_object = (obj, category, id)=>{
+            GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id);
+        };
+    }
+    add_plugin(plugin) {
+        plugin.game = this;
+        plugin.init_signals();
+    }
+    clear_plugins() {
+        this.events.clearAll();
+    }
+    update() {
+        this.objects.update();
+        this.on_update();
+        this.events.emit(DefaultEvents.GameTick, this);
+        this.clock.tick(this.update.bind(this));
+    }
+    on_update() {}
+    on_run() {}
+    mainloop() {
+        this.on_run();
+        this.events.emit(DefaultEvents.GameRun, this);
+        this.update();
+    }
+}
+class Game3D {
+    tps;
+    clock;
+    running = true;
+    events;
+    objects;
+    constructor(tps, objects){
+        this.tps = tps;
+        this.events = new EventsManager();
+        this.clock = new Clock(tps, 1);
+        this.objects = objects ?? new GameObjectManager3D(32);
+        this.objects.add_object = (obj, category, id)=>{
+            GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id);
+        };
+    }
+    add_plugin(plugin) {
+        plugin.game = this;
+        plugin.init_signals();
+    }
+    clear_plugins() {
+        this.events.clearAll();
+    }
+    update() {
+        this.objects.update();
+        this.on_update();
+        this.events.emit(DefaultEvents.GameTick, this);
+        this.clock.tick(this.update.bind(this));
+    }
+    on_update() {}
+    on_run() {}
+    mainloop() {
+        this.on_run();
+        this.events.emit(DefaultEvents.GameRun, this);
+        this.update();
+    }
+}
+export { DefaultEvents as DefaultEvents };
+export { Game2DPlugin as Game2DPlugin };
+export { Game3DPlugin as Game3DPlugin };
+export { EventsManager as EventsManager };
+export { BaseGameObject2D as BaseGameObject2D };
+export { BaseGameObject3D as BaseGameObject3D };
+export { Game2D as Game2D };
+export { Game3D as Game3D };
+class Item {
+    limit_per_slot = 1;
+    tags = [];
+}
+class Slot {
+    item;
+    quantity;
+    accept_tags;
+    constructor(accept_tags = []){
+        this.accept_tags = accept_tags;
+        this.quantity = 0;
+        this.item = null;
+    }
+    add(item, quantity = 1) {
+        if (this.item == null) {
+            if (this.accept_tags.length == 0 || hasTags(this.accept_tags, item.tags)) {
+                this.item = item;
+            } else {
+                return quantity;
+            }
+        } else if (!this.item.is(item)) {
+            return quantity;
+        }
+        const add = this.quantity + quantity;
+        const ret = Math.max(add - this.item.limit_per_slot, 0);
+        this.quantity = add - ret;
+        return ret;
+    }
+    remove(quantity) {
+        if (this.item == null) {
+            return quantity;
+        }
+        this.quantity -= quantity;
+        const ret = Math.max(-this.quantity, 0);
+        if (ret != 0) {
+            this.item = null;
+            this.quantity = 0;
+        }
+        return ret;
+    }
+}
+class Inventory {
+    slots;
+    constructor(slots_quatity = 10){
+        this.slots = [];
+        for(let i = 0; i < slots_quatity; i++){
+            this.slots.push(new Slot());
+        }
+    }
+    add(item, quantity = 1) {
+        let ret = quantity;
+        for(const i in this.slots){
+            ret = this.slots[i].add(item, ret);
+            if (ret == 0) {
+                break;
+            }
+        }
+        return ret;
+    }
+    consume(item, quantity = 1) {
+        const has_slots = [];
+        let has = 0;
+        for(const i in this.slots){
+            if (this.slots[i].item != null && this.slots[i].item.is(item)) {
+                has = Math.min(has + this.slots[i].quantity, quantity);
+                has_slots.push(parseInt(i));
+                if (has == quantity) {
+                    for (const j of has_slots){
+                        has = this.slots[j].remove(has);
+                        if (has == 0) {
+                            break;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    remove(item, quantity = 1) {
+        let ret = quantity;
+        for(const i in this.slots){
+            if (this.slots[i].item != null && this.slots[i].item.is(item)) {
+                ret = this.slots[i].remove(ret);
+                if (ret == 0) {
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+    consumeTag(tag, quantity = 1) {
+        const has_slots = [];
+        let has = 0;
+        for(const i in this.slots){
+            if (this.slots[i].item != null && hasTag(this.slots[i].item, tag)) {
+                has = Math.min(has + this.slots[i].quantity, quantity);
+                has_slots.push(parseInt(i));
+                if (has == quantity) {
+                    for (const j of has_slots){
+                        has = this.slots[j].remove(has);
+                        if (has == 0) {
+                            break;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    removeTag(tag, quantity = 1) {
+        let ret = quantity;
+        for(const i in this.slots){
+            if (this.slots[i].item != null && hasTag(this.slots[i].item, tag)) {
+                ret = this.slots[i].remove(ret);
+                if (ret == 0) {
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+}
+class Model3D {
+    _vertices;
+    _indices;
+    _normalsM;
+    _normals;
+    _texCoords;
+    _texCoordsM;
+    constructor(){
+        this._vertices = [];
+        this._indices = [];
+        this._normals = [];
+        this._normalsM = [];
+        this._texCoords = [];
+        this._texCoordsM = [];
+    }
+    toRect() {
+        const min = v3.new(0, 0, 0);
+        const max = v3.new(0, 0, 0);
+        for(let i = 0; i + 2 <= this._vertices.length; i += 3){
+            const p = v3.new(this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]);
+            if (v3.lessOr(p, min)) {
+                if (p.x < min.x) {
+                    min.x = p.x;
+                }
+                if (p.y < min.y) {
+                    min.y = p.y;
+                }
+                if (p.z < min.z) {
+                    min.z = p.z;
+                }
+            } else if (v3.greaterOr(p, max)) {
+                if (p.x > max.x) {
+                    max.x = p.x;
+                }
+                if (p.y > max.y) {
+                    max.y = p.y;
+                }
+                if (p.z > max.z) {
+                    max.z = p.z;
+                }
+            }
+        }
+        return new RectHitbox3D(v3.new(0, 0, 0), v3.add(v3.absolute(min), v3.absolute(max)));
+    }
+}
+const m3 = Object.freeze({
+    cube (s = 1) {
+        const ret = new Model3D();
+        ret._vertices = [
+            0,
+            0,
+            0,
+            s,
+            0,
+            0,
+            0,
+            s,
+            0,
+            s,
+            s,
+            0,
+            0,
+            0,
+            s,
+            s,
+            0,
+            s,
+            0,
+            s,
+            s,
+            s,
+            s,
+            s
+        ];
+        ret._indices = [
+            0,
+            1,
+            2,
+            1,
+            3,
+            2,
+            4,
+            5,
+            6,
+            5,
+            7,
+            6,
+            0,
+            1,
+            4,
+            1,
+            5,
+            4,
+            2,
+            3,
+            6,
+            3,
+            7,
+            6,
+            0,
+            2,
+            4,
+            2,
+            6,
+            4,
+            1,
+            3,
+            5,
+            3,
+            7,
+            5
+        ];
+        return ret;
+    },
+    parseObj (objText) {
+        const ret = new Model3D();
+        const lines = objText.split('\n');
+        for (let line of lines){
+            line = line.trim();
+            if (line.startsWith('v ')) {
+                const parts = line.split(/\s+/);
+                const vertex = parts.slice(1).map(parseFloat);
+                ret._vertices.push(...vertex);
+            } else if (line.startsWith('vn ')) {
+                const parts = line.split(/\s+/);
+                const normal = parts.slice(1).map(parseFloat);
+                ret._normals.push(...normal);
+            } else if (line.startsWith('vt ')) {
+                const parts = line.split(/\s+/);
+                const textureCoord = parts.slice(1).map(parseFloat);
+                ret._texCoords.push(...textureCoord);
+            } else if (line.startsWith('f ')) {
+                const parts = line.split(/\s+/).slice(1);
+                const vertices = [];
+                const textures = [];
+                const normals = [];
+                for (const part of parts){
+                    const [v, vt, vn] = part.split('/').map((str)=>parseInt(str) - 1);
+                    vertices.push(v);
+                    if (vt !== undefined) textures.push(vt);
+                    if (vn !== undefined) normals.push(vn);
+                }
+                ret._indices.push(...vertices);
+                ret._normalsM.push(...normals);
+                ret._texCoordsM.push(...textures);
+            }
+        }
+        return ret;
+    }
+});
+export { Model3D as Model3D };
+export { m3 as m3 };
 export { Inventory as Inventory, Slot as Slot, Item as Item };
 export { NetStream as NetStream };
-export { Clock as Clock, SignalManager as SignalManager };

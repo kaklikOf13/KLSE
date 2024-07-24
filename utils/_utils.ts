@@ -284,3 +284,11 @@ export const ease=Object.freeze({
         ? 4 * t * t * (3.6 * t - 1.3)
         : 4 * (t - 1) ** 2 * (3.6 * t - 2.3) + 1
 })
+// deno-lint-ignore no-explicit-any
+export function mixin(...bases:any[]) {
+    class MixinClass {}
+    for (const base of bases) {
+        Object.assign(MixinClass.prototype, base.prototype);
+    }
+    return MixinClass;
+}

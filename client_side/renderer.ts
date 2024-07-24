@@ -1,5 +1,6 @@
-import { Vec2 } from "../utils/geometry.ts"
-import { CircleHitbox, Hitbox, HitboxType, RectHitbox } from "../utils/hitbox.ts"
+import { Vec2, Vec3 } from "../utils/geometry.ts"
+import { CircleHitbox2D, Hitbox2D, HitboxType, RectHitbox2D, RectHitbox3D } from "../utils/hitbox.ts"
+import { Model3D } from "../utils/models.ts";
 import { type Sprite } from "./resources.ts";
 
 export interface Color {
@@ -30,10 +31,12 @@ export abstract class Renderer {
         this.canvas = canvas;
         this.meter_size = meter_size;
     }
-    abstract draw_rect(rect: RectHitbox, color: Color): void;
-    abstract draw_circle(circle: CircleHitbox, color: Color): void;
-    abstract draw_hitbox(hitbox: Hitbox, color: Color): void;
-    abstract draw_image(image: Sprite, position: Vec2, size: Vec2): void;
+    abstract draw_rect2D(rect: RectHitbox2D, color: Color): void;
+    abstract draw_circle2D(circle: CircleHitbox2D, color: Color): void;
+    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color): void;
+    abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void;
+
+    abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void;
     abstract clear(): void;
 }
 
@@ -56,9 +59,24 @@ void main() {
     gl_FragColor = a_Color;
 }`;
 
+const isoVertexShaderSource = `
+attribute vec3 a_Position;
+uniform vec3 u_Translation;
+uniform vec3 u_Scale;
+uniform mat4 u_ProjectionMatrix;
+
+void main() {
+    vec3 scaledPosition = a_Position * u_Scale; // Aplica a escala
+    vec3 translatedPosition = scaledPosition + u_Translation; // Adiciona a translação
+    vec2 isoPosition = vec2(translatedPosition.x - translatedPosition.z, (translatedPosition.y + translatedPosition.z)+translatedPosition.x);
+    gl_Position = u_ProjectionMatrix * vec4(isoPosition, 0.0, 1.0);
+}
+`;
+
 export class WebglRenderer extends Renderer {
     gl: WebGLRenderingContext;
     private simple_program: WebGLProgram;
+    private isometric_simple_program: WebGLProgram
     background: Color = RGBA.new(255, 255, 255);
     private projectionMatrix: Float32Array;
     
@@ -68,11 +86,18 @@ export class WebglRenderer extends Renderer {
         this.background = background;
         gl!.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl = gl!;
+
         const simple_program = gl!.createProgram();
         gl!.attachShader(simple_program!, this.createShader(rectVertexShaderSource, gl!.VERTEX_SHADER));
         gl!.attachShader(simple_program!, this.createShader(rectFragmentShaderSource, gl!.FRAGMENT_SHADER));
         this.simple_program = simple_program!;
         gl!.linkProgram(this.simple_program);
+
+        const isometric_simple_program = gl!.createProgram();
+        gl!.attachShader(isometric_simple_program!, this.createShader(isoVertexShaderSource, gl!.VERTEX_SHADER));
+        gl!.attachShader(isometric_simple_program!, this.createShader(rectFragmentShaderSource, gl!.FRAGMENT_SHADER));
+        this.isometric_simple_program = isometric_simple_program!;
+        gl!.linkProgram(this.isometric_simple_program);
 
         // Configurando a matriz de projeção para coordenadas de pixel
         const scaleX = 2 / (this.canvas.width / this.meter_size);
@@ -117,7 +142,7 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
 
-    draw_rect(rect: RectHitbox, color: Color) {
+    draw_rect2D(rect: RectHitbox2D, color: Color) {
         const x1 = rect.position.x;
         const y1 = rect.position.y;
         const x2 = rect.position.x + rect.size.x;
@@ -133,7 +158,7 @@ export class WebglRenderer extends Renderer {
         ], color);
     }
 
-    draw_circle(circle: CircleHitbox, color: Color, precision: number = 50): void {
+    draw_circle2D(circle: CircleHitbox2D, color: Color, precision: number = 50): void {
         const centerX = circle.position.x;
         const centerY = circle.position.y;
         const radius = circle.radius;
@@ -151,20 +176,20 @@ export class WebglRenderer extends Renderer {
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
     }
 
-    draw_hitbox(hitbox: Hitbox, color: Color): void {
+    draw_hitbox2D(hitbox: Hitbox2D, color: Color): void {
         switch (hitbox.type) {
             case HitboxType.circle:
-                this.draw_circle(hitbox, color);
+                this.draw_circle2D(hitbox, color);
                 break;
             case HitboxType.rect:
-                this.draw_rect(hitbox, color);
+                this.draw_rect2D(hitbox, color);
                 break;
             default:
                 return;
         }
     }
 
-    draw_image(image: Sprite, position: Vec2, size: Vec2): void {
+    draw_image2D(image: Sprite, position: Vec2, size: Vec2): void {
         const x1 = position.x;
         const y1 = position.y;
         const x2 = position.x + size.x;
@@ -224,6 +249,76 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 2);
     }
     
+    _iso_draw_vertices(vertices: number[], indices: number[],pos:Vec3,scale:Vec3, color: Color, wireframe: boolean = false, mode: number = this.gl.TRIANGLES) {
+        const gl = this.gl;
+
+        const vertexBuffer = gl.createBuffer()
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
+        
+        const indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+        gl.useProgram(this.isometric_simple_program)
+
+        const positionAttributeLocation = gl.getAttribLocation(this.isometric_simple_program, "a_Position")
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+        const colorUniformLocation = gl.getUniformLocation(this.isometric_simple_program, "a_Color");
+        gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
+
+        const projectionMatrixLocation = gl.getUniformLocation(this.isometric_simple_program, "u_ProjectionMatrix");
+        gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
+
+        const translationLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Translation");
+        gl.uniform3f(translationLocation, pos.x, pos.y, -pos.z)
+
+        const scaleLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Scale")
+        gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
+
+        if (wireframe) {
+            const wireframeIndices = [];
+            for (let i = 0; i < indices.length; i += 3) {
+                wireframeIndices.push(indices[i], indices[i + 1]);
+                wireframeIndices.push(indices[i + 1], indices[i + 2]);
+                wireframeIndices.push(indices[i + 2], indices[i]);
+            }
+            const wireframeIndexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireframeIndexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wireframeIndices), gl.STATIC_DRAW);
+            gl.drawElements(gl.LINES, wireframeIndices.length, gl.UNSIGNED_SHORT, 0);
+        } else {
+            gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0);
+        }
+    }
+    draw_iso_rect(rect: RectHitbox3D, color: Color, wireframe: boolean = false){
+        this._iso_draw_vertices([
+            0, 0, 0, // 0
+            1, 0, 0, // 1
+            0, 1, 0, // 2
+            1, 1, 0, // 3
+            0, 0, 1, // 4
+            1, 0, 1, // 5
+            0, 1, 1, // 6
+            1, 1, 1  // 7
+        ],[
+            0, 1, 2, 1, 3, 2,
+            4, 5, 6, 5, 7, 6,
+            0, 1, 4, 1, 5, 4,
+            2, 3, 6, 3, 7, 6,
+            0, 2, 4, 2, 6, 4,
+            1, 3, 5, 3, 7, 5
+        ],rect.position,rect.size, color, wireframe);
+    }
+    wireframe_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color){
+        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color,true)
+    }
+    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color){
+        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color)
+    }
+
     clear() {
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);

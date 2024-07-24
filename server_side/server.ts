@@ -72,7 +72,6 @@ export class Router {
 
 
     const middleware: HandlerFuncAsync = async (req, path, info) => {
-      console.log("Middleware local -- add_route");
       return await handler(req, path, info);
     };
 

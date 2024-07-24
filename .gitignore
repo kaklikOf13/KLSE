@@ -4,3 +4,6 @@ deno.lock
 dist
 .dist
 ./dist
+
+temp
+private

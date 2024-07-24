@@ -4,6 +4,7 @@ import { ID } from "../utils/_utils.ts"
 import { Client } from "../client_side/client.ts"
 import { DefaultSignals } from "./mod.ts";
 import { random } from "../utils/random.ts";
+import { type NetStream } from "../utils/stream.ts";
 export * from "../client_side/client.ts"
 export class ClientsManager{
     clients:Map<ID,Client>
@@ -40,9 +41,13 @@ export class ClientsManager{
             }
         }
     }
+    sendStream(stream:NetStream){
+        for (const client of this.clients.values()) {
+            client.sendStream(stream)
+        }
+    }
     
     handler():(req:Request,url:string[],info:Deno.ServeHandlerInfo)=>Response|null{
-        
         return (req:Request,url:string[],info:Deno.ServeHandlerInfo)=>{
             if(url.length>1&&url[url.length-1]!="index.html"){
                 return null

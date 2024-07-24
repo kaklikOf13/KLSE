@@ -4,7 +4,8 @@ export { ConnectPacket, DisconnectPacket } from "../utils/packets.ts"
 import { NetStream } from "../utils/stream.ts"
 export const DefaultSignals={
     CONNECT:"connect",
-    DISCONNECT:"disconnect"
+    DISCONNECT:"disconnect",
+    OBJECTS:"objects"
 }
 export class Client{
     ws:WebSocket
@@ -56,6 +57,9 @@ export class Client{
     // deno-lint-ignore ban-types
     on(name:string,callback:Function){
         this.signals.on(name,callback)
+    }
+    sendStream(stream:NetStream){
+        this.ws.send(stream.buffer)
     }
     /**
      * Disconnect Websocket

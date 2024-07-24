@@ -8,7 +8,6 @@ export interface Vec3 {
     x: number
     y: number
     z: number
-
 }
 export type RadAngle=number
 export type DegAngle=number
@@ -28,10 +27,11 @@ export type HashVec2=bigint
 export const v3 = Object.freeze({
 
     /**
-     * Creates a new `Vec2 3`
+     * Creates a new `Vec3`
      * * @param x The hortizontal (x-axis) coordinate
      * @param y The vertical (y-axis) coordinate
-     * @returns A new `Vec23` With X and Y and Z Cords
+     * @param z The depth (y-axis) coordinate
+     * @returns A new `Vec3` With X and Y and Z Cords
      * 
      */
 
@@ -43,30 +43,220 @@ export const v3 = Object.freeze({
     random(min:number, max:number):Vec3 {
         return {x:random.float(min,max),y:random.float(min,max), z:random.float(min, max)}
     },
-
+    random3(min:Vec3, max:Vec3):Vec3 {
+        return {x:random.float(min.x,max.x),y:random.float(min.y,max.y), z:random.float(min.z, max.z)}
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`+`y`
+     */
     add(x: Vec3, y: Vec3): Vec3 {
         return this.new(x.x+y.x, x.y+y.y, x.z+y.z)
     },
-    Dot(vec: Vec3, other: Vec3) {
-        const result = vec.x * other.x + vec.y * other.y + vec.z * other.z;
-        return result;
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`-`y`
+     */
+    sub(x: Vec3, y: Vec3): Vec3 {
+        return this.new(x.x-y.x, x.y-y.y, x.z-y.z)
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`*`y`
+     */
+    mult(x: Vec3, y: Vec3): Vec3 {
+        return this.new(x.x*y.x, x.y*y.y, x.z*y.z)
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`/`y`
+     */
+    div(x: Vec3, y: Vec3): Vec3 {
+        return this.new(x.x/y.x, x.y/y.y, x.z/y.z)
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`*`y`
+     */
+    scale(x: Vec3, y: number): Vec3 {
+        return this.new(x.x*y, x.y*y, x.z*y)
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With `x`/`y`
+     */
+    dscale(x: Vec3, y: number): Vec3 {
+        return this.new(x.x/y, x.y/y, x.z/y)
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`>`y`
+     */
+    greater(x:Vec3, y:Vec3):boolean {
+        return x.x>y.x&&x.y>y.y&&x.z>y.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`<`y`
+     */
+    less(x:Vec3, y:Vec3):boolean {
+        return x.x<y.x&&x.y<y.y&&x.z<y.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`==`y`
+     */
+    is(x:Vec3, y:Vec3):boolean {
+        return x.x==y.x&&x.y==y.y&&x.z==y.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`>`y`, true if any val of `x` > `y`
+     */
+    greaterOr(x:Vec3, y:Vec3):boolean {
+        return x.x>y.x||x.y>y.y||x.z>y.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`<`y`, true if any val of `x` < `y`
+     */
+    lessOr(x:Vec3, y:Vec3):boolean {
+        return x.x<y.x&&x.y<y.y&&x.z<y.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns `boolean` of operation `x`==`y`, true if any val of `x` == `y`
+     */
+    isOr(x:Vec3, y:Vec3):boolean {
+        return x.x==y.x&&x.y==y.y&&x.z==y.z
     },
 
-    Cross(vec: Vec3, other: Vec3) {
-        const resultX = vec.y * other.z - vec.z * other.y;
-        const resultY = vec.z * other.x - vec.x * other.z;
-        const resultZ = vec.x * other.y - vec.y * other.x;
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @returns A new Absolute `Vec3`
+     */
+    absolute(Vec3:Vec3):Vec3{
+        return this.new(Math.abs(Vec3.x),Math.abs(Vec3.y),Math.abs(Vec3.z))
+    },
 
-        return {resultX, resultY, resultZ};
+    /**
+     * @param Vec2 The `Vec2` to normalize
+     * @param fallback A `Vec2` to clone and return in case the normalization operation fails
+     * @returns A `Vec2` whose length is 1 and is parallel to the original Vec2
+     */
+    normalizeSafe(Vec3:Vec3,fallback:Vec3=NullVec3):Vec3 {
+        const eps = 0.000001
+        const len = this.length(Vec3)
+        return len > eps
+            ? {
+                x:Vec3.x/len,
+                y:Vec3.y/len,
+                z:Vec3.z/len
+            }:this.duplicate(fallback)
+    },
+    /**
+     * @param Vec3 The `Vec3` to normalize
+     * @returns A `Vec3` whose length is 1 and is parallel to the original Vec2
+     */
+    normalize(Vec3:Vec3): Vec3 {
+        const eps = 0.000001
+        const len = this.length(Vec3)
+        return eps
+            ? {
+                x:Vec3.x/len,
+                y:Vec3.y/len,
+                z:Vec3.z/len
+            }: this.duplicate(Vec3)
+    },
+    /**
+     * 
+     * @param Vec3 The `Vec3` To Duplication
+     * @returns The Duplicated Vec3
+     */
+    duplicate(Vec3:Vec3):Vec3{
+        return this.new(Vec3.x,Vec3.y,Vec3.z)
+    },
+
+    neg(Vec3:Vec3):Vec3{
+        return this.new(-Vec3.x,-Vec3.y,-Vec3.z)
+    },
+
+    /**
+     * @param vec `Vec3`
+     * @returns A new `Vec3` With squared of `Vec3`
+     */
+    squared(vec:Vec3):number{
+        return vec.x*vec.x+vec.y*vec.y+vec.z*vec.z
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec2` With distance of `Vec31` and `Vec32`
+     */
+    distanceSquared(x:Vec3,y:Vec3):number{
+        const dx=x.x-y.x
+        const dy=x.y-y.y
+        const dz=x.z-y.z
+        return dx*dx+dy*dy+dz*dz
+    },
+    /**
+     * @param x `Vec31`
+     * @param y `Vec32`
+     * @returns A new `Vec3` With distance squared of `Vec31` and `Vec32`
+     */
+    distance(x:Vec3,y:Vec3):number{
+        const dx=x.x-y.x
+        const dy=x.y-y.y
+        const dz=x.z-y.z
+        return Math.sqrt(dx*dx+dy*dy+dz*dz)
+    },
+    cross(vec: Vec3, other: Vec3):Vec3{
+        return v3.new(vec.y * other.z - vec.z * other.y, vec.z * other.x - vec.x * other.z, vec.x * other.y - vec.y * other.x);
+    },
+    /**
+     * 
+     * @param Vec2 `Vec3`
+     * @returns A new Interger `Vec3`
+     */
+    floor(Vec2:Vec3):Vec3{
+        return this.new(Math.floor(Vec2.x),Math.floor(Vec2.y),Math.floor(Vec2.z))
+    },
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @returns A new Ceil `Vec3`
+     */
+    ceil(Vec2:Vec3):Vec3{
+        return this.new(Math.ceil(Vec2.x),Math.ceil(Vec2.y),Math.ceil(Vec2.z))
+    },
+    /**
+     * @param Vec3 The `Vec3` used in lenght
+     * @returns 
+     */
+    length(Vec3: Vec3): number {
+        return Math.sqrt(this.squared(Vec3))
     },
 })
 
 export const v2 = Object.freeze({
     /**
-     * Creates a new `v2tor`
+     * Creates a new `Vec2`
      * @param x The horizontal (x-axis) coordinate
      * @param y The vertical (y-axis) coordinate
-     * @returns A new `v2tor` With X and Y Cords
+     * @returns A new `Vec2` With X and Y Cords
      */
     new(x:number, y:number): Vec2 {
         return {x, y}
@@ -87,11 +277,6 @@ export const v2 = Object.freeze({
      */
     add(x:Vec2, y:Vec2):Vec2 {
         return this.new(x.x+y.x,x.y+y.y)
-    },
-
-    cross(vec: Vec2, other: Vec2) {
-        const result = vec.x * other.y - vec.y * other.x;
-        return result;
     },
     /**
      * @param x `Vec21`
@@ -284,19 +469,22 @@ export const v2 = Object.freeze({
     },
     /**
      * 
-     * @param Vec2 `Vec2`
-     * @returns A new Interger `Vec2`
+     * @param Vec2 `Vec3`
+     * @returns A new Interger `Vec3`
      */
     floor(Vec2:Vec2):Vec2{
         return this.new(Math.floor(Vec2.x),Math.floor(Vec2.y))
     },
     /**
      * 
-     * @param Vec2 `Vec2`
-     * @returns A new Ceil `Vec2`
+     * @param Vec2 `Vec3`
+     * @returns A new Ceil `Vec3`
      */
     ceil(Vec2:Vec2):Vec2{
         return this.new(Math.ceil(Vec2.x),Math.ceil(Vec2.y))
+    },
+    neg(Vec2:Vec2):Vec2{
+        return this.new(-Vec2.x,-Vec2.y)
     },
     /**
      * 
@@ -306,7 +494,7 @@ export const v2 = Object.freeze({
      * @returns 
      */
     lerp(current: Vec2, end: Vec2,interpolation: number): Vec2 {
-        return v2.add(v2.scale(current,1-interpolation), v2.scale(end,interpolation))
+        return this.add(v2.scale(current,1-interpolation), this.scale(end,interpolation))
     },
     /**
      * @param Vec2 The `Vec2` to normalize
@@ -314,14 +502,13 @@ export const v2 = Object.freeze({
      * @returns A `Vec2` whose length is 1 and is parallel to the original Vec2
      */
     normalizeSafe(Vec2:Vec2,fallback:Vec2=NullVec2):Vec2 {
-        fallback ??= this.new(1.0, 0.0)
         const eps = 0.000001
-        const len = v2.length(Vec2)
+        const len = this.length(Vec2)
         return len > eps
             ? {
                 x:Vec2.x/len,
                 y:Vec2.y/len
-            }:v2.duplicate(fallback)
+            }:this.duplicate(fallback)
     },
     /**
      * @param Vec2 The `Vec2` to normalize
@@ -361,6 +548,7 @@ export const v2 = Object.freeze({
     }
 })
 export const NullVec2:Vec2=v2.new(0,0)
+export const NullVec3:Vec3=v3.new(0,0,0)
 export const Angle=Object.freeze({
     deg2rad(angle:DegAngle):RadAngle{
         return angle* Math.PI / 180
