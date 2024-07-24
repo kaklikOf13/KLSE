@@ -37,7 +37,7 @@ export abstract class Renderer {
     abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void
 
     abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void
-    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe?:boolean):void
+    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
     abstract clear(): void
 }
 
@@ -65,18 +65,47 @@ attribute vec3 a_Position;
 uniform vec3 u_Translation;
 uniform vec3 u_Scale;
 uniform mat4 u_ProjectionMatrix;
-
+varying highp float v_Position;
+varying vec3 translatedPosition;
 void main() {
-    vec3 scaledPosition = a_Position * u_Scale; // Aplica a escala
-    vec3 translatedPosition = scaledPosition + u_Translation; // Adiciona a translação
-    vec2 isoPosition = vec2(translatedPosition.x - translatedPosition.z, (translatedPosition.y + translatedPosition.z)+translatedPosition.x);
-    gl_Position = u_ProjectionMatrix * vec4(isoPosition, 0.0, 1.0);
+    vec3 scaledPosition = a_Position * u_Scale;
+    translatedPosition = scaledPosition + u_Translation;
+    vec2 isoP = vec2(translatedPosition.x - translatedPosition.z, (translatedPosition.y + translatedPosition.z)+translatedPosition.x);
+    v_Position=isoP.y+a_Position.y;
+    gl_Position = u_ProjectionMatrix * vec4(isoP, 0.0, 1.0);
+}
+`;
+const isoSimpleFragShaderSource = `
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform vec4 a_Color;
+varying vec3 translatedPosition;
+void main() {
+    float depth = translatedPosition.z;
+    gl_FragColor = gl_FragColor = a_Color;
+}
+`;
+const isoSimpleShadowFragShaderSource = `
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform vec4 a_Color;
+varying float v_Position;
+varying vec3 translatedPosition;
+void main() {
+    float depth = translatedPosition.z;
+    float shadowIntensity = smoothstep(0.0, 0.1, v_Position/100.0); // Faixa de sombra
+    gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), shadowIntensity);
 }
 `;
 
 export class WebglRenderer extends Renderer {
     gl: WebGLRenderingContext;
     private simple_program: WebGLProgram;
+    private isometric_simple_shadow_program: WebGLProgram
     private isometric_simple_program: WebGLProgram
     background: Color = RGBA.new(255, 255, 255);
     private projectionMatrix: Float32Array;
@@ -96,9 +125,15 @@ export class WebglRenderer extends Renderer {
 
         const isometric_simple_program = gl!.createProgram();
         gl!.attachShader(isometric_simple_program!, this.createShader(isoVertexShaderSource, gl!.VERTEX_SHADER));
-        gl!.attachShader(isometric_simple_program!, this.createShader(rectFragmentShaderSource, gl!.FRAGMENT_SHADER));
+        gl!.attachShader(isometric_simple_program!, this.createShader(isoSimpleFragShaderSource, gl!.FRAGMENT_SHADER));
         this.isometric_simple_program = isometric_simple_program!;
         gl!.linkProgram(this.isometric_simple_program);
+
+        const isometric_simple_shadow_program = gl!.createProgram();
+        gl!.attachShader(isometric_simple_shadow_program!, this.createShader(isoVertexShaderSource, gl!.VERTEX_SHADER));
+        gl!.attachShader(isometric_simple_shadow_program!, this.createShader(isoSimpleShadowFragShaderSource, gl!.FRAGMENT_SHADER));
+        this.isometric_simple_shadow_program = isometric_simple_shadow_program!;
+        gl!.linkProgram(this.isometric_simple_shadow_program);
 
         // Configurando a matriz de projeção para coordenadas de pixel
         const scaleX = 2 / (this.canvas.width / this.meter_size);
@@ -109,6 +144,8 @@ export class WebglRenderer extends Renderer {
             0, 0, 1, 0,
             -1, 1, 0, 1
         ]);
+
+        gl!.enable(gl!.DEPTH_TEST);
     }
 
     createShader(src: string, type: number): WebGLShader {
@@ -250,7 +287,7 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 2);
     }
     
-    _iso_draw_vertices(vertices: number[], indices: number[],pos:Vec3,scale:Vec3, color: Color, wireframe: boolean = false, mode: number = this.gl.TRIANGLES) {
+    _iso_draw_vertices_color(vertices: number[], indices: number[],pos:Vec3,scale:Vec3, color: Color, wireframe: boolean = false,simple_shadow:boolean=false, mode: number = this.gl.TRIANGLES) {
         const gl = this.gl;
 
         const vertexBuffer = gl.createBuffer()
@@ -261,22 +298,26 @@ export class WebglRenderer extends Renderer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
-        gl.useProgram(this.isometric_simple_program)
+        let program:WebGLProgram=this.isometric_simple_program
+        if(simple_shadow&&!wireframe){
+            program=this.isometric_simple_shadow_program
+        }
+        gl.useProgram(program)
 
-        const positionAttributeLocation = gl.getAttribLocation(this.isometric_simple_program, "a_Position")
+        const positionAttributeLocation = gl.getAttribLocation(program,"a_Position")
         gl.enableVertexAttribArray(positionAttributeLocation);
         gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-        const colorUniformLocation = gl.getUniformLocation(this.isometric_simple_program, "a_Color");
+        const colorUniformLocation = gl.getUniformLocation(program, "a_Color");
         gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
 
-        const projectionMatrixLocation = gl.getUniformLocation(this.isometric_simple_program, "u_ProjectionMatrix");
+        const projectionMatrixLocation = gl.getUniformLocation(program, "u_ProjectionMatrix");
         gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
 
-        const translationLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Translation");
+        const translationLocation = gl.getUniformLocation(program, "u_Translation");
         gl.uniform3f(translationLocation, pos.x, -pos.y, -pos.z)
 
-        const scaleLocation = gl.getUniformLocation(this.isometric_simple_program, "u_Scale")
+        const scaleLocation = gl.getUniformLocation(program, "u_Scale")
         gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
 
         if (wireframe) {
@@ -294,8 +335,8 @@ export class WebglRenderer extends Renderer {
             gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0);
         }
     }
-    draw_iso_rect(rect: RectHitbox3D, color: Color, wireframe: boolean = false){
-        this._iso_draw_vertices([
+    draw_iso_rect(rect: RectHitbox3D, color: Color, wireframe: boolean = false,simple_shadow:boolean=false){
+        this._iso_draw_vertices_color([
             0, 0, 0, // 0
             1, 0, 0, // 1
             0, -1, 0, // 2
@@ -305,19 +346,18 @@ export class WebglRenderer extends Renderer {
             0, -1, 1, // 6
             1, -1, 1  // 7
         ],[
-            0, 1, 2, 1, 3, 2,
-            4, 5, 6, 5, 7, 6,
-            0, 1, 4, 1, 5, 4,
-            2, 3, 6, 3, 7, 6,
-            0, 2, 4, 2, 6, 4,
-            1, 3, 5, 3, 7, 5
-        ],rect.position,rect.size, color, wireframe)
+            0, 1, 2, 1, 3, 2, // Front
+            0, 1, 4, 1, 5, 4, // Top
+            0, 2, 4, 2, 6, 4, // Left
+        ],rect.position,rect.size, color, wireframe,simple_shadow)
     }
-    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe:boolean=false){
-        this._iso_draw_vertices(m._vertices,m._indices,position,scale,color,wireframe)
+    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
+        this._iso_draw_vertices_color(m._vertices,m._indices,position,scale,color,wireframe,simple_shadow)
     }
 
     clear() {
+        this.gl.clearDepth(1.0); // Valor máximo de profundidade
+        this.gl.depthFunc(this.gl.LEQUAL); // Teste de profundidade
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }

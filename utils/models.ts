@@ -101,15 +101,15 @@ export class Model3D{
         this._indices.push(Math.floor(this._vertices.length/3))
         ret.p1=this._vertices.length
         ret.i=this._indices.length
-        this._vertices.push(face.p1.x,face.p1.y,face.p1.z)
+        this._vertices.push(face.p1.x,-face.p1.y,face.p1.z)
 
         this._indices.push(Math.floor(this._vertices.length/3))
         ret.p2=this._vertices.length
-        this._vertices.push(face.p2.x,face.p2.y,face.p2.z)
+        this._vertices.push(face.p2.x,-face.p2.y,face.p2.z)
 
         this._indices.push(Math.floor(this._vertices.length/3))
         ret.p3=this._vertices.length
-        this._vertices.push(face.p3.x,face.p3.y,face.p3.z)
+        this._vertices.push(face.p3.x,-face.p3.y,face.p3.z)
 
         if(face.normal){
 

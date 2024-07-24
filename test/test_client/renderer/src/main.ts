@@ -1,6 +1,6 @@
 import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/renderer.ts"
 import { ResourcesManager } from "../../../../client_side/resources.ts";
-import { NullVec3, v2, v3 } from "../../../../utils/geometry.ts";
+import { v2, v3 } from "../../../../utils/geometry.ts";
 import { RectHitbox2D, CircleHitbox2D, RectHitbox3D } from "../../../../utils/hitbox.ts"
 import { m3 } from "../../../../utils/models.ts";
 const canvas=createCanvas(v2.new(600,600),true)
@@ -18,7 +18,7 @@ for(let i=0;i<5000;i++){
 }
 for(let i=0;i<1000;i++){
     const rect=new RectHitbox3D(v3.new(5,-1,1),v3.new(1,1,1))
-    renderer.draw_iso_rect(rect,RGBA.new(255,0,0,255),true)
+    renderer.draw_iso_rect(rect,RGBA.new(255,0,0,255),false,true)
 }
 console.log("end",new Date().getMilliseconds())
 //rect with rect
@@ -164,8 +164,8 @@ function rect_iso2(){
             chb2.position.z-=.1
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
-        renderer.draw_iso_rect(chb1,RGBA.new(255,0,0),true)
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0))
+        renderer.draw_iso_rect(chb1,RGBA.new(255,0,0),true,true)
+        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0),false,true)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -192,7 +192,7 @@ function model_iso(){
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
         renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(255,0,0))
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0))
+        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0),false,true)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -266,7 +266,7 @@ f 5/12/6 1/3/6 2/9/6
         console.log(collision)
         if(!collision.collided&&ok){
             model.addFace3({p1:v3.new(1,1,1),p2:v3.new(-4,-1,-4),p3:v3.new(-4,-4,4)})
-            renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(0,0,255))
+            renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),RGBA.new(0,0,255),false,true)
             clearInterval(interval)
             console.log("end",new Date().getMilliseconds())
             setTimeout(model2_obj_iso,800)
@@ -279,7 +279,7 @@ async function model2_obj_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.parseObj(await (await fetch("/mountains.obj")).text())
     renderer.clear()
-    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(.05,.05,.05),RGBA.new(0,0,255),true)
+    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(.05,.05,.05),RGBA.new(0,0,255),false,true)
     setTimeout(model3_obj_iso,800)
 }
 
@@ -288,5 +288,5 @@ async function model3_obj_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.parseObj(await (await fetch("/teapot.obj")).text())
     renderer.clear()
-    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(1,1,1),RGBA.new(0,0,255),true)
+    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(1,1,1),RGBA.new(0,0,255),false,true)
 }
