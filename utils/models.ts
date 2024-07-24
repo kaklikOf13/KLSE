@@ -70,7 +70,7 @@ export class Model3D{
         const min=v3.new(0,0,0)
         const max=v3.new(0,0,0)
         for(let i=0;i+2<=this._vertices.length;i+=3){
-            const p=v3.new(this._vertices[i],-this._vertices[i+1],this._vertices[i+2])
+            const p=v3.new(-this._vertices[i],this._vertices[i+1],this._vertices[i+2])
             if(v3.lessOr(p,min)){
                 if(p.x<min.x){
                     min.x=p.x
@@ -96,80 +96,138 @@ export class Model3D{
         return new RectHitbox3D(v3.new(0,0,0),v3.add(v3.absolute(min),v3.absolute(max)))
     }
     addFace3(face:Face3):FaceId{
-        const ret:FaceId={p1:0,p2:0,p3:0,i:0}
+        const ret:FaceId={p1:-1,p2:-1,p3:-1,i:0}
 
-        this._indices.push(Math.floor(this._vertices.length/3))
-        ret.p1=this._vertices.length
+        for(let i=0;i<this._vertices.length-2;i++){
+            const v=v3.new(-this._vertices[i],this._vertices[i+1],this._vertices[i+2])
+            if(v3.is(face.p1,v)){
+                ret.p1=i
+            }
+            if(v3.is(face.p2,v)){
+                ret.p2=i
+            }
+            if(v3.is(face.p3,v)){
+                ret.p3=i
+            }
+        }
+
         ret.i=this._indices.length
-        this._vertices.push(face.p1.x,-face.p1.y,face.p1.z)
+        if(ret.p1===-1){
+            this._indices.push(Math.floor(this._vertices.length/3))
+            ret.p1=this._vertices.length
+            this._vertices.push(-face.p1.x,face.p1.y,face.p1.z)
+        }else{
+            this._indices.push(Math.floor(ret.p1/3))
+        }
 
-        this._indices.push(Math.floor(this._vertices.length/3))
-        ret.p2=this._vertices.length
-        this._vertices.push(face.p2.x,-face.p2.y,face.p2.z)
+        if(ret.p2===-1){
+            this._indices.push(Math.floor(this._vertices.length/3))
+            ret.p2=this._vertices.length
+            this._vertices.push(-face.p2.x,face.p2.y,face.p2.z)
+        }else{
+            this._indices.push(Math.floor(ret.p2/3))
+        }
 
-        this._indices.push(Math.floor(this._vertices.length/3))
-        ret.p3=this._vertices.length
-        this._vertices.push(face.p3.x,-face.p3.y,face.p3.z)
+        if(ret.p3===-1){
+            this._indices.push(Math.floor(this._vertices.length/3))
+            ret.p3=this._vertices.length
+            this._vertices.push(-face.p3.x,face.p3.y,face.p3.z)
+        }else{
+            this._indices.push(Math.floor(ret.p3/3))
+        }
 
         if(face.normal){
-
-            this._normalsM.push(Math.floor(this._normals.length/3))
             ret.normal={
-                p1:this._normals.length,
-                p2:0,
-                p3:0,
+                p1:-1,
+                p2:-1,
+                p3:-1,
                 i:this._normalsM.length
             }
-            this._normals.push(face.normal.p1.x,face.normal.p1.y,face.normal.p1.z)
+            for(let i=0;i<this._normals.length-2;i++){
+                const v=v3.new(this._normals[i],this._normals[i+1],this._normals[i+2])
+                if(v3.is(face.normal.p1,v)){
+                    ret.normal.p1=i
+                }
+                if(v3.is(face.normal.p2,v)){
+                    ret.normal.p2=i
+                }
+                if(v3.is(face.normal.p3,v)){
+                    ret.normal.p3=i
+                }
+            }
 
-            this._normalsM.push(Math.floor(this._normals.length/3))
-            ret.normal.p2=this._normals.length
-            this._normals.push(face.normal.p2.x,face.normal.p2.y,face.normal.p2.z)
-
-            this._normalsM.push(Math.floor(this._normals.length/3))
-            ret.normal.p3=this._normals.length
-            this._normals.push(face.normal.p3.x,face.normal.p3.y,face.normal.p3.z)
+            if(ret.normal.p1===-1){
+                this._normalsM.push(Math.floor(this._normals.length/3))
+                ret.normal.p1=this._normals.length
+                this._normals.push(face.normal.p1.x,face.normal.p1.y,face.normal.p1.z)
+            }else{
+                this._normalsM.push(Math.floor(ret.normal.p1/3))
+            }
+    
+            if(ret.normal.p2===-1){
+                this._normalsM.push(Math.floor(this._normals.length/3))
+                ret.normal.p2=this._vertices.length
+                this._normals.push(face.normal.p2.x,face.normal.p2.y,face.normal.p2.z)
+            }else{
+                this._normalsM.push(Math.floor(ret.normal.p2/3))
+            }
+    
+            if(ret.normal.p3===-1){
+                this._normalsM.push(Math.floor(this._normals.length/3))
+                ret.normal.p3=this._normals.length
+                this._normals.push(face.normal.p3.x,face.normal.p3.y,face.normal.p3.z)
+            }else{
+                this._normalsM.push(Math.floor(ret.normal.p3/3))
+            }
         }
         if(face.texture){
-
             ret.texture={
-                p1:this._texCoords.length,
-                p2:0,
-                p3:0,
-                i:this._texCoordsM.length
+                p1:-1,
+                p2:-1,
+                p3:-1,
+                i:this._normalsM.length
             }
-            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+            for(let i=0;i<this._texCoords.length-2;i++){
+                const v=v3.new(this._texCoords[i],this._texCoords[i+1],this._texCoords[i+2])
+                if(v3.is(face.texture.p1,v)){
+                    ret.texture.p1=i
+                }
+                if(v3.is(face.texture.p2,v)){
+                    ret.texture.p2=i
+                }
+                if(v3.is(face.texture.p3,v)){
+                    ret.texture.p3=i
+                }
+            }
 
-            this._texCoords.push(face.texture.p1.x,face.texture.p1.y,face.texture.p1.z)
+            if(ret.texture.p1===-1){
+                this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+                ret.texture.p1=this._normals.length
+                this._texCoords.push(face.texture.p1.x,face.texture.p1.y,face.texture.p1.z)
+            }else{
+                this._texCoordsM.push(Math.floor(ret.texture.p1/3))
+            }
 
-            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
-            ret.p2=this._texCoords.length
-            this._texCoords.push(face.texture.p2.x,face.texture.p2.y,face.texture.p2.z)
+            if(ret.texture.p2===-1){
+                this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+                ret.texture.p2=this._normals.length
+                this._texCoords.push(face.texture.p2.x,face.texture.p2.y,face.texture.p2.z)
+            }else{
+                this._texCoordsM.push(Math.floor(ret.texture.p2/3))
+            }
 
-            this._texCoordsM.push(Math.floor(this._texCoords.length/3))
-            ret.p3=this._texCoords.length
-            this._texCoords.push(face.texture.p3.x,face.texture.p3.y,face.texture.p3.z)
-
+            if(ret.texture.p3===-1){
+                this._texCoordsM.push(Math.floor(this._texCoords.length/3))
+                ret.texture.p3=this._normals.length
+                this._texCoords.push(face.texture.p3.x,face.texture.p3.y,face.texture.p3.z)
+            }else{
+                this._texCoordsM.push(Math.floor(ret.texture.p3/3))
+            }
         }
         return ret
     }
     addFace4(face:Face4):{0:FaceId,1:FaceId}{
         const f1=this.addFace3({
-            p1:face.p1,
-            p2:face.p2,
-            p3:face.p4,
-            normal:face.normal?{
-                p1:face.normal.p1,
-                p2:face.normal.p2,
-                p3:face.normal.p4,
-            }:undefined,
-            texture:face.texture?{
-                p1:face.texture.p1,
-                p2:face.texture.p2,
-                p3:face.texture.p4,
-            }:undefined
-        })
-        const f2=this.addFace3({
             p1:face.p1,
             p2:face.p2,
             p3:face.p3,
@@ -184,30 +242,56 @@ export class Model3D{
                 p3:face.texture.p3,
             }:undefined
         })
+        const f2=this.addFace3({
+            p1:face.p1,
+            p2:face.p4,
+            p3:face.p3,
+            normal:face.normal?{
+                p1:face.normal.p1,
+                p2:face.normal.p4,
+                p3:face.normal.p3,
+            }:undefined,
+            texture:face.texture?{
+                p1:face.texture.p1,
+                p2:face.texture.p4,
+                p3:face.texture.p3,
+            }:undefined
+        })
         return {0:f1,1:f2}
     }
 }
 export const m3=Object.freeze({
     cube(s:number=1){
         const ret=new Model3D()
-        ret._vertices=[
-            0, 0, 0, // 0
-            s, 0, 0, // 1
-            0, -s, 0, // 2
-            s, -s, 0, // 3
-            0, 0, s, // 4
-            s, 0, s, // 5
-            0, -s, s, // 6
-            s, -s, s  // 7
-        ]
-        ret._indices=[
-            0, 1, 2, 1, 3, 2,
-            4, 5, 6, 5, 7, 6,
-            0, 1, 4, 1, 5, 4,
-            2, 3, 6, 3, 7, 6,
-            0, 2, 4, 2, 6, 4,
-            1, 3, 5, 3, 7, 5 
-        ]
+        ret._vertices = [
+            // Front face
+             0, 0, s,
+             0, 0, s,
+            -s, s, s,
+            -0, s, s,
+    
+            // Back face
+             0, 0, 0,
+            -s, 0, 0,
+            -s, s, 0,
+             0, s, 0,
+        ];
+    
+        // Define the indices
+        ret._indices = [
+            // Front face
+            0, 1, 2, 0, 2, 3,
+            // Back face
+            4, 5, 6, 4, 6, 7,
+            // Top face
+            3, 2, 6, 3, 6, 7,
+            // Bottom face
+            0, 1, 5, 0, 5, 4,
+            // Right face
+            1, 2, 6, 1, 6, 5,
+            // Left face
+            0, 3, 7, 0, 7, 4
+        ];
         return ret
     },
     parseObj(objText: string):Model3D{
@@ -218,7 +302,7 @@ export const m3=Object.freeze({
             if (line.startsWith('v ')) {
               const parts = line.split(/\s+/)
               const vertex = parts.slice(1).map(parseFloat)
-              vertex[1]*=-1
+              vertex[0]*=-1
               ret._vertices.push(...vertex)
             } else if (line.startsWith('vn ')) {
               const parts = line.split(/\s+/)

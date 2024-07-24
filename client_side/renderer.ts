@@ -65,14 +65,13 @@ attribute vec3 a_Position;
 uniform vec3 u_Translation;
 uniform vec3 u_Scale;
 uniform mat4 u_ProjectionMatrix;
-varying highp float v_Position;
+varying highp float v_SH;
 varying vec3 translatedPosition;
 void main() {
-    vec3 scaledPosition = a_Position * u_Scale;
-    translatedPosition = scaledPosition + u_Translation;
-    vec2 isoP = vec2(translatedPosition.x - translatedPosition.z, (translatedPosition.y + translatedPosition.z)+translatedPosition.x);
-    v_Position=isoP.y+a_Position.y;
-    gl_Position = u_ProjectionMatrix * vec4(isoP, 0.0, 1.0);
+    translatedPosition = (a_Position * u_Scale) + u_Translation;
+    vec2 isoP = vec2(translatedPosition.z+translatedPosition.x, (-translatedPosition.y)+(translatedPosition.x-translatedPosition.z));
+    v_SH=translatedPosition.y;
+    gl_Position = u_ProjectionMatrix * vec4(isoP, (translatedPosition.z/1000.0), 1.0);
 }
 `;
 const isoSimpleFragShaderSource = `
@@ -93,12 +92,10 @@ precision highp float;
 #endif
 
 uniform vec4 a_Color;
-varying float v_Position;
-varying vec3 translatedPosition;
+varying float v_SH;
 void main() {
-    float depth = translatedPosition.z;
-    float shadowIntensity = smoothstep(0.0, 0.1, v_Position/100.0); // Faixa de sombra
-    gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), shadowIntensity);
+    float shadowIntensity = smoothstep(0.0, 0.4, (v_SH/10.0));
+    gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), 0.4-shadowIntensity);
 }
 `;
 
@@ -315,7 +312,7 @@ export class WebglRenderer extends Renderer {
         gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
 
         const translationLocation = gl.getUniformLocation(program, "u_Translation");
-        gl.uniform3f(translationLocation, pos.x, -pos.y, -pos.z)
+        gl.uniform3f(translationLocation, pos.x, pos.y, pos.z)
 
         const scaleLocation = gl.getUniformLocation(program, "u_Scale")
         gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
@@ -337,18 +334,30 @@ export class WebglRenderer extends Renderer {
     }
     draw_iso_rect(rect: RectHitbox3D, color: Color, wireframe: boolean = false,simple_shadow:boolean=false){
         this._iso_draw_vertices_color([
-            0, 0, 0, // 0
-            1, 0, 0, // 1
-            0, -1, 0, // 2
-            1, -1, 0, // 3
-            0, 0, 1, // 4
-            1, 0, 1, // 5
-            0, -1, 1, // 6
-            1, -1, 1  // 7
+            // Front face
+             0, 0, 1,
+             0, 0, 1,
+            -1, 1, 1,
+             0, 1, 1,
+    
+            // Back face
+             0, 0, 0,
+            -1, 0, 0,
+            -1, 1, 0,
+             0, 1, 0,
         ],[
-            0, 1, 2, 1, 3, 2, // Front
-            0, 1, 4, 1, 5, 4, // Top
-            0, 2, 4, 2, 6, 4, // Left
+            // Front face
+            0, 1, 2, 0, 2, 3,
+            // Back face
+            4, 5, 6, 4, 6, 7,
+            // Top face
+            3, 2, 6, 3, 6, 7,
+            // Bottom face
+            0, 1, 5, 0, 5, 4,
+            // Right face
+            1, 2, 6, 1, 6, 5,
+            // Left face
+            0, 3, 7, 0, 7, 4
         ],rect.position,rect.size, color, wireframe,simple_shadow)
     }
     color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
@@ -356,7 +365,7 @@ export class WebglRenderer extends Renderer {
     }
 
     clear() {
-        this.gl.clearDepth(1.0); // Valor máximo de profundidade
+        this.gl.clearDepth(100.0);
         this.gl.depthFunc(this.gl.LEQUAL); // Teste de profundidade
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);

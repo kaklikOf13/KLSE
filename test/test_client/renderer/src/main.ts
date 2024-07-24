@@ -2,8 +2,8 @@ import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/rende
 import { ResourcesManager } from "../../../../client_side/resources.ts";
 import { v2, v3 } from "../../../../utils/geometry.ts";
 import { RectHitbox2D, CircleHitbox2D, RectHitbox3D } from "../../../../utils/hitbox.ts"
-import { m3 } from "../../../../utils/models.ts";
-const canvas=createCanvas(v2.new(600,600),true)
+import { Model3D, m3 } from "../../../../utils/models.ts";
+const canvas=createCanvas(v2.new(700,700),true)
 document.body.appendChild(canvas)
 const renderer=new WebglRenderer(canvas,50)
 renderer.clear()
@@ -17,7 +17,7 @@ for(let i=0;i<5000;i++){
     renderer.draw_rect2D(rect,RGBA.new(255,0,0,255))
 }
 for(let i=0;i<1000;i++){
-    const rect=new RectHitbox3D(v3.new(5,-1,1),v3.new(1,1,1))
+    const rect=new RectHitbox3D(v3.new(5,-6,2),v3.new(3,3,3))
     renderer.draw_iso_rect(rect,RGBA.new(255,0,0,255),false,true)
 }
 console.log("end",new Date().getMilliseconds())
@@ -130,8 +130,8 @@ async function test_image(){
 //rect iso
 function rect_iso(){
     console.log("begin",new Date().getMilliseconds())
-    const chb1=new RectHitbox3D(v3.new(2,0,-5),v3.new(1,1,1))
-    const chb2=new RectHitbox3D(v3.new(2,0,-1),v3.new(1,1,1))
+    const chb1=new RectHitbox3D(v3.new(5,0,-3),v3.new(1,1,1))
+    const chb2=new RectHitbox3D(v3.new(5,0,3),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -154,8 +154,8 @@ function rect_iso(){
 //rect iso2
 function rect_iso2(){
     console.log("begin",new Date().getMilliseconds())
-    const chb1=new RectHitbox3D(v3.new(2,0,1),v3.new(1,1,1))
-    const chb2=new RectHitbox3D(v3.new(2,0,3),v3.new(1,1,1))
+    const chb1=new RectHitbox3D(v3.new(5,0,1),v3.new(1,1,1))
+    const chb2=new RectHitbox3D(v3.new(5,0,3),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -181,8 +181,8 @@ function model_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.cube(1)
     const chb1=model.toRect()
-    chb1.position=v3.new(4,0,3)
-    const chb2=new RectHitbox3D(v3.new(7,0,3),v3.new(1,1,1))
+    chb1.position=v3.new(4,0,-3)
+    const chb2=new RectHitbox3D(v3.new(7,0,-3),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -279,8 +279,23 @@ async function model2_obj_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.parseObj(await (await fetch("/mountains.obj")).text())
     renderer.clear()
-    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(.05,.05,.05),RGBA.new(0,0,255),false,true)
-    setTimeout(model3_obj_iso,800)
+    let frame=0
+    const pos=v3.new(7,0,0)
+    function func(){
+        renderer.clear()
+        renderer.color_draw_iso_model(model,pos,v3.new(.045,.045,.045),RGBA.new(0,0,255),false,true)
+        if(frame<100){
+            pos.y+=.01
+            self.requestAnimationFrame(func)
+        }else if(frame<200){
+            pos.y-=.01
+            self.requestAnimationFrame(func)
+        }else{
+            setTimeout(model3_obj_iso,1000)
+        }
+        frame++
+    }
+    func()
 }
 
 //model3 obj iso
@@ -288,5 +303,51 @@ async function model3_obj_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.parseObj(await (await fetch("/teapot.obj")).text())
     renderer.clear()
-    renderer.color_draw_iso_model(model,v3.new(4,0,0),v3.new(1,1,1),RGBA.new(0,0,255),false,true)
+    let frame=0
+    const pos=v3.new(8,0,0)
+    function func(){
+        renderer.clear()
+        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),RGBA.new(0,0,255),false,true)
+        if(frame<100){
+            pos.y+=.01
+            self.requestAnimationFrame(func)
+        }else if(frame<200){
+            pos.y-=.01
+            self.requestAnimationFrame(func)
+        }else{
+            setTimeout(model4_obj_iso,1000)
+        }
+        frame++
+    }
+    func()
+}
+
+//model4 obj iso
+function model4_obj_iso(){
+    console.log("begin",new Date().getMilliseconds())
+    const model=new Model3D()
+    const f1=model.addFace4({p1:v3.new(0,0,0),p2:v3.new(1,0,0),p3:v3.new(1,1,0),p4:v3.new(0,1,0)})
+    const f2=model.addFace4({p1:v3.new(0,1,0),p2:v3.new(0,1,1),p3:v3.new(1,1,1),p4:v3.new(1,1,0)})
+    console.log(model._vertices,model._vertices.length/3,model._indices,model._indices.length/3,12,(3*2)*3,f1,f2)
+    let frame=0
+    const pos=v3.new(4,0,0)
+    function func(){
+        renderer.clear()
+        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),RGBA.new(0,0,255),false,true)
+        if(frame<50){
+            pos.z+=.1
+            self.requestAnimationFrame(func)
+        }else if(frame<100){
+            pos.z-=.1
+            self.requestAnimationFrame(func)
+        }else if(frame<150){
+            pos.x+=.1
+            self.requestAnimationFrame(func)
+        }else if(frame<200){
+            pos.x-=.1
+            self.requestAnimationFrame(func)
+        }
+        frame++
+    }
+    func()
 }
