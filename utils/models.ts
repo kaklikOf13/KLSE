@@ -98,7 +98,7 @@ export class Model3D{
     addFace3(face:Face3):FaceId{
         const ret:FaceId={p1:-1,p2:-1,p3:-1,i:0}
 
-        for(let i=0;i<this._vertices.length-2;i++){
+        for(let i=0;i<this._vertices.length;i+=3){
             const v=v3.new(-this._vertices[i],this._vertices[i+1],this._vertices[i+2])
             if(v3.is(face.p1,v)){
                 ret.p1=i
@@ -143,7 +143,7 @@ export class Model3D{
                 p3:-1,
                 i:this._normalsM.length
             }
-            for(let i=0;i<this._normals.length-2;i++){
+            for(let i=0;i<this._normals.length;i+=3){
                 const v=v3.new(this._normals[i],this._normals[i+1],this._normals[i+2])
                 if(v3.is(face.normal.p1,v)){
                     ret.normal.p1=i
@@ -187,7 +187,7 @@ export class Model3D{
                 p3:-1,
                 i:this._normalsM.length
             }
-            for(let i=0;i<this._texCoords.length-2;i++){
+            for(let i=0;i<this._texCoords.length;i+=3){
                 const v=v3.new(this._texCoords[i],this._texCoords[i+1],this._texCoords[i+2])
                 if(v3.is(face.texture.p1,v)){
                     ret.texture.p1=i
