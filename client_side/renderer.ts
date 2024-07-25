@@ -1,4 +1,4 @@
-import { Vec2, Vec3 } from "../utils/geometry.ts"
+import { NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
 import { CircleHitbox2D, Hitbox2D, HitboxType, RectHitbox2D, RectHitbox3D } from "../utils/hitbox.ts"
 import { Model3D } from "../utils/models.ts";
 import { type Sprite } from "./resources.ts";
@@ -37,7 +37,7 @@ export abstract class Renderer {
     abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void
 
     abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void
-    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
+    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
     abstract clear(): void
 }
 
@@ -64,11 +64,35 @@ const isoVertexShaderSource = `
 attribute vec3 a_Position;
 uniform vec3 u_Translation;
 uniform vec3 u_Scale;
+uniform vec3 u_Rotation;
 uniform mat4 u_ProjectionMatrix;
 varying highp float v_SH;
 varying vec3 translatedPosition;
+
+mat3 rotationMatrix(vec3 r) {
+    vec3 radians = r * 3.14159265 / 180.0;
+    mat3 rotX = mat3(
+        1.0, 0.0, 0.0,
+        0.0, cos(radians.x), -sin(radians.x),
+        0.0, sin(radians.x), cos(radians.x)
+    );
+    
+    mat3 rotY = mat3(
+        cos(radians.y), 0.0, sin(radians.y),
+        0.0, 1.0, 0.0,
+        -sin(radians.y), 0.0, cos(radians.y)
+    );
+    
+    mat3 rotZ = mat3(
+        cos(radians.z), -sin(radians.z), 0.0,
+        sin(radians.z), cos(radians.z), 0.0,
+        0.0, 0.0, 1.0
+    );
+
+    return rotZ * rotY * rotX;
+}
 void main() {
-    translatedPosition = (a_Position * u_Scale) + u_Translation;
+    translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
     vec2 isoP = vec2(translatedPosition.z+translatedPosition.x, (-translatedPosition.y)+(translatedPosition.x-translatedPosition.z));
     v_SH=translatedPosition.y;
     gl_Position = u_ProjectionMatrix * vec4(isoP, (translatedPosition.z/1000.0), 1.0);
@@ -284,7 +308,7 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 2);
     }
     
-    _iso_draw_vertices_color(vertices: number[], indices: number[],pos:Vec3,scale:Vec3, color: Color, wireframe: boolean = false,simple_shadow:boolean=false, mode: number = this.gl.TRIANGLES) {
+    _iso_draw_vertices_color(vertices: number[], indices: number[],pos:Vec3,scale:Vec3,rot:Vec3, color: Color, wireframe: boolean = false,simple_shadow:boolean=false, mode: number = this.gl.TRIANGLES) {
         const gl = this.gl;
 
         const vertexBuffer = gl.createBuffer()
@@ -317,8 +341,11 @@ export class WebglRenderer extends Renderer {
         const scaleLocation = gl.getUniformLocation(program, "u_Scale")
         gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
 
+        const rotLocation = gl.getUniformLocation(program, "u_Rotation")
+        gl.uniform3f(rotLocation, rot.x, rot.y, rot.z)
+
         if (wireframe) {
-            const wireframeIndices = [];
+            const wireframeIndices:number[] = [];
             for (let i = 0; i < indices.length; i += 3) {
                 wireframeIndices.push(indices[i], indices[i + 1]);
                 wireframeIndices.push(indices[i + 1], indices[i + 2]);
@@ -358,10 +385,10 @@ export class WebglRenderer extends Renderer {
             1, 2, 6, 1, 6, 5,
             // Left face
             0, 3, 7, 0, 7, 4
-        ],rect.position,rect.size, color, wireframe,simple_shadow)
+        ],rect.position,rect.size,NullVec3, color, wireframe,simple_shadow)
     }
-    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
-        this._iso_draw_vertices_color(m._vertices,m._indices,position,scale,color,wireframe,simple_shadow)
+    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
+        this._iso_draw_vertices_color(m._vertices,m._indices,position,scale,rot,color,wireframe,simple_shadow)
     }
 
     clear() {

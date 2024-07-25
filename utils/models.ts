@@ -314,9 +314,9 @@ export const m3=Object.freeze({
               ret._texCoords.push(...textureCoord)
             } else if (line.startsWith('f ')) {
               const parts = line.split(/\s+/).slice(1)
-              const vertices = []
-              const textures = []
-              const normals = []
+              const vertices:number[] = []
+              const textures:number[] = []
+              const normals:number[] = []
         
               for (const part of parts) {
                 const [v, vt, vn] = part.split('/').map(str => parseInt(str) - 1)
