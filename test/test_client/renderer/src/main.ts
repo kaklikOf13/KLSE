@@ -3,9 +3,9 @@ import { ResourcesManager } from "../../../../client_side/resources.ts";
 import { NullVec3, v2, v3 } from "../../../../utils/geometry.ts";
 import { RectHitbox2D, CircleHitbox2D, RectHitbox3D } from "../../../../utils/hitbox.ts"
 import { Model3D, m3 } from "../../../../utils/models.ts";
-const canvas=createCanvas(v2.new(700,700),true)
+const canvas=createCanvas(v2.new(800,800),true)
 document.body.appendChild(canvas)
-const renderer=new WebglRenderer(canvas,50)
+const renderer=new WebglRenderer(canvas,50,RGBA.new(5,0,0))
 renderer.clear()
 console.log("begin",new Date().getMilliseconds())
 for(let i=0;i<5000;i++){
@@ -14,11 +14,11 @@ for(let i=0;i<5000;i++){
 }
 for(let i=0;i<5000;i++){
     const rect=new RectHitbox2D(v2.new(0,0),v2.new(1,1))
-    renderer.draw_rect2D(rect,RGBA.new(255,0,0,255))
+    renderer.draw_rect2D(rect,RGBA.new(0,0,255,255))
 }
 for(let i=0;i<1000;i++){
     const rect=new RectHitbox3D(v3.new(5,-6,2),v3.new(3,3,3))
-    renderer.draw_iso_rect(rect,RGBA.new(255,0,0,255),false,true)
+    renderer.draw_iso_rect(rect,RGBA.new(0,0,255,255),false,true)
 }
 console.log("end",new Date().getMilliseconds())
 //rect with rect
@@ -30,8 +30,8 @@ setTimeout(()=>{
         renderer.clear()
         const collision=rhb1.overlapCollision(rhb2)
         rhb1.position=v2.sub(rhb1.position,v2.scale(collision.overlap,.05))
-        renderer.draw_hitbox2D(rhb1,RGBA.new(255,0,0))
-        renderer.draw_hitbox2D(rhb2,RGBA.new(255,0,0))
+        renderer.draw_hitbox2D(rhb1,RGBA.new(50,10,255))
+        renderer.draw_hitbox2D(rhb2,RGBA.new(50,10,255))
         console.log(collision)
         if(!collision.collided){
             setTimeout(rect_with_rect2,800)
@@ -61,7 +61,7 @@ function rect_with_rect2(){
             }
         }
         for(let i=0;i<hb.length;i++){
-            renderer.draw_hitbox2D(hb[i],RGBA.new(255,0,0))
+            renderer.draw_hitbox2D(hb[i],RGBA.new(50,10,255))
         }
         if(!collided){
             setTimeout(circle_with_rect,800)
@@ -83,8 +83,8 @@ function circle_with_rect(){
         const collision=rhb1.overlapCollision(chb1)
         rhb1.position=v2.sub(rhb1.position,v2.scale(collision.overlap,.05))
         chb1.position=v2.add(chb1.position,v2.scale(collision.overlap,.05))
-        renderer.draw_hitbox2D(rhb1,RGBA.new(255,0,0))
-        renderer.draw_hitbox2D(chb1,RGBA.new(255,0,0))
+        renderer.draw_hitbox2D(rhb1,RGBA.new(50,10,255))
+        renderer.draw_hitbox2D(chb1,RGBA.new(50,10,255))
         console.log(collision)
         if(!collision.collided){
             setTimeout(circle_with_circle,800)
@@ -103,8 +103,8 @@ function circle_with_circle(){
         const collision=chb1.overlapCollision(chb2)
         chb1.position=v2.sub(chb1.position,v2.scale(collision.overlap,.05))
         chb2.position=v2.add(chb2.position,v2.scale(collision.overlap,.05))
-        renderer.draw_hitbox2D(chb1,RGBA.new(255,0,0))
-        renderer.draw_hitbox2D(chb2,RGBA.new(255,0,0))
+        renderer.draw_hitbox2D(chb1,RGBA.new(50,10,255))
+        renderer.draw_hitbox2D(chb2,RGBA.new(50,10,255))
         console.log(collision)
         if(!collision.collided){
             clearInterval(interval)
@@ -140,8 +140,8 @@ function rect_iso(){
             chb1.position.z+=.1
         }
         chb1.position=v3.sub(chb1.position,v3.scale(collision.overlap,.05))
-        renderer.draw_iso_rect(chb1,RGBA.new(255,0,0),true)
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0))
+        renderer.draw_iso_rect(chb1,RGBA.new(50,10,255),true)
+        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255))
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -164,8 +164,8 @@ function rect_iso2(){
             chb2.position.z-=.1
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
-        renderer.draw_iso_rect(chb1,RGBA.new(255,0,0),true,true)
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0),false,true)
+        renderer.draw_iso_rect(chb1,RGBA.new(50,10,255),true,true)
+        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255),false,true)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -191,8 +191,8 @@ function model_iso(){
             chb2.position.x-=.1
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
-        renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(255,0,0))
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0),false,true)
+        renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255))
+        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255),false,true)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -260,13 +260,13 @@ f 5/12/6 1/3/6 2/9/6
             chb2.position.x+=.1
         }
         chb2.position=v3.add(chb2.position,v3.scale(collision.overlap,.05))
-        renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(255,0,0),true)
-        renderer.draw_iso_rect(chb2,RGBA.new(255,0,0))
+        renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),true)
+        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255))
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
             model.addFace3({p1:v3.new(1,1,1),p2:v3.new(-4,-1,-4),p3:v3.new(-4,-4,4)})
-            renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(0,0,255),false,true)
+            renderer.color_draw_iso_model(model,chb1.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),false,true)
             clearInterval(interval)
             console.log("end",new Date().getMilliseconds())
             setTimeout(model2_obj_iso,800)
@@ -284,7 +284,7 @@ async function model2_obj_iso(){
     const rot=v3.new(0,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(.045,.045,.045),rot,RGBA.new(0,0,255),false,true)
+        renderer.color_draw_iso_model(model,pos,v3.new(.045,.045,.045),rot,RGBA.new(50,10,255),false,true)
         if(frame<100){
             pos.y+=.01
             rot.y+=1
@@ -311,7 +311,7 @@ async function model3_obj_iso(){
     const rot=v3.new(0,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),rot,RGBA.new(0,0,255),false,true)
+        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),rot,RGBA.new(50,10,255),false,true)
         if(frame<100){
             pos.y+=.01
             rot.z+=.5
@@ -341,7 +341,7 @@ function model4_obj_iso(){
     const pos=v3.new(4,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),NullVec3,RGBA.new(0,0,255),false,true)
+        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),false,true)
         if(frame<50){
             pos.z+=.1
             self.requestAnimationFrame(func)
