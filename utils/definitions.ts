@@ -1,15 +1,13 @@
 import { mergeDeep, splitPath } from "./_utils.ts";
+import { type BaseGameObject3D, type BaseGameObject2D } from "./game.ts";
 
-export interface Definition{
-    ID:string
-}
-export class Definitions<Type extends Definition>{
+export class Definitions<Type>{
     public value:Record<string,Type>
     constructor(){
         this.value={}
     }
-    set(val:Type){
-        this.value[val.ID]=val
+    set(val:Type,id:string){
+        this.value[id]=val
     }
     get(id:string):Type{
         return this.value[id]
@@ -20,11 +18,11 @@ export class Definitions<Type extends Definition>{
     exist(id:string):boolean{
         return Object.hasOwn(this.value,id)
     }
-    extends(extend:string,val:Type){
-        this.set(mergeDeep<Type>(val,this.get(extend)!))
+    extends(extend:string,val:Type,id:string){
+        this.set(mergeDeep<Type>(val,this.get(extend)!),id)
     }
 }
-export class Tree<Type extends Definition> extends Definitions<Type>{
+export class Tree<Type> extends Definitions<Type>{
     childs:Record<string,Tree<Type>>
     constructor(){
         super()
@@ -65,18 +63,23 @@ export class Tree<Type extends Definition> extends Definitions<Type>{
         }
     }
 }
-export class WebPath{
-    IP:string
-    Port:number
-    HTTP:boolean
-    constructor(IP:string,Port:number,HTTP:boolean=false){
-        this.IP=IP
-        this.Port=Port
-        this.HTTP=HTTP
+export enum DefaultGameDefs{
+    Objects,
+}
+export type DefaultGameDefsMap={
+    [DefaultGameDefs.Objects]:(new()=>BaseGameObject2D|BaseGameObject3D)
+}
+export type GameDefs<Defs extends DefaultGameDefs, Map extends DefaultGameDefsMap>={
+    [K in Defs]: Definitions<Map[K]>
+}
+export function NewGameDef<Defs extends DefaultGameDefs, Map extends DefaultGameDefsMap>(defs:Defs[]):GameDefs<Defs,Map>{
+    const ret:Partial<GameDefs<Defs,Map>>={}
+    for(const i of defs){
+        ret[i]=new Definitions()
     }
-    toString():string{
-        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`
-    }
+    // deno-lint-ignore ban-ts-comment
+    //@ts-expect-error
+    return ret
 }
 export class ExtendedMap<K, V> extends Map<K, V> {
     private _get(key: K): V {

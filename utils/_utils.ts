@@ -194,7 +194,7 @@ export function cloneDeep<T>(object: T): T {
     })(object)
 }
 
-export function mergeDeep<T extends object>(target:T,...sources: Array<DeepPartial<T>>):T{
+export function mergeDeep<T>(target:T,...sources: Array<DeepPartial<T>>):T{
     if(!sources.length)return target
 
     const[source,...rest]=sources
@@ -291,4 +291,21 @@ export function mixin(...bases:any[]) {
         Object.assign(MixinClass.prototype, base.prototype);
     }
     return MixinClass;
+}
+export class WebPath{
+    IP:string
+    Port:number
+    HTTP:boolean
+    constructor(IP:string,Port:number,HTTP:boolean=false){
+        this.IP=IP
+        this.Port=Port
+        this.HTTP=HTTP
+    }
+    toString():string{
+        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`
+    }
+}
+
+export function getEnumValues<E>(enumObject: E): (E[keyof E])[] {
+    return Object.values(enumObject).filter(value => typeof value === 'number') as E[keyof E][];
 }
