@@ -52,9 +52,19 @@ export abstract class BaseObject3D{
     set position(val:Vec3){
         this.hb.position=val
     }
+    public rotation:Vec3
+    private _scale:Vec3
+    public get scale():Vec3{
+        return this._scale
+    }
+    public set scale(val:Vec3){
+        this._scale=v3.mult(this._scale,val)
+    }
     constructor(){
         this.hb=new NullHitbox3D()
         this.destroyed=false
+        this.rotation=v3.new(0,0,0)
+        this._scale=v3.new(1,1,1)
     }
     abstract update():void
     abstract create():void
@@ -70,7 +80,8 @@ export abstract class BaseObject3D{
 
 
 export interface ObjectKey {category:string,id:GameObjectID}
-export interface Category<GameObject extends BaseObject2D> {objects:Record<GameObjectID,GameObject>,orden:number[]}
+export interface Category2D<GameObject extends BaseObject2D> {objects:Record<GameObjectID,GameObject>,orden:number[]}
+export interface Category3D<GameObject extends BaseObject3D> {objects:Record<GameObjectID,GameObject>,orden:number[]}
 export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
     objects:Record<string,Record<GameObjectID,GameObject>>={}
     cellSize:number
@@ -118,10 +129,14 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         const min = this.cellPos(rect.position);
         const max = this.cellPos(v2.add(rect.position,rect.size));
         const objects:Record<string,GameObject[]> = {};
-
-        for (let x = min.x, maxX = max.x;x <= maxX;x++) {
-            for (let y = min.y, maxY = max.y;y <= maxY;y++) {
-                if(!(this.cells[y]&&this.cells[y][x])){
+        const walky=(max.y-min.y)<0?-1:1
+        const walkx=(max.x-min.x)<0?-1:1
+        for (let y = min.y;max.y-y>-walky;y+=walky) {
+            if(!(this.cells[y])){
+                continue
+            }
+            for (let x = min.x;max.x-x>-walkx;x+=walkx) {
+                if(!(this.cells[y][x])){
                     continue
                 }
                 for (const c of categorys) {
@@ -139,12 +154,13 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         const min = this.cellPos(rect.position);
         const max = this.cellPos(v2.add(rect.position,rect.size));
         const objects:GameObject[] = [];
-
-        for (let y = min.y;y <= max.y;y++) {
+        const walky=(max.y-min.y)<0?-1:1
+        const walkx=(max.x-min.x)<0?-1:1
+        for (let y = min.y;max.y-y>-walky;y+=walky) {
             if(!(this.cells[y])){
                 continue
             }
-            for (let x = min.x;x <= max.x;x++) {
+            for (let x = min.x;max.x-x>-walkx;x+=walkx) {
                 if(!(this.cells[y][x])){
                     continue
                 }
@@ -160,7 +176,7 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
 export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
     objects:Record<string,Record<GameObjectID,GameObject>>={}
     cellSize:number
-    //_______________Z_____________Y_____________X
+    //   ____________Z_____________Y_____________X
     cells:Record<number,Record<number,Record<number,Record<string,GameObject[]>>>>
     constructor(cellSize:number=32){
         this.cellSize=cellSize
@@ -207,16 +223,19 @@ export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
         const rect=hitbox.toRect()
         const min = this.cellPos(rect.position);
         const max = this.cellPos(v3.add(rect.position,rect.size));
-        const objects:Record<string,GameObject[]> = {};
-        for (let z:number = min.z;z <= max.z;z++) {
+        const objects:Record<string,GameObject[]> = {}
+        const walkz=(max.z-min.z)<0?-1:1
+        const walky=(max.y-min.y)<0?-1:1
+        const walkx=(max.x-min.x)<0?-1:1
+        for (let z:number = min.z;max.z-z>-walkz;z+=walkz) {
             if(!(this.cells[z])){
                 continue
             }
-            for (let y = min.y;y <= max.y;y++) {
+            for (let y = min.y;max.y-y>-walky;y+=walky) {
                 if(!(this.cells[z][y])){
                     continue
                 }
-                for (let x = min.x;min.x <= max.x;x++) {
+                for (let x = min.x;max.x-x>-walkx;x+=walkx) {
                     if(!(this.cells[z][y][x])){
                         continue
                     }
@@ -236,15 +255,18 @@ export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
         const min = this.cellPos(rect.position);
         const max = this.cellPos(v3.add(rect.position,rect.size));
         const objects:GameObject[] = [];
-        for (let z:number = min.z;z <= max.z;z++) {
+        const walkz=(max.z)<0?-1:1
+        const walky=(max.y)<0?-1:1
+        const walkx=(max.x)<0?-1:1
+        for (let z:number = min.z;max.z-z>-walkz;z+=walkz) {
             if(!(this.cells[z])){
                 continue
             }
-            for (let y = min.y;y <= max.y;y++) {
+            for (let y = min.y;max.y-y>-walky;y+=walky) {
                 if(!(this.cells[z][y])){
                     continue
                 }
-                for (let x = min.x;min.x <= max.x;x++) {
+                for (let x = min.x;max.x-x>-walkx;x+=walkx) {
                     if(!(this.cells[z][y][x])){
                         continue
                     }
@@ -260,7 +282,7 @@ export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
 }
 export class GameObjectManager2D<GameObject extends BaseObject2D>{
     cells:CellsManager2D<GameObject>
-    objects:Record<string,Category<GameObject>>={}
+    objects:Record<string,Category2D<GameObject>>={}
     stream:NetStream
     ondestroy:(obj:GameObject)=>void=(_)=>{}
     constructor(cellsSize?:number){
@@ -389,12 +411,134 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         }
     }
 }
-export class GameObjectManager3D<GameObject extends BaseObject3D> extends GameObjectManager2D<GameObject>{
-    // deno-lint-ignore ban-ts-comment
-    //@ts-expect-error
+export class GameObjectManager3D<GameObject extends BaseObject3D>{
     cells:CellsManager3D<GameObject>
+    objects:Record<string,Category3D<GameObject>>={}
+    stream:NetStream
+    ondestroy:(obj:GameObject)=>void=(_)=>{}
     constructor(cellsSize?:number){
-        super(cellsSize)
         this.cells=new CellsManager3D(cellsSize)
+        this.stream=new NetStream(new Uint8Array())
+    }
+    add_object(obj:GameObject,category:string,id?:number){
+        if(!this.objects[category]){
+            throw new Error(`Invalid Category ${category}`)
+        }
+        if(id===undefined){
+            while(id===undefined){
+                id=random.id()
+                if(this.objects[category].objects[id]){
+                    id=undefined
+                }
+            }
+        }
+        obj.id=id
+        obj.category=category
+        obj.dirty=true
+        // deno-lint-ignore ban-ts-comment
+        //@ts-ignore
+        obj.manager=this
+        this.objects[category].objects[obj.id]=obj
+        this.objects[category].orden.push(obj.id)
+        obj.create()
+        this.cells.registry(obj)
+    }
+    get_object(obj:ObjectKey):GameObject{
+        return this.objects[obj.category].objects[obj.id]
+    }
+    exist(obj:ObjectKey):boolean{
+        return Object.hasOwn(this.objects,obj.category)&&Object.hasOwn(this.objects[obj.category].objects,obj.id)
+    }
+    alive_count(category:keyof typeof this.objects):number{
+        return this.objects[category].orden.length
+    }
+    add_category(category:keyof typeof this.objects){
+        this.objects[category]={orden:[],objects:{}}
+    }
+    proccess(packet:ObjectsPacket,oncreate:(key:ObjectKey)=>GameObject){
+        const csize=packet.stream.readUInt16()
+        for(let i=0;i<csize;i++){
+            const category=packet.stream.readString()
+            if(!this.objects[category]){
+                continue
+            }
+            const osize=packet.stream.readUInt16()
+            for(let j=0;j<osize;j++){
+                const oid=this.stream.readID()
+                if(!this.objects[category].objects[oid]){
+                    oncreate({category:category,id:oid})
+                }
+                const dir=this.stream.readUInt8()
+                if(dir>0){
+                    if(dir>=100){
+                        this.objects[category].objects[oid].destroyed=true
+                        continue
+                    }
+                    this.objects[category].objects[oid].dirtyPart=true
+                    this.objects[category].objects[oid].decodePart(packet.stream)
+                    if(dir>1){
+                        this.objects[category].objects[oid].dirty=true
+                        this.objects[category].objects[oid].decodeComplete(packet.stream)
+                    }
+                }
+            }
+        }
+    }
+    encode():ObjectsPacket{
+        const stream=new NetStream()
+        stream.writeUInt16(Object.keys(this.objects).length)
+        for(const c in this.objects){
+            stream.writeString(c)
+            stream.writeUInt16(this.objects[c].orden.length)
+            for(let j=0;j<this.objects[c].orden.length;j++){
+                const o=this.objects[c].orden[j]
+                stream.writeID(o)
+                stream.writeUInt8(
+                    11
+                    +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
+                )
+                this.objects[c].objects[o].encodePart(stream)
+                this.objects[c].objects[o].encodeComplete(stream)
+            }
+        }
+        return new ObjectsPacket(stream)
+    }
+    update(){
+        this.cells.update()
+        this.stream.clear()
+        this.stream.writeUInt16(Object.keys(this.objects).length)
+        for(const c in this.objects){
+            this.stream.writeString(c)
+            this.stream.writeUInt16(this.objects[c].orden.length)
+            for(let j=0;j<this.objects[c].orden.length;j++){
+                const o=this.objects[c].orden[j]
+                this.objects[c].objects[o].update()
+                this.stream.writeID(o)
+                this.stream.writeUInt8(
+                    ((this.objects[c].objects[o].dirtyPart?1:0)*1)
+                    +((this.objects[c].objects[o].dirty?1:0)*10)
+                    +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
+                )
+                if(this.objects[c].objects[o].dirtyPart||this.objects[c].objects[o].dirty){
+                    this.objects[c].objects[o].encodePart(this.stream)
+                    if(this.objects[c].objects[o].dirty){
+                        this.objects[c].objects[o].dirty=false
+                        this.objects[c].objects[o].encodeComplete(this.stream)
+                    }
+                    this.objects[c].objects[o].dirtyPart=true
+                }
+                if(this.objects[c].objects[o].destroyed){
+                    if(this.objects[c].objects[o].calldestroy){
+                        this.ondestroy(this.objects[c].objects[o])
+                        this.objects[c].objects[o].onDestroy()
+                    }
+                    this.cells.unregistry(this.objects[c].objects[o].get_key())
+                    delete this.objects[c].objects[o]
+                    this.objects[c].orden.splice(j,1)
+                    j--
+                    continue
+                }
+            }
+        }
     }
 }
