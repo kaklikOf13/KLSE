@@ -1,4 +1,5 @@
 import { EaseFunction, ease } from "../utils/_utils.ts";
+import { m3, Model3D } from "../utils/models.ts";
 
 export interface SoundDef{
     volume:number
@@ -30,9 +31,10 @@ export interface Sound extends SoundDef{
 export enum SourceType{
     Sprite,
     Animation,
-    Sound
+    Sound,
+    Model3D
 }
-export type Source=Sprite|Animation|Sound
+export type Source=Sprite|Animation|Sound|Model3D
 function getSvgUrl(svg:string) {
     return  URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
 }
@@ -130,6 +132,30 @@ export class ResourcesManager{
         }
         this.sources[id]=anim
         return this.sources[id] as Animation
+    }
+    load_model3D(id:string,path:string):Promise<Model3D>{
+        return new Promise<Model3D>((resolve, reject) => {
+            if (this.sources[id] != undefined) {
+                resolve(this.sources[id] as Model3D)
+            }
+    
+            fetch(path).then((v)=>{return v.text()}).then((v:string)=>{
+                let model:Model3D=new Model3D()
+                if(path.endsWith(".obj")){
+                    model=m3.parseObj(v)
+                }
+                Object.defineProperty(model,"type",{
+                    value:SourceType.Model3D,
+                    writable:false
+                })
+                resolve(model)
+            }).catch(()=>{
+                reject(`Failed loading model file: ${id}`)
+            })
+        })
+    }
+    get_model3D(id:string):Model3D{
+        return this.sources[id] as Model3D
     }
     unload(id:string){
         delete this.sources[id]
