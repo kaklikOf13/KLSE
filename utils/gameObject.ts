@@ -26,7 +26,8 @@ export abstract class BaseObject2D{
         this.destroyed=false
     }
     abstract update():void
-    abstract create():void
+    // deno-lint-ignore no-explicit-any
+    abstract create(args:Record<string,any>):void
     abstract encodePart(stream:NetStream):void
     abstract decodePart(stream:NetStream):void
     abstract encodeComplete(stream:NetStream):void
@@ -67,7 +68,8 @@ export abstract class BaseObject3D{
         this._scale=v3.new(1,1,1)
     }
     abstract update():void
-    abstract create():void
+    // deno-lint-ignore no-explicit-any
+    abstract create(args:Record<string,any>):void
     abstract encodePart(stream:NetStream):void
     abstract decodePart(stream:NetStream):void
     abstract encodeComplete(stream:NetStream):void
@@ -289,7 +291,17 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         this.cells=new CellsManager2D(cellsSize)
         this.stream=new NetStream(new Uint8Array())
     }
-    add_object(obj:GameObject,category:string,id?:number){
+    clear(){
+        for(const c in this.objects){
+            for(let j=0;j<this.objects[c].orden.length;j++){
+                const o=this.objects[c].orden[j]
+                this.unregister(this.objects[c].objects[o].get_key())
+            }
+        }
+        this.objects={}
+    }
+    // deno-lint-ignore no-explicit-any
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>){
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -309,7 +321,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         obj.manager=this
         this.objects[category].objects[obj.id]=obj
         this.objects[category].orden.push(obj.id)
-        obj.create()
+        obj.create(args??{})
         this.cells.registry(obj)
     }
     get_object(obj:ObjectKey):GameObject{
@@ -397,11 +409,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                     this.objects[c].objects[o].dirtyPart=true
                 }
                 if(this.objects[c].objects[o].destroyed){
-                    if(this.objects[c].objects[o].calldestroy){
-                        this.ondestroy(this.objects[c].objects[o])
-                        this.objects[c].objects[o].onDestroy()
-                    }
-                    this.cells.unregistry(this.objects[c].objects[o].get_key())
+                    this.unregister(this.objects[c].objects[o].get_key())
                     delete this.objects[c].objects[o]
                     this.objects[c].orden.splice(j,1)
                     j--
@@ -409,6 +417,13 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                 }
             }
         }
+    }
+    unregister(k:ObjectKey){
+        if(this.objects[k.category].objects[k.id].calldestroy){
+            this.ondestroy(this.objects[k.category].objects[k.id])
+            this.objects[k.category].objects[k.id].onDestroy()
+        }
+        this.cells.unregistry(this.objects[k.category].objects[k.id].get_key())
     }
 }
 export class GameObjectManager3D<GameObject extends BaseObject3D>{
@@ -420,7 +435,8 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         this.cells=new CellsManager3D(cellsSize)
         this.stream=new NetStream(new Uint8Array())
     }
-    add_object(obj:GameObject,category:string,id?:number){
+    // deno-lint-ignore no-explicit-any
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>){
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -440,7 +456,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         obj.manager=this
         this.objects[category].objects[obj.id]=obj
         this.objects[category].orden.push(obj.id)
-        obj.create()
+        obj.create(args??{})
         this.cells.registry(obj)
     }
     get_object(obj:ObjectKey):GameObject{
@@ -528,11 +544,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
                     this.objects[c].objects[o].dirtyPart=true
                 }
                 if(this.objects[c].objects[o].destroyed){
-                    if(this.objects[c].objects[o].calldestroy){
-                        this.ondestroy(this.objects[c].objects[o])
-                        this.objects[c].objects[o].onDestroy()
-                    }
-                    this.cells.unregistry(this.objects[c].objects[o].get_key())
+                    this.unregister(this.objects[c].objects[o].get_key())
                     delete this.objects[c].objects[o]
                     this.objects[c].orden.splice(j,1)
                     j--
@@ -540,5 +552,21 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
                 }
             }
         }
+    }
+    clear(){
+        for(const c in this.objects){
+            for(let j=0;j<this.objects[c].orden.length;j++){
+                const o=this.objects[c].orden[j]
+                this.unregister(this.objects[c].objects[o].get_key())
+            }
+        }
+        this.objects={}
+    }
+    unregister(k:ObjectKey){
+        if(this.objects[k.category].objects[k.id].calldestroy){
+            this.ondestroy(this.objects[k.category].objects[k.id])
+            this.objects[k.category].objects[k.id].onDestroy()
+        }
+        this.cells.unregistry(this.objects[k.category].objects[k.id].get_key())
     }
 }

@@ -10,7 +10,8 @@ const randl3=v2.new(-10,10)
 let collision=0
 class TestObject extends BaseObject2D{
     cls!:CellsManager2D
-    create(): void {
+    // deno-lint-ignore no-explicit-any
+    create(_args: Record<string, any>): void {
         this.hb=new RectHitbox2D(v2.new(random.float(randl.x,randl.y),random.float(randl.x,randl.y)),v2.new(2,2))
     }
     update() {
@@ -37,7 +38,8 @@ class TestObject extends BaseObject2D{
 }
 class TestObject2 extends BaseObject2D{
     cls!:CellsManager2D
-    create(): void {
+    // deno-lint-ignore no-explicit-any
+    create(_args: Record<string, any>): void {
         this.hb=new RectHitbox2D(v2.new(random.float(randl2.x,randl2.y),random.float(randl2.x,randl2.y)),v2.new(2,2))
     }
     update() {
@@ -66,7 +68,8 @@ class TestObject2 extends BaseObject2D{
 class TestObject3 extends BaseObject3D{
     cls!:CellsManager3D
     model!:Model3D
-    create(): void {
+    // deno-lint-ignore no-explicit-any
+    create(_args: Record<string, any>): void {
         this.hb=new RectHitbox3D(v3.new(random.float(randl3.x,randl3.y),random.float(randl3.x,randl3.y),random.float(randl3.x,randl3.y)),v3.new(1,1,1))
     }
     update() {
@@ -94,7 +97,8 @@ class TestObject3 extends BaseObject3D{
 class TestObject4 extends BaseObject3D{
     cls!:CellsManager3D
     model!:Model3D
-    create(): void {
+    // deno-lint-ignore no-explicit-any
+    create(_args: Record<string, any>): void {
         this.hb=new RectHitbox3D(v3.new(random.float(randl3.x,randl3.y),random.float(randl3.x,randl3.y),random.float(randl3.x,randl3.y)),v3.new(1,1,1))
     }
     update() {

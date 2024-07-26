@@ -64,7 +64,7 @@ export class Tree<Type> extends Definitions<Type>{
     }
 }
 export enum DefaultGameDefs{
-    Objects,
+    Objects="objects",
 }
 export type DefaultGameDefsMap={
     [DefaultGameDefs.Objects]:(new()=>BaseGameObject2D|BaseGameObject3D)
