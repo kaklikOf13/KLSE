@@ -1,14 +1,13 @@
 import { ID } from "../utils/_utils.ts";
 import { BaseGameObject2D, DefaultEvents, DefaultEventsMap2D, Game2D } from "../utils/game.ts";
-import { GameObjectManager2D } from "../utils/gameObject.ts";
 import { ObjectsPacket, PacketsManager } from "../utils/packets.ts";
 import { Client, ClientsManager } from "./websockets.ts";
 
-export abstract class ServerGame2D<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents = DefaultEvents, Map extends DefaultEventsMap2D = DefaultEventsMap2D> extends Game2D<DefaultGameObject,Events,Map>{
+export abstract class ServerGame2D<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,EMap extends DefaultEventsMap2D=DefaultEventsMap2D> extends Game2D<DefaultGameObject,Events,EMap>{
     public clients:ClientsManager
     public allowJoin:boolean
     public id:ID=1
-    constructor(tps:number,id:ID,packetManager:PacketsManager,objects?:GameObjectManager2D<DefaultGameObject>){
+    constructor(tps:number,id:ID,packetManager:PacketsManager,objects:Record<string,new()=>DefaultGameObject>){
         super(tps,objects)
         this.id=id
         this.allowJoin=true
@@ -21,6 +20,6 @@ export abstract class ServerGame2D<DefaultGameObject extends BaseGameObject2D=Ba
     abstract handleConnections(client:Client):void
     update(): void {
         Game2D.prototype.update.call(this)
-        this.clients.emit(new ObjectsPacket(this.objects.stream))
+        this.clients.emit(new ObjectsPacket(this.scene.objects.stream))
     }
 }

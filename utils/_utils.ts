@@ -1,3 +1,5 @@
+import { type Scene2D, type Scene3D } from "./game.ts";
+
 export const halfpi=Math.PI/2
 export type ID=number
 export function splitPath(path:string):string[]{
@@ -306,6 +308,13 @@ export class WebPath{
     }
 }
 
-export function getEnumValues<E>(enumObject: E): (E[keyof E])[] {
-    return Object.values(enumObject).filter(value => typeof value === 'number') as E[keyof E][];
+// deno-lint-ignore ban-types
+export function getEnumValues<E extends Object>(enumObject: E): (E[keyof E])[] {
+    return Object.values(enumObject).filter(value => typeof value === 'number') as E[keyof E][]
 }
+// deno-lint-ignore ban-types
+export async function loadJson<val extends {}>(path:string):Promise<val>{
+    return await(await(fetch(path))).json()
+}
+export const loadScene2D=loadJson<Scene2D>
+export const loadScene3D=loadJson<Scene3D>

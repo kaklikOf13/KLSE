@@ -151,6 +151,93 @@ export const v3 = Object.freeze({
     absolute(Vec3:Vec3):Vec3{
         return this.new(Math.abs(Vec3.x),Math.abs(Vec3.y),Math.abs(Vec3.z))
     },
+    /**
+     * 
+     * @param vec The Vector
+     * @param decimalPlaces `number of max decimals`
+     * @returns max decimal `Vec3`
+     */
+    maxDecimal(vec:Vec3,decimalPlaces:number=3):Vec3{
+        const factor = Math.pow(10, decimalPlaces)
+        return this.new(Math.round(vec.x * factor) / factor,Math.round(vec.y * factor) / factor,Math.round(vec.z * factor) / factor)
+    },
+    /**
+     * 
+     * @param vec `Vec3`
+     * @returns Rounded`Vec3`
+     */
+    round(vec:Vec3):Vec3{
+        return this.new(Math.round(vec.x),Math.round(vec.y),Math.round(vec.z))
+    },
+
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @param min `Limit`
+     * @returns A new `Vec3` With Limit down. like `Math.max()`
+     */
+    min1(vec:Vec3,min:number):Vec3{
+        return this.new(Math.max(vec.x,min),Math.max(vec.y,min),Math.max(vec.z,min))
+    },
+    /**
+     * 
+     * @param x `Vec3`
+     * @param y `Limit`
+     * @returns A new `Vec3` With Limit down. like `Math.max()`
+     */
+    min3(x:Vec3,y:Vec3):Vec3{
+        return this.new(Math.max(x.x,y.x),Math.max(x.y,y.y),Math.max(x.z,y.z))
+    },
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @param max `Limit`
+     * @returns A new `Vec3` With Limit up. like `Math.min()
+     */
+    max1(vec:Vec3,max:number):Vec3{
+        return this.new(Math.min(vec.x,max),Math.min(vec.y,max),Math.min(vec.z,max))
+    },
+    /**
+     * 
+     * @param x `Vec3`
+     * @param y `Limit`
+     * @returns A new `Vec3` With Limit up. like `Math.min()
+     */
+    max3(x:Vec3,y:Vec3):Vec3{
+        return this.new(Math.min(x.x,y.x),Math.min(x.y,y.y),Math.min(x.z,y.z))
+    },
+
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @param min `Min Limit`
+     * @param max `Max Limit`
+     * @returns A new `Vec3` With Limit
+     */
+    clamp1(vec:Vec3,min:number,max:number):Vec3{
+        return this.new(Math.max(Math.min(vec.x,max),min),Math.max(Math.min(vec.y,max),min),Math.max(Math.min(vec.z,max),min))
+    },
+    /**
+     * 
+     * @param Vec3 `Vec3`
+     * @param min `Min Limit`
+     * @param max `Max Limit`
+     * @returns A new `Vec3` With Limit
+     */
+    clamp3(vec:Vec3,min:Vec3,max:Vec3):Vec3{
+        return this.new(Math.max(Math.min(vec.x,max.x),min.x),Math.max(Math.min(vec.y,max.y),min.y),Math.max(Math.min(vec.z,max.z),min.z))
+    },
+
+    /**
+     * 
+     * @param current The current `Vec3` Position
+     * @param end The Final `Vec3` Position
+     * @param interpolation 
+     * @returns 
+     */
+    lerp(current: Vec3, end: Vec3,interpolation: number): Vec3 {
+        return this.add(this.scale(current,1-interpolation), this.scale(end,interpolation))
+    },
 
     /**
      * @param Vec2 The `Vec2` to normalize
@@ -549,6 +636,11 @@ export const v2 = Object.freeze({
 })
 export const NullVec2:Vec2=v2.new(0,0)
 export const NullVec3:Vec3=v3.new(0,0,0)
+export interface Transform3D{
+    position:Vec3
+    rotation:Vec3
+    scale:Vec3
+}
 export const Angle=Object.freeze({
     deg2rad(angle:DegAngle):RadAngle{
         return angle* Math.PI / 180

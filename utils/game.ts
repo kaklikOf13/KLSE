@@ -1,5 +1,4 @@
-import { Clock, getEnumValues } from "./_utils.ts"
-import { DefaultGameDefs, DefaultGameDefsMap, Definitions, GameDefs, NewGameDef } from "./definitions.ts";
+import { Clock, cloneDeep } from "./_utils.ts"
 import { BaseObject2D, BaseObject3D, type CellsManager2D, GameObjectManager2D, GameObjectManager3D, CellsManager3D } from "./gameObject.ts"
 import { type Vec2, type Vec3 } from "./geometry.ts";
 export enum DefaultEvents{
@@ -8,15 +7,15 @@ export enum DefaultEvents{
 }
 export interface DefaultEventsMap2D{
     // deno-lint-ignore no-explicit-any
-    [DefaultEvents.GameRun]:Game2D<any,any,any,any>
+    [DefaultEvents.GameRun]:Game2D<any,any,any>
     // deno-lint-ignore no-explicit-any
-    [DefaultEvents.GameTick]:Game2D<any,any,any,any>
+    [DefaultEvents.GameTick]:Game2D<any,any,any>
 }
 export abstract class Game2DPlugin<Events extends DefaultEvents,Map extends DefaultEventsMap2D>{
     // deno-lint-ignore no-explicit-any
-    public game!:Game2D<any,any,any,any>
+    public game!:Game2D<any,any,any>
     // deno-lint-ignore no-explicit-any
-    constructor(game:Game2D<any,any,any,any>){
+    constructor(game:Game2D<any,any,any>){
         this.game=game
     }
     abstract init_signals():void
@@ -26,15 +25,15 @@ export abstract class Game2DPlugin<Events extends DefaultEvents,Map extends Defa
 }
 export interface DefaultEventsMap3D{
     // deno-lint-ignore no-explicit-any
-    [DefaultEvents.GameRun]:Game3D<any,any,any,any>
+    [DefaultEvents.GameRun]:Game3D<any,any,any>
     // deno-lint-ignore no-explicit-any
-    [DefaultEvents.GameTick]:Game3D<any,any,any,any>
+    [DefaultEvents.GameTick]:Game3D<any,any,any>
 }
 export abstract class Game3DPlugin<Events extends DefaultEvents,Map extends DefaultEventsMap3D>{
     // deno-lint-ignore no-explicit-any
-    public game!:Game3D<any,any,any,any>
+    public game!:Game3D<any,any,any>
     // deno-lint-ignore no-explicit-any
-    constructor(game:Game3D<any,any,any,any>){
+    constructor(game:Game3D<any,any,any>){
         this.game=game
     }
     abstract init_signals():void
@@ -92,21 +91,37 @@ export abstract class BaseGameObject3D extends BaseObject3D{
         super()
     }
 }
-export interface Scene{
+export interface Scene2D{
     cellsSize?:number
-    Objects:Record<string,Array<{
+    objects:Record<string,Array<{
         type:string,
-        position?:Vec2|Vec3
+        position?:Vec2
+        scale?:Vec2
+        rotation?:number
         // deno-lint-ignore no-explicit-any
         vals?:Record<string,any>
+        id?:number
     }>>
 }
-export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap2D=DefaultEventsMap2D,Defs extends DefaultGameDefs=DefaultGameDefs, DefsMap extends DefaultGameDefsMap=DefaultGameDefsMap>{
-    readonly scene:Scene
+export interface Scene3D{
+    cellsSize?:number
+    objects:Record<string,Array<{
+        type:string,
+        position?:Vec3
+        scale?:Vec3
+        rotation?:Vec3
+        // deno-lint-ignore no-explicit-any
+        vals?:Record<string,any>
+        id?:number
+    }>>
+}
+
+export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap2D=DefaultEventsMap2D>{
+    readonly scene:Scene2D
     readonly objects:GameObjectManager2D<DefaultGameObject>
     readonly cells:CellsManager2D<DefaultGameObject>
-    readonly game:Game2D<DefaultGameObject,Events,Map,Defs,DefsMap>
-    constructor(scene:Scene,game:Game2D<DefaultGameObject,Events,Map,Defs,DefsMap>){
+    readonly game:Game2D<DefaultGameObject,Events,Map>
+    constructor(scene:Scene2D,game:Game2D<DefaultGameObject,Events,Map>){
         this.scene=scene
         this.objects=new GameObjectManager2D<DefaultGameObject>(scene.cellsSize)
         this.cells=this.objects.cells
@@ -115,12 +130,16 @@ export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGame
     }
     reset(){
         this.objects.clear()
-        for(const c in this.scene.Objects){
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined)=>{
+            const ret=GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args)
+            ret.game=this.game
+            return ret
+        }
+        for(const c in this.scene.objects){
             this.objects.add_category(c)
-            for(const o of this.scene.Objects[c]){
-                // deno-lint-ignore ban-ts-comment
-                //@ts-expect-error
-                this.objects.add_object(new ((this.game.definitions[DefaultGameDefs.Objects]as Definitions<(new()=>BaseGameObject2D|BaseGameObject3D)>).get(o.type))() as DefaultGameObject,c,undefined,o.vals)
+            for(const o of this.scene.objects[c]){
+                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals)
+                if(o.position)obj.position=cloneDeep(o.position as Vec2)
             }
         }
     }
@@ -130,12 +149,12 @@ export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGame
         })
     }
 }
-export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGameObject3D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap3D=DefaultEventsMap3D,Defs extends DefaultGameDefs=DefaultGameDefs, DefsMap extends DefaultGameDefsMap=DefaultGameDefsMap>{
-    readonly scene:Scene
+export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGameObject3D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap3D=DefaultEventsMap3D>{
+    readonly scene:Scene3D
     readonly objects:GameObjectManager3D<DefaultGameObject>
     readonly cells:CellsManager3D<DefaultGameObject>
-    readonly game:Game3D<DefaultGameObject,Events,Map,Defs,DefsMap>
-    constructor(scene:Scene,game:Game3D<DefaultGameObject,Events,Map,Defs,DefsMap>){
+    readonly game:Game3D<DefaultGameObject,Events,Map>
+    constructor(scene:Scene3D,game:Game3D<DefaultGameObject,Events,Map>){
         this.scene=scene
         this.objects=new GameObjectManager3D<DefaultGameObject>(scene.cellsSize)
         this.cells=this.objects.cells
@@ -144,12 +163,18 @@ export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGame
     }
     reset(){
         this.objects.clear()
-        for(const c in this.scene.Objects){
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined)=>{
+            const ret=GameObjectManager3D.prototype.add_object.call(this.objects,obj,category,id,args)
+            ret.game=this.game
+            return ret
+        }
+        for(const c in this.scene.objects){
             this.objects.add_category(c)
-            for(const o of this.scene.Objects[c]){
-                // deno-lint-ignore ban-ts-comment
-                //@ts-expect-error
-                this.objects.add_object(new ((this.game.definitions[DefaultGameDefs.Objects]as Definitions<(new()=>BaseGameObject2D|BaseGameObject3D)>).get(o.type))() as DefaultGameObject,c,undefined,o.vals)
+            for(const o of this.scene.objects[c]){
+                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals)
+                if(o.position)obj.position=o.position as Vec3
+                if(o.scale)obj.hb.transform.scale=cloneDeep(o.scale as Vec3)
+                if(o.rotation)obj.hb.transform.rotation=cloneDeep(o.rotation as Vec3)
             }
         }
     }
@@ -159,20 +184,20 @@ export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGame
         })
     }
 }
-export abstract class Game2D<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap2D=DefaultEventsMap2D,Defs extends DefaultGameDefs=DefaultGameDefs, DefsMap extends DefaultGameDefsMap=DefaultGameDefsMap>{
+export abstract class Game2D<DefaultGameObject extends BaseGameObject2D=BaseGameObject2D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap2D=DefaultEventsMap2D>{
     readonly tps:number
 
     private readonly clock:Clock
     running:boolean=true
     readonly events:EventsManager<Events,Map>
-    readonly scene:Scene2DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>
-    definitions:GameDefs<Defs,DefsMap>
-    constructor(tps: number,scene?:Scene2DInstance<DefaultGameObject>,defs:GameDefs<Defs,DefsMap>=NewGameDef<Defs,DefsMap>(getEnumValues(DefaultGameDefs) as Defs[])){
+    scene:Scene2DInstance<DefaultGameObject,Events,Map>
+    objects:Record<string,new()=>DefaultGameObject>
+    constructor(tps: number,objects:Record<string,new()=>DefaultGameObject>){
         this.tps=tps
         this.events=new EventsManager()
         this.clock=new Clock(tps,1)
-        this.definitions=defs
-        this.scene=scene??new Scene2DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>({Objects:{}},this)
+        this.objects=objects
+        this.scene=new Scene2DInstance<DefaultGameObject,Events,Map>({objects:{}},this)
     }
     add_plugin(plugin:Game2DPlugin<Events,Map>){
         plugin.game=this
@@ -196,24 +221,29 @@ export abstract class Game2D<DefaultGameObject extends BaseGameObject2D=BaseGame
         // Mainloop
         this.update()
     }
-    instantiate(scene:Scene):Scene2DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>{
-        return new Scene2DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>(scene,this)
+    instantiate(scene:Scene2D):Scene2DInstance<DefaultGameObject,Events,Map>{
+        return new Scene2DInstance<DefaultGameObject,Events,Map>(scene,this)
+    }
+    asyncInstantiate(scene:Scene2D):Promise<Scene2DInstance<DefaultGameObject,Events,Map>>{
+        return new Promise<Scene2DInstance<DefaultGameObject,Events,Map>>((resolve, _reject) => {
+            resolve(new Scene2DInstance<DefaultGameObject,Events,Map>(scene,this))
+        })
     }
 }
-export abstract class Game3D<DefaultGameObject extends BaseGameObject3D=BaseGameObject3D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap3D=DefaultEventsMap3D,Defs extends DefaultGameDefs=DefaultGameDefs, DefsMap extends DefaultGameDefsMap=DefaultGameDefsMap>{
+export abstract class Game3D<DefaultGameObject extends BaseGameObject3D=BaseGameObject3D,Events extends DefaultEvents=DefaultEvents,Map extends DefaultEventsMap3D=DefaultEventsMap3D>{
     readonly tps:number
 
     private readonly clock:Clock
     running:boolean=true
     readonly events:EventsManager<Events,Map>
-    readonly scene:Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>
-    definitions:GameDefs<Defs,DefsMap>
-    constructor(tps: number,scene?:Scene3DInstance<DefaultGameObject>,defs:GameDefs<Defs,DefsMap>=NewGameDef<Defs,DefsMap>(getEnumValues(DefaultGameDefs) as Defs[])){
+    scene:Scene3DInstance<DefaultGameObject,Events,Map>
+    objects:Record<string,new()=>DefaultGameObject>
+    constructor(tps: number,objects:Record<string,new()=>DefaultGameObject>){
         this.tps=tps
         this.events=new EventsManager()
         this.clock=new Clock(tps,1)
-        this.definitions=defs
-        this.scene=scene??new Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>({Objects:{}},this)
+        this.objects=objects
+        this.scene=new Scene3DInstance<DefaultGameObject,Events,Map>({objects:{}},this)
     }
     add_plugin(plugin:Game3DPlugin<Events,Map>){
         plugin.game=this
@@ -237,12 +267,12 @@ export abstract class Game3D<DefaultGameObject extends BaseGameObject3D=BaseGame
         // Mainloop
         this.update()
     }
-    instantiate(scene:Scene):Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>{
-        return new Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>(scene,this)
+    instantiate(scene:Scene3D):Scene3DInstance<DefaultGameObject,Events,Map>{
+        return new Scene3DInstance<DefaultGameObject,Events,Map>(scene,this)
     }
-    asyncInstantiate(scene:Scene):Promise<Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>>{
-        return new Promise<Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>>((resolve, _reject) => {
-            resolve(new Scene3DInstance<DefaultGameObject,Events,Map,Defs,DefsMap>(scene,this))
+    asyncInstantiate(scene:Scene3D):Promise<Scene3DInstance<DefaultGameObject,Events,Map>>{
+        return new Promise<Scene3DInstance<DefaultGameObject,Events,Map>>((resolve, _reject) => {
+            resolve(new Scene3DInstance<DefaultGameObject,Events,Map>(scene,this))
         })
     }
 }

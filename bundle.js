@@ -213,6 +213,27 @@ function mixin(...bases) {
     }
     return MixinClass;
 }
+class WebPath {
+    IP;
+    Port;
+    HTTP;
+    constructor(IP, Port, HTTP = false){
+        this.IP = IP;
+        this.Port = Port;
+        this.HTTP = HTTP;
+    }
+    toString() {
+        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
+    }
+}
+function getEnumValues(enumObject) {
+    return Object.values(enumObject).filter((value)=>typeof value === 'number');
+}
+async function loadJson(path) {
+    return await (await fetch(path)).json();
+}
+const loadScene2D = loadJson;
+const loadScene3D = loadJson;
 export { halfpi as halfpi };
 export { splitPath as splitPath };
 export { hasTag as hasTag };
@@ -226,13 +247,18 @@ export { cloneDeep as cloneDeep };
 export { mergeDeep as mergeDeep };
 export { ease as ease };
 export { mixin as mixin };
+export { WebPath as WebPath };
+export { getEnumValues as getEnumValues };
+export { loadJson as loadJson };
+export { loadScene2D as loadScene2D };
+export { loadScene3D as loadScene3D };
 class Definitions {
     value;
     constructor(){
         this.value = {};
     }
-    set(val) {
-        this.value[val.ID] = val;
+    set(val, id) {
+        this.value[id] = val;
     }
     get(id) {
         return this.value[id];
@@ -243,8 +269,8 @@ class Definitions {
     exist(id) {
         return Object.hasOwn(this.value, id);
     }
-    extends(extend, val) {
-        this.set(mergeDeep(val, this.get(extend)));
+    extends(extend, val, id) {
+        this.set(mergeDeep(val, this.get(extend)), id);
     }
 }
 class Tree extends Definitions {
@@ -286,19 +312,6 @@ class Tree extends Definitions {
         }
     }
 }
-class WebPath {
-    IP;
-    Port;
-    HTTP;
-    constructor(IP, Port, HTTP = false){
-        this.IP = IP;
-        this.Port = Port;
-        this.HTTP = HTTP;
-    }
-    toString() {
-        return `${this.HTTP ? "s" : ""}://${this.IP}:${this.Port}`;
-    }
-}
 class ExtendedMap extends Map {
     _get(key) {
         return super.get(key);
@@ -331,7 +344,6 @@ class ExtendedMap extends Map {
 }
 export { Definitions as Definitions };
 export { Tree as Tree };
-export { WebPath as WebPath };
 export { ExtendedMap as ExtendedMap };
 const random = Object.freeze({
     int (min, max) {
@@ -416,6 +428,34 @@ const v3 = Object.freeze({
     },
     absolute (Vec3) {
         return this.new(Math.abs(Vec3.x), Math.abs(Vec3.y), Math.abs(Vec3.z));
+    },
+    maxDecimal (vec, decimalPlaces = 3) {
+        const factor = Math.pow(10, decimalPlaces);
+        return this.new(Math.round(vec.x * factor) / factor, Math.round(vec.y * factor) / factor, Math.round(vec.z * factor) / factor);
+    },
+    round (vec) {
+        return this.new(Math.round(vec.x), Math.round(vec.y), Math.round(vec.z));
+    },
+    min1 (vec, min) {
+        return this.new(Math.max(vec.x, min), Math.max(vec.y, min), Math.max(vec.z, min));
+    },
+    min3 (x, y) {
+        return this.new(Math.max(x.x, y.x), Math.max(x.y, y.y), Math.max(x.z, y.z));
+    },
+    max1 (vec, max) {
+        return this.new(Math.min(vec.x, max), Math.min(vec.y, max), Math.min(vec.z, max));
+    },
+    max3 (x, y) {
+        return this.new(Math.min(x.x, y.x), Math.min(x.y, y.y), Math.min(x.z, y.z));
+    },
+    clamp1 (vec, min, max) {
+        return this.new(Math.max(Math.min(vec.x, max), min), Math.max(Math.min(vec.y, max), min), Math.max(Math.min(vec.z, max), min));
+    },
+    clamp3 (vec, min, max) {
+        return this.new(Math.max(Math.min(vec.x, max.x), min.x), Math.max(Math.min(vec.y, max.y), min.y), Math.max(Math.min(vec.z, max.z), min.z));
+    },
+    lerp (current, end, interpolation) {
+        return this.add(this.scale(current, 1 - interpolation), this.scale(end, interpolation));
     },
     normalizeSafe (Vec3, fallback = NullVec3) {
         const len = this.length(Vec3);
@@ -643,12 +683,18 @@ const Collision = Object.freeze({
         return null;
     }
 });
-var HitboxType;
-(function(HitboxType) {
-    HitboxType[HitboxType["circle"] = 0] = "circle";
-    HitboxType[HitboxType["rect"] = 1] = "rect";
-    HitboxType[HitboxType["null"] = 2] = "null";
-})(HitboxType || (HitboxType = {}));
+var HitboxType2D;
+(function(HitboxType2D) {
+    HitboxType2D[HitboxType2D["circle"] = 0] = "circle";
+    HitboxType2D[HitboxType2D["rect"] = 1] = "rect";
+    HitboxType2D[HitboxType2D["null"] = 2] = "null";
+})(HitboxType2D || (HitboxType2D = {}));
+var HitboxType3D;
+(function(HitboxType3D) {
+    HitboxType3D[HitboxType3D["sphere"] = 0] = "sphere";
+    HitboxType3D[HitboxType3D["box"] = 1] = "box";
+    HitboxType3D[HitboxType3D["null"] = 2] = "null";
+})(HitboxType3D || (HitboxType3D = {}));
 class BaseHitbox2D {
     position;
     constructor(position){
@@ -662,7 +708,7 @@ class NullHitbox2D extends BaseHitbox2D {
     constructor(){
         super(NullVec2);
     }
-    type = HitboxType.null;
+    type = HitboxType2D.null;
     collidingWith(_other) {
         return false;
     }
@@ -690,7 +736,7 @@ class NullHitbox2D extends BaseHitbox2D {
     }
 }
 class CircleHitbox2D extends BaseHitbox2D {
-    type = HitboxType.circle;
+    type = HitboxType2D.circle;
     radius;
     constructor(position, radius){
         super(position);
@@ -698,9 +744,9 @@ class CircleHitbox2D extends BaseHitbox2D {
     }
     collidingWith(other) {
         switch(other.type){
-            case HitboxType.circle:
+            case HitboxType2D.circle:
                 return v2.distance(this.position, other.position) < this.radius + other.radius;
-            case HitboxType.rect:
+            case HitboxType2D.rect:
                 return Collision.circle_with_rect(this, other);
         }
         return false;
@@ -708,7 +754,7 @@ class CircleHitbox2D extends BaseHitbox2D {
     overlapCollision(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.circle:
+                case HitboxType2D.circle:
                     {
                         const dists = v2.distanceSquared(this.position, other.position);
                         const dis = v2.sub(this.position, other.position);
@@ -727,7 +773,7 @@ class CircleHitbox2D extends BaseHitbox2D {
                         }
                         break;
                     }
-                case HitboxType.rect:
+                case HitboxType2D.rect:
                     {
                         const result = Collision.circle_with_rect_ov(this, other);
                         if (result) {
@@ -768,7 +814,7 @@ class CircleHitbox2D extends BaseHitbox2D {
     }
 }
 class RectHitbox2D extends BaseHitbox2D {
-    type = HitboxType.rect;
+    type = HitboxType2D.rect;
     size;
     constructor(position, size){
         super(position);
@@ -777,9 +823,9 @@ class RectHitbox2D extends BaseHitbox2D {
     collidingWith(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.rect:
+                case HitboxType2D.rect:
                     return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y;
-                case HitboxType.circle:
+                case HitboxType2D.circle:
                     return Collision.circle_with_rect(other, this);
             }
         }
@@ -788,7 +834,7 @@ class RectHitbox2D extends BaseHitbox2D {
     overlapCollision(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.rect:
+                case HitboxType2D.rect:
                     {
                         const ss = v2.dscale(v2.add(this.size, other.size), 2);
                         const dist = v2.sub(this.position, other.position);
@@ -807,7 +853,7 @@ class RectHitbox2D extends BaseHitbox2D {
                         }
                         break;
                     }
-                case HitboxType.circle:
+                case HitboxType2D.circle:
                     {
                         const result = Collision.circle_with_rect_ov(other, this);
                         if (result) {
@@ -846,9 +892,13 @@ class RectHitbox2D extends BaseHitbox2D {
     }
 }
 class BaseHitbox3D {
-    position;
-    constructor(position){
-        this.position = position;
+    transform;
+    constructor(position, scale, rotation){
+        this.transform = {
+            position: position ?? v3.new(0, 0, 0),
+            scale: scale ?? v3.new(1, 1, 1),
+            rotation: rotation ?? v3.new(0, 0, 0)
+        };
     }
     is_null() {
         return false;
@@ -856,9 +906,9 @@ class BaseHitbox3D {
 }
 class NullHitbox3D extends BaseHitbox3D {
     constructor(){
-        super(NullVec3);
+        super(undefined, undefined, undefined);
     }
-    type = HitboxType.null;
+    type = HitboxType3D.null;
     collidingWith(_other) {
         return false;
     }
@@ -868,7 +918,9 @@ class NullHitbox3D extends BaseHitbox3D {
     overlapCollision(_other) {
         return {
             overlap: NullVec3,
-            collided: false
+            collided: false,
+            dire: v3.new(0, 0, 0),
+            overlapP: v3.new(0, 0, 0)
         };
     }
     center() {
@@ -877,26 +929,26 @@ class NullHitbox3D extends BaseHitbox3D {
     randomPoint() {
         return NullVec3;
     }
-    toRect() {
-        return new RectHitbox3D(this.position, v3.new(0, 0, 0));
+    toBox() {
+        return new BoxHitbox3D(this.transform.position, v3.new(0, 0, 0));
     }
     scale(_scale) {}
     is_null() {
         return true;
     }
 }
-class RectHitbox3D extends BaseHitbox3D {
-    type = HitboxType.rect;
+class BoxHitbox3D extends BaseHitbox3D {
+    type = HitboxType3D.box;
     size;
-    constructor(position, size){
-        super(position);
+    constructor(position, size, scale, rotation){
+        super(position, scale, rotation);
         this.size = size;
     }
     collidingWith(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.rect:
-                    return this.position.x + this.size.x > other.position.x && this.position.x < other.position.x + other.size.x && this.position.y + this.size.y > other.position.y && this.position.y < other.position.y + other.size.y && this.position.z + this.size.z > other.position.z && this.position.z < other.position.z + other.size.z;
+                case HitboxType3D.box:
+                    return this.transform.position.x + this.size.x > other.transform.position.x && this.transform.position.x < other.transform.position.x + other.size.x && this.transform.position.y + this.size.y > other.transform.position.y && this.transform.position.y < other.transform.position.y + other.size.y && this.transform.position.z + this.size.z > other.transform.position.z && this.transform.position.z < other.transform.position.z + other.size.z;
             }
         }
         return false;
@@ -904,56 +956,75 @@ class RectHitbox3D extends BaseHitbox3D {
     overlapCollision(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.rect:
+                case HitboxType3D.box:
                     {
-                        const ss = v3.dscale(v3.add(this.size, other.size), 2);
-                        const dist = v3.sub(this.position, other.position);
+                        const dist = v3.maxDecimal(v3.sub(this.center(), other.center()));
+                        const ss = v3.maxDecimal(v3.dscale(v3.add(this.getRealSize(), other.getRealSize()), 2));
                         if (v3.less(v3.absolute(dist), ss)) {
-                            const ov = v3.sub(ss, v3.absolute(dist));
-                            let ov2 = v3.duplicate(ov);
-                            if (ov.x > ov.y || ov.x > ov.z) {
-                                ov2.x = 0;
+                            const ov = v3.min3(v3.sub(ss, v3.absolute(dist)), NullVec3);
+                            const dire = v3.new(0, 0, 0);
+                            const ovp = v3.maxDecimal(v3.div(ov, ss));
+                            if (ovp.x < ovp.y && ovp.x < ovp.z) {
+                                dire.x = dist.x < 0 ? 1 : -1;
+                            } else if (ovp.y < ovp.x && ovp.y < ovp.z) {
+                                dire.y = dist.y < 0 ? 1 : -1;
+                            } else if (ovp.z < ovp.x && ovp.z < ovp.y) {
+                                dire.z = dist.z < 0 ? 1 : -1;
                             }
-                            if (ov.y > ov.x || ov.y > ov.z) {
-                                ov2.y = 0;
-                            }
-                            if (ov.z > ov.y || ov.z > ov.x) {
-                                ov2.z = 0;
-                            }
-                            ov2 = v3.normalizeSafe(v3.new(dist.x < 0 ? ov2.x : -ov2.x, dist.y < 0 ? ov2.y : -ov2.y, dist.z < 0 ? ov2.z : -ov2.z));
                             return {
-                                overlap: ov2,
-                                collided: !v3.is(ov2, NullVec3)
+                                overlap: v3.maxDecimal(v3.mult(ov, dire)),
+                                collided: true,
+                                dire: dire,
+                                overlapP: v3.sub(dire, v3.mult(ovp, dire))
                             };
                         }
                         break;
                     }
-                case HitboxType.circle:
+                case HitboxType3D.sphere:
             }
         }
         return {
-            overlap: NullVec3,
-            collided: false
+            overlap: v3.new(0, 0, 0),
+            collided: false,
+            dire: v3.new(0, 0, 0),
+            overlapP: v3.new(0, 0, 0)
         };
     }
     pointInside(point) {
-        return this.position.x + this.size.x >= point.x && this.position.x <= point.x && this.position.y + this.size.y >= point.y && this.position.y <= point.y && this.position.z + this.size.z >= point.z && this.position.z <= point.z;
+        const pp = v3.mult(this.size, this.transform.scale);
+        return point.x >= pp.x && point.x <= this.transform.position.x + pp.x && point.y >= pp.y && point.y <= this.transform.position.y + pp.y && point.z >= pp.z && point.z <= this.transform.position.z + pp.z;
     }
     center() {
-        return v3.add(this.position, v3.dscale(this.size, 2));
+        return v3.add(this.transform.position, v3.mult(v3.mult(this.size, this.transform.scale), v3.new(-.5, .5, .5)));
     }
     scale(scale) {
         this.size = v3.scale(this.size, scale);
     }
     randomPoint() {
-        return v3.add(this.position, v3.random3(NullVec3, this.size));
+        return v3.add(this.transform.position, v3.random3(NullVec3, this.size));
     }
-    toRect() {
+    toBox() {
         return this;
     }
+    gmm() {
+        const s = v3.mult(this.size, this.transform.scale);
+        return {
+            min: v3.sub(this.transform.position, v3.mult(s, v3.new(1, 0, 0))),
+            max: v3.add(this.transform.position, v3.mult(s, v3.new(0, 1, 1)))
+        };
+    }
+    getRealSize() {
+        return v3.mult(this.size, this.transform.scale);
+    }
+    getMin() {
+        return this.transform.position;
+    }
+    getMax() {
+        return v3.add(this.transform.position, v3.mult(this.size, this.transform.scale));
+    }
 }
-class CircleHitbox3D extends BaseHitbox3D {
-    type = HitboxType.circle;
+class SphereHitbox3D extends BaseHitbox3D {
+    type = HitboxType3D.sphere;
     radius;
     constructor(position, radius){
         super(position);
@@ -961,48 +1032,54 @@ class CircleHitbox3D extends BaseHitbox3D {
     }
     collidingWith(other) {
         switch(other.type){
-            case HitboxType.circle:
-                return v3.distance(this.position, other.position) < this.radius + other.radius;
-            case HitboxType.rect:
-                return Collision.circle_with_rect(this, other);
+            case HitboxType3D.sphere:
+                return v3.distance(this.transform.position, other.transform.position) < this.radius + other.radius;
+            case HitboxType3D.box:
         }
         return false;
     }
     overlapCollision(other) {
         if (other) {
             switch(other.type){
-                case HitboxType.circle:
+                case HitboxType3D.sphere:
                     {
-                        const dists = v3.distanceSquared(this.position, other.position);
-                        const dis = v3.sub(this.position, other.position);
+                        const dists = v3.distanceSquared(this.transform.position, other.transform.position);
+                        const dis = v3.sub(this.transform.position, other.transform.position);
                         if (dists < 0.0001) {
                             return {
                                 overlap: v3.new(1, 1, 1),
-                                collided: true
+                                collided: true,
+                                dire: v3.new(1, 1, 1),
+                                overlapP: v3.new(1, 1, 1)
                             };
                         }
                         if (dists < (this.radius + other.radius) * 2) {
-                            const dist = v3.distance(this.position, other.position);
+                            const dist = v3.distance(this.transform.position, other.transform.position);
+                            const ov = v3.absolute(v3.dscale(dis, dist || 1));
                             return {
-                                overlap: v3.absolute(v3.dscale(dis, dist || 1)),
-                                collided: true
+                                overlap: ov,
+                                collided: true,
+                                dire: v3.new(0, 0, 0),
+                                overlapP: v3.dscale(ov, this.radius)
                             };
                         }
                         break;
                     }
-                case HitboxType.rect:
+                case HitboxType3D.box:
             }
         }
         return {
             overlap: NullVec3,
-            collided: false
+            collided: false,
+            dire: v3.new(0, 0, 0),
+            overlapP: v3.new(0, 0, 0)
         };
     }
     pointInside(point) {
-        return v2.distance(this.position, point) < this.radius;
+        return v2.distance(this.transform.position, point) < this.radius;
     }
     center() {
-        return this.position;
+        return this.transform.position;
     }
     scale(scale) {
         this.radius *= scale;
@@ -1011,22 +1088,23 @@ class CircleHitbox3D extends BaseHitbox3D {
         const angle1 = random.float(0, Math.PI * 2);
         const angle2 = random.float(0, Math.PI);
         const radius = random.float(0, this.radius);
-        return v3.new(this.position.x + radius * Math.sin(angle2) * Math.cos(angle1), this.position.y + radius * Math.sin(angle2) * Math.sin(angle1), this.position.z + radius * Math.cos(angle2));
+        return v3.new(this.transform.position.x + radius * Math.sin(angle2) * Math.cos(angle1) * this.transform.scale.x, this.transform.position.y + radius * Math.sin(angle2) * Math.sin(angle1) * this.transform.scale.y, this.transform.position.z + radius * Math.cos(angle1) * this.transform.scale.z);
     }
-    toRect() {
-        return new RectHitbox3D(this.position, v3.new(this.radius, this.radius, this.radius));
+    toBox() {
+        return new BoxHitbox3D(this.transform.position, v3.new(this.radius * this.transform.scale.x, this.radius * this.transform.scale.y, this.radius * this.transform.scale.z));
     }
 }
 export { Collision as Collision };
-export { HitboxType as HitboxType };
+export { HitboxType2D as HitboxType2D };
+export { HitboxType3D as HitboxType3D };
 export { BaseHitbox2D as BaseHitbox2D };
 export { NullHitbox2D as NullHitbox2D };
 export { CircleHitbox2D as CircleHitbox2D };
 export { RectHitbox2D as RectHitbox2D };
 export { BaseHitbox3D as BaseHitbox3D };
 export { NullHitbox3D as NullHitbox3D };
-export { RectHitbox3D as RectHitbox3D };
-export { CircleHitbox3D as CircleHitbox3D };
+export { BoxHitbox3D as BoxHitbox3D };
+export { SphereHitbox3D as SphereHitbox3D };
 class NetStream {
     buffer;
     pos;
@@ -1324,7 +1402,7 @@ class BaseObject2D {
     dirtyPart = false;
     manager;
     get position() {
-        return this.hb ? this.hb.position : NullVec2;
+        return this.hb ? this.hb.position : v2.new(0, 0);
     }
     set position(val) {
         this.hb.position = val;
@@ -1351,10 +1429,22 @@ class BaseObject3D {
     dirtyPart = false;
     manager;
     get position() {
-        return this.hb ? this.hb.position : NullVec3;
+        return this.hb ? this.hb.transform.position : v3.new(0, 0, 0);
     }
     set position(val) {
-        this.hb.position = val;
+        this.hb.transform.position = val;
+    }
+    get scale() {
+        return this.hb ? this.hb.transform.scale : v3.new(0, 0, 0);
+    }
+    set scale(val) {
+        this.hb.transform.scale = val;
+    }
+    get rotation() {
+        return this.hb ? this.hb.transform.rotation : v3.new(0, 0, 0);
+    }
+    set rotation(val) {
+        this.hb.transform.rotation = val;
     }
     constructor(){
         this.hb = new NullHitbox3D();
@@ -1395,30 +1485,45 @@ class CellsManager2D {
         this.cells = {};
         for (const c of Object.keys(this.objects)){
             for (const obj of Object.values(this.objects[c])){
-                const cp = this.cellPos(obj.position);
-                if (!this.cells[cp.y]) {
-                    this.cells[cp.y] = {};
+                const rect = obj.hb.toRect();
+                let min = this.cellPos(rect.position);
+                let max = this.cellPos(v2.add(rect.position, rect.size));
+                if (v2.less(max, min)) {
+                    const m = min;
+                    min = max;
+                    max = m;
                 }
-                if (!this.cells[cp.y][cp.x]) {
-                    this.cells[cp.y][cp.x] = {};
+                for(let y = min.y; y <= max.y; y++){
+                    if (!this.cells[y]) {
+                        this.cells[y] = {};
+                    }
+                    for(let x = min.x; x <= max.x; x++){
+                        if (!this.cells[y][x]) {
+                            this.cells[y][x] = {};
+                        }
+                        if (!this.cells[y][x][obj.category]) {
+                            this.cells[y][x][obj.category] = [];
+                        }
+                        this.cells[y][x][obj.category].push(obj);
+                    }
                 }
-                if (!this.cells[cp.y][cp.x][obj.category]) {
-                    this.cells[cp.y][cp.x][obj.category] = [];
-                }
-                this.cells[cp.y][cp.x][obj.category].push(obj);
             }
         }
     }
     get_objects(hitbox, categorys) {
         const rect = hitbox.toRect();
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v2.add(rect.position, rect.size));
+        let min = this.cellPos(rect.position);
+        let max = this.cellPos(v2.add(rect.position, rect.size));
+        if (v2.less(max, min)) {
+            const m = min;
+            min = max;
+            max = m;
+        }
         const objects = {};
-        for(let x = min.x, maxX = max.x; x <= maxX; x++){
-            for(let y = min.y, maxY = max.y; y <= maxY; y++){
-                if (!(this.cells[y] && this.cells[y][x])) {
-                    continue;
-                }
+        for(let y = min.y; y <= max.y; y++){
+            if (!this.cells[y]) continue;
+            for(let x = min.x; x <= max.x; x++){
+                if (!this.cells[y][x]) continue;
                 for (const c of categorys){
                     if (!objects[c]) {
                         objects[c] = [];
@@ -1431,17 +1536,18 @@ class CellsManager2D {
     }
     get_objects2(hitbox, categorys) {
         const rect = hitbox.toRect();
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v2.add(rect.position, rect.size));
+        let min = this.cellPos(rect.position);
+        let max = this.cellPos(v2.add(rect.position, rect.size));
+        if (v2.less(max, min)) {
+            const m = min;
+            min = max;
+            max = m;
+        }
         const objects = [];
         for(let y = min.y; y <= max.y; y++){
-            if (!this.cells[y]) {
-                continue;
-            }
+            if (!this.cells[y]) continue;
             for(let x = min.x; x <= max.x; x++){
-                if (!this.cells[y][x]) {
-                    continue;
-                }
+                if (!this.cells[y][x]) continue;
                 objects.push(...this.cells[y][x][categorys]);
             }
         }
@@ -1478,41 +1584,54 @@ class CellsManager3D {
         this.cells = {};
         for (const c of Object.keys(this.objects)){
             for (const obj of Object.values(this.objects[c])){
-                const cp = this.cellPos(obj.position);
-                if (!this.cells[cp.z]) {
-                    this.cells[cp.z] = {};
+                const rect = obj.hb.toBox().gmm();
+                let min = this.cellPos(rect.min);
+                let max = this.cellPos(rect.max);
+                if (v3.less(max, min)) {
+                    const m = min;
+                    min = max;
+                    max = m;
                 }
-                if (!this.cells[cp.z][cp.y]) {
-                    this.cells[cp.z][cp.y] = {};
+                for(let z = min.z; z <= max.z; z++){
+                    if (!this.cells[z]) {
+                        this.cells[z] = {};
+                    }
+                    for(let y = min.y; y <= max.y; y++){
+                        if (!this.cells[z][y]) {
+                            this.cells[z][y] = {};
+                        }
+                        for(let x = min.x; x <= max.x; x++){
+                            if (!this.cells[z][y][x]) {
+                                this.cells[z][y][x] = {};
+                            }
+                            if (!this.cells[z][y][x][obj.category]) {
+                                this.cells[z][y][x][obj.category] = [];
+                            }
+                            this.cells[z][y][x][obj.category].push(obj);
+                        }
+                    }
                 }
-                if (!this.cells[cp.z][cp.y][cp.x]) {
-                    this.cells[cp.z][cp.y][cp.x] = {};
-                }
-                if (!this.cells[cp.z][cp.y][cp.x][obj.category]) {
-                    this.cells[cp.z][cp.y][cp.x][obj.category] = [];
-                }
-                this.cells[cp.z][cp.y][cp.x][obj.category].push(obj);
             }
         }
     }
     get_objects(hitbox, categorys) {
-        const rect = hitbox.toRect();
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v3.add(rect.position, rect.size));
+        const rect = hitbox.toBox().gmm();
+        let min = this.cellPos(rect.min);
+        let max = this.cellPos(rect.max);
+        if (v3.less(max, min)) {
+            const m = min;
+            min = max;
+            max = m;
+        }
         const objects = {};
         for(let z = min.z; z <= max.z; z++){
-            if (!this.cells[z]) {
-                continue;
-            }
+            if (!this.cells[z]) continue;
             for(let y = min.y; y <= max.y; y++){
-                if (!this.cells[z][y]) {
-                    continue;
-                }
-                for(let x = min.x; min.x <= max.x; x++){
-                    if (!this.cells[z][y][x]) {
-                        continue;
-                    }
+                if (!this.cells[z][y]) continue;
+                for(let x = min.x; x <= max.x; x++){
+                    if (!this.cells[z][y][x]) continue;
                     for (const c of categorys){
+                        if (!this.cells[z][y][x][c]) continue;
                         if (!objects[c]) {
                             objects[c] = [];
                         }
@@ -1524,22 +1643,21 @@ class CellsManager3D {
         return objects;
     }
     get_objects2(hitbox, categorys) {
-        const rect = hitbox.toRect();
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v3.add(rect.position, rect.size));
+        const rect = hitbox.toBox().gmm();
+        let min = this.cellPos(rect.min);
+        let max = this.cellPos(rect.max);
+        if (v3.less(max, min)) {
+            const m = min;
+            min = max;
+            max = m;
+        }
         const objects = [];
-        for(let z = min.z; z <= max.z; z++){
-            if (!this.cells[z]) {
-                continue;
-            }
+        for(let z = min.z; z < max.z; z++){
+            if (!this.cells[z]) continue;
             for(let y = min.y; y <= max.y; y++){
-                if (!this.cells[z][y]) {
-                    continue;
-                }
-                for(let x = min.x; min.x <= max.x; x++){
-                    if (!this.cells[z][y][x]) {
-                        continue;
-                    }
+                if (!this.cells[z][y]) continue;
+                for(let x = min.x; x <= max.x; x++){
+                    if (!this.cells[z][y][x]) continue;
                     objects.push(...this.cells[z][y][x][categorys]);
                 }
             }
@@ -1559,7 +1677,16 @@ class GameObjectManager2D {
         this.cells = new CellsManager2D(cellsSize);
         this.stream = new NetStream(new Uint8Array());
     }
-    add_object(obj, category, id) {
+    clear() {
+        for(const c in this.objects){
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                this.unregister(this.objects[c].objects[o].get_key());
+            }
+        }
+        this.objects = {};
+    }
+    add_object(obj, category, id, args) {
         if (!this.objects[category]) {
             throw new Error(`Invalid Category ${category}`);
         }
@@ -1577,8 +1704,9 @@ class GameObjectManager2D {
         obj.manager = this;
         this.objects[category].objects[obj.id] = obj;
         this.objects[category].orden.push(obj.id);
-        obj.create();
+        obj.create(args ?? {});
         this.cells.registry(obj);
+        return obj;
     }
     get_object(obj) {
         return this.objects[obj.category].objects[obj.id];
@@ -1664,11 +1792,7 @@ class GameObjectManager2D {
                     this.objects[c].objects[o].dirtyPart = true;
                 }
                 if (this.objects[c].objects[o].destroyed) {
-                    if (this.objects[c].objects[o].calldestroy) {
-                        this.ondestroy(this.objects[c].objects[o]);
-                        this.objects[c].objects[o].onDestroy();
-                    }
-                    this.cells.unregistry(this.objects[c].objects[o].get_key());
+                    this.unregister(this.objects[c].objects[o].get_key());
                     delete this.objects[c].objects[o];
                     this.objects[c].orden.splice(j, 1);
                     j--;
@@ -1677,12 +1801,153 @@ class GameObjectManager2D {
             }
         }
     }
+    unregister(k) {
+        if (this.objects[k.category].objects[k.id].calldestroy) {
+            this.ondestroy(this.objects[k.category].objects[k.id]);
+            this.objects[k.category].objects[k.id].onDestroy();
+        }
+        this.cells.unregistry(this.objects[k.category].objects[k.id].get_key());
+    }
 }
-class GameObjectManager3D extends GameObjectManager2D {
+class GameObjectManager3D {
     cells;
+    objects = {};
+    stream;
+    ondestroy = (_)=>{};
     constructor(cellsSize){
-        super(cellsSize);
         this.cells = new CellsManager3D(cellsSize);
+        this.stream = new NetStream(new Uint8Array());
+    }
+    add_object(obj, category, id, args) {
+        if (!this.objects[category]) {
+            throw new Error(`Invalid Category ${category}`);
+        }
+        if (id === undefined) {
+            while(id === undefined){
+                id = random.id();
+                if (this.objects[category].objects[id]) {
+                    id = undefined;
+                }
+            }
+        }
+        obj.id = id;
+        obj.category = category;
+        obj.dirty = true;
+        obj.manager = this;
+        this.objects[category].objects[obj.id] = obj;
+        this.objects[category].orden.push(obj.id);
+        obj.create(args ?? {});
+        this.cells.registry(obj);
+        return obj;
+    }
+    get_object(obj) {
+        return this.objects[obj.category].objects[obj.id];
+    }
+    exist(obj) {
+        return Object.hasOwn(this.objects, obj.category) && Object.hasOwn(this.objects[obj.category].objects, obj.id);
+    }
+    alive_count(category) {
+        return this.objects[category].orden.length;
+    }
+    add_category(category) {
+        this.objects[category] = {
+            orden: [],
+            objects: {}
+        };
+    }
+    proccess(packet, oncreate) {
+        const csize = packet.stream.readUInt16();
+        for(let i = 0; i < csize; i++){
+            const category = packet.stream.readString();
+            if (!this.objects[category]) {
+                continue;
+            }
+            const osize = packet.stream.readUInt16();
+            for(let j = 0; j < osize; j++){
+                const oid = this.stream.readID();
+                if (!this.objects[category].objects[oid]) {
+                    oncreate({
+                        category: category,
+                        id: oid
+                    });
+                }
+                const dir = this.stream.readUInt8();
+                if (dir > 0) {
+                    if (dir >= 100) {
+                        this.objects[category].objects[oid].destroyed = true;
+                        continue;
+                    }
+                    this.objects[category].objects[oid].dirtyPart = true;
+                    this.objects[category].objects[oid].decodePart(packet.stream);
+                    if (dir > 1) {
+                        this.objects[category].objects[oid].dirty = true;
+                        this.objects[category].objects[oid].decodeComplete(packet.stream);
+                    }
+                }
+            }
+        }
+    }
+    encode() {
+        const stream = new NetStream();
+        stream.writeUInt16(Object.keys(this.objects).length);
+        for(const c in this.objects){
+            stream.writeString(c);
+            stream.writeUInt16(this.objects[c].orden.length);
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                stream.writeID(o);
+                stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                this.objects[c].objects[o].encodePart(stream);
+                this.objects[c].objects[o].encodeComplete(stream);
+            }
+        }
+        return new ObjectsPacket(stream);
+    }
+    update() {
+        this.cells.update();
+        this.stream.clear();
+        this.stream.writeUInt16(Object.keys(this.objects).length);
+        for(const c in this.objects){
+            this.stream.writeString(c);
+            this.stream.writeUInt16(this.objects[c].orden.length);
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                this.objects[c].objects[o].update();
+                this.stream.writeID(o);
+                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
+                    this.objects[c].objects[o].encodePart(this.stream);
+                    if (this.objects[c].objects[o].dirty) {
+                        this.objects[c].objects[o].dirty = false;
+                        this.objects[c].objects[o].encodeComplete(this.stream);
+                    }
+                    this.objects[c].objects[o].dirtyPart = true;
+                }
+                if (this.objects[c].objects[o].destroyed) {
+                    this.unregister(this.objects[c].objects[o].get_key());
+                    delete this.objects[c].objects[o];
+                    this.objects[c].orden.splice(j, 1);
+                    j--;
+                    continue;
+                }
+            }
+        }
+    }
+    clear() {
+        for(const c in this.objects){
+            for(let j = 0; j < this.objects[c].orden.length; j++){
+                const o = this.objects[c].orden[j];
+                this.unregister(this.objects[c].objects[o].get_key());
+            }
+        }
+        this.objects = {};
+    }
+    unregister(k) {
+        if (this.objects[k.category].objects[k.id].calldestroy) {
+            this.ondestroy(this.objects[k.category].objects[k.id]);
+            this.objects[k.category].objects[k.id].onDestroy();
+        }
+        this.cells.unregistry(this.objects[k.category].objects[k.id].get_key());
     }
 }
 export { BaseObject2D as BaseObject2D };
@@ -1755,20 +2020,89 @@ class BaseGameObject3D extends BaseObject3D {
         super();
     }
 }
+class Scene2DInstance {
+    scene;
+    objects;
+    cells;
+    game;
+    constructor(scene, game){
+        this.scene = scene;
+        this.objects = new GameObjectManager2D(scene.cellsSize);
+        this.cells = this.objects.cells;
+        this.game = game;
+        this.reset();
+    }
+    reset() {
+        this.objects.clear();
+        this.objects.add_object = (obj, category, id, args)=>{
+            const ret = GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args);
+            ret.game = this.game;
+            return ret;
+        };
+        for(const c in this.scene.objects){
+            this.objects.add_category(c);
+            for (const o of this.scene.objects[c]){
+                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals);
+                if (o.position) obj.position = cloneDeep(o.position);
+            }
+        }
+    }
+    asyncReset() {
+        return new Promise((resolve)=>{
+            resolve(this.reset());
+        });
+    }
+}
+class Scene3DInstance {
+    scene;
+    objects;
+    cells;
+    game;
+    constructor(scene, game){
+        this.scene = scene;
+        this.objects = new GameObjectManager3D(scene.cellsSize);
+        this.cells = this.objects.cells;
+        this.game = game;
+        this.reset();
+    }
+    reset() {
+        this.objects.clear();
+        this.objects.add_object = (obj, category, id, args)=>{
+            const ret = GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args);
+            ret.game = this.game;
+            return ret;
+        };
+        for(const c in this.scene.objects){
+            this.objects.add_category(c);
+            for (const o of this.scene.objects[c]){
+                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals);
+                if (o.position) obj.position = o.position;
+                if (o.scale) obj.hb.transform.scale = cloneDeep(o.scale);
+                if (o.rotation) obj.hb.transform.rotation = cloneDeep(o.rotation);
+            }
+        }
+    }
+    asyncReset() {
+        return new Promise((resolve)=>{
+            resolve(this.reset());
+        });
+    }
+}
 class Game2D {
     tps;
     clock;
     running = true;
     events;
+    scene;
     objects;
     constructor(tps, objects){
         this.tps = tps;
         this.events = new EventsManager();
         this.clock = new Clock(tps, 1);
-        this.objects = objects ?? new GameObjectManager2D(32);
-        this.objects.add_object = (obj, category, id)=>{
-            GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id);
-        };
+        this.objects = objects;
+        this.scene = new Scene2DInstance({
+            objects: {}
+        }, this);
     }
     add_plugin(plugin) {
         plugin.game = this;
@@ -1778,7 +2112,7 @@ class Game2D {
         this.events.clearAll();
     }
     update() {
-        this.objects.update();
+        this.scene.objects.update();
         this.on_update();
         this.events.emit(DefaultEvents.GameTick, this);
         this.clock.tick(this.update.bind(this));
@@ -1789,6 +2123,14 @@ class Game2D {
         this.on_run();
         this.events.emit(DefaultEvents.GameRun, this);
         this.update();
+    }
+    instantiate(scene) {
+        return new Scene2DInstance(scene, this);
+    }
+    asyncInstantiate(scene) {
+        return new Promise((resolve, _reject)=>{
+            resolve(new Scene2DInstance(scene, this));
+        });
     }
 }
 class Game3D {
@@ -1796,15 +2138,16 @@ class Game3D {
     clock;
     running = true;
     events;
+    scene;
     objects;
     constructor(tps, objects){
         this.tps = tps;
         this.events = new EventsManager();
         this.clock = new Clock(tps, 1);
-        this.objects = objects ?? new GameObjectManager3D(32);
-        this.objects.add_object = (obj, category, id)=>{
-            GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id);
-        };
+        this.objects = objects;
+        this.scene = new Scene3DInstance({
+            objects: {}
+        }, this);
     }
     add_plugin(plugin) {
         plugin.game = this;
@@ -1814,7 +2157,7 @@ class Game3D {
         this.events.clearAll();
     }
     update() {
-        this.objects.update();
+        this.scene.objects.update();
         this.on_update();
         this.events.emit(DefaultEvents.GameTick, this);
         this.clock.tick(this.update.bind(this));
@@ -1825,6 +2168,14 @@ class Game3D {
         this.on_run();
         this.events.emit(DefaultEvents.GameRun, this);
         this.update();
+    }
+    instantiate(scene) {
+        return new Scene3DInstance(scene, this);
+    }
+    asyncInstantiate(scene) {
+        return new Promise((resolve, _reject)=>{
+            resolve(new Scene3DInstance(scene, this));
+        });
     }
 }
 export { DefaultEvents as DefaultEvents };
@@ -1833,6 +2184,8 @@ export { Game3DPlugin as Game3DPlugin };
 export { EventsManager as EventsManager };
 export { BaseGameObject2D as BaseGameObject2D };
 export { BaseGameObject3D as BaseGameObject3D };
+export { Scene2DInstance as Scene2DInstance };
+export { Scene3DInstance as Scene3DInstance };
 export { Game2D as Game2D };
 export { Game3D as Game3D };
 class Item {
@@ -1978,7 +2331,7 @@ class Model3D {
         const min = v3.new(0, 0, 0);
         const max = v3.new(0, 0, 0);
         for(let i = 0; i + 2 <= this._vertices.length; i += 3){
-            const p = v3.new(this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]);
+            const p = v3.new(-this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]);
             if (v3.lessOr(p, min)) {
                 if (p.x < min.x) {
                     min.x = p.x;
@@ -2001,7 +2354,168 @@ class Model3D {
                 }
             }
         }
-        return new RectHitbox3D(v3.new(0, 0, 0), v3.add(v3.absolute(min), v3.absolute(max)));
+        return new BoxHitbox3D(v3.new(0, 0, 0), v3.add(v3.absolute(min), v3.absolute(max)));
+    }
+    addFace3(face) {
+        const ret = {
+            p1: -1,
+            p2: -1,
+            p3: -1,
+            i: 0
+        };
+        for(let i = 0; i < this._vertices.length; i += 3){
+            const v = v3.new(-this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]);
+            if (v3.is(face.p1, v)) {
+                ret.p1 = i;
+            }
+            if (v3.is(face.p2, v)) {
+                ret.p2 = i;
+            }
+            if (v3.is(face.p3, v)) {
+                ret.p3 = i;
+            }
+        }
+        ret.i = this._indices.length;
+        if (ret.p1 === -1) {
+            this._indices.push(Math.floor(this._vertices.length / 3));
+            ret.p1 = this._vertices.length;
+            this._vertices.push(-face.p1.x, face.p1.y, face.p1.z);
+        } else {
+            this._indices.push(Math.floor(ret.p1 / 3));
+        }
+        if (ret.p2 === -1) {
+            this._indices.push(Math.floor(this._vertices.length / 3));
+            ret.p2 = this._vertices.length;
+            this._vertices.push(-face.p2.x, face.p2.y, face.p2.z);
+        } else {
+            this._indices.push(Math.floor(ret.p2 / 3));
+        }
+        if (ret.p3 === -1) {
+            this._indices.push(Math.floor(this._vertices.length / 3));
+            ret.p3 = this._vertices.length;
+            this._vertices.push(-face.p3.x, face.p3.y, face.p3.z);
+        } else {
+            this._indices.push(Math.floor(ret.p3 / 3));
+        }
+        if (face.normal) {
+            ret.normal = {
+                p1: -1,
+                p2: -1,
+                p3: -1,
+                i: this._normalsM.length
+            };
+            for(let i = 0; i < this._normals.length; i += 3){
+                const v = v3.new(this._normals[i], this._normals[i + 1], this._normals[i + 2]);
+                if (v3.is(face.normal.p1, v)) {
+                    ret.normal.p1 = i;
+                }
+                if (v3.is(face.normal.p2, v)) {
+                    ret.normal.p2 = i;
+                }
+                if (v3.is(face.normal.p3, v)) {
+                    ret.normal.p3 = i;
+                }
+            }
+            if (ret.normal.p1 === -1) {
+                this._normalsM.push(Math.floor(this._normals.length / 3));
+                ret.normal.p1 = this._normals.length;
+                this._normals.push(face.normal.p1.x, face.normal.p1.y, face.normal.p1.z);
+            } else {
+                this._normalsM.push(Math.floor(ret.normal.p1 / 3));
+            }
+            if (ret.normal.p2 === -1) {
+                this._normalsM.push(Math.floor(this._normals.length / 3));
+                ret.normal.p2 = this._vertices.length;
+                this._normals.push(face.normal.p2.x, face.normal.p2.y, face.normal.p2.z);
+            } else {
+                this._normalsM.push(Math.floor(ret.normal.p2 / 3));
+            }
+            if (ret.normal.p3 === -1) {
+                this._normalsM.push(Math.floor(this._normals.length / 3));
+                ret.normal.p3 = this._normals.length;
+                this._normals.push(face.normal.p3.x, face.normal.p3.y, face.normal.p3.z);
+            } else {
+                this._normalsM.push(Math.floor(ret.normal.p3 / 3));
+            }
+        }
+        if (face.texture) {
+            ret.texture = {
+                p1: -1,
+                p2: -1,
+                p3: -1,
+                i: this._normalsM.length
+            };
+            for(let i = 0; i < this._texCoords.length; i += 3){
+                const v = v3.new(this._texCoords[i], this._texCoords[i + 1], this._texCoords[i + 2]);
+                if (v3.is(face.texture.p1, v)) {
+                    ret.texture.p1 = i;
+                }
+                if (v3.is(face.texture.p2, v)) {
+                    ret.texture.p2 = i;
+                }
+                if (v3.is(face.texture.p3, v)) {
+                    ret.texture.p3 = i;
+                }
+            }
+            if (ret.texture.p1 === -1) {
+                this._texCoordsM.push(Math.floor(this._texCoords.length / 3));
+                ret.texture.p1 = this._normals.length;
+                this._texCoords.push(face.texture.p1.x, face.texture.p1.y, face.texture.p1.z);
+            } else {
+                this._texCoordsM.push(Math.floor(ret.texture.p1 / 3));
+            }
+            if (ret.texture.p2 === -1) {
+                this._texCoordsM.push(Math.floor(this._texCoords.length / 3));
+                ret.texture.p2 = this._normals.length;
+                this._texCoords.push(face.texture.p2.x, face.texture.p2.y, face.texture.p2.z);
+            } else {
+                this._texCoordsM.push(Math.floor(ret.texture.p2 / 3));
+            }
+            if (ret.texture.p3 === -1) {
+                this._texCoordsM.push(Math.floor(this._texCoords.length / 3));
+                ret.texture.p3 = this._normals.length;
+                this._texCoords.push(face.texture.p3.x, face.texture.p3.y, face.texture.p3.z);
+            } else {
+                this._texCoordsM.push(Math.floor(ret.texture.p3 / 3));
+            }
+        }
+        return ret;
+    }
+    addFace4(face) {
+        const f1 = this.addFace3({
+            p1: face.p1,
+            p2: face.p2,
+            p3: face.p3,
+            normal: face.normal ? {
+                p1: face.normal.p1,
+                p2: face.normal.p2,
+                p3: face.normal.p3
+            } : undefined,
+            texture: face.texture ? {
+                p1: face.texture.p1,
+                p2: face.texture.p2,
+                p3: face.texture.p3
+            } : undefined
+        });
+        const f2 = this.addFace3({
+            p1: face.p1,
+            p2: face.p4,
+            p3: face.p3,
+            normal: face.normal ? {
+                p1: face.normal.p1,
+                p2: face.normal.p4,
+                p3: face.normal.p3
+            } : undefined,
+            texture: face.texture ? {
+                p1: face.texture.p1,
+                p2: face.texture.p4,
+                p3: face.texture.p3
+            } : undefined
+        });
+        return {
+            0: f1,
+            1: f2
+        };
     }
 }
 const m3 = Object.freeze({
@@ -2010,66 +2524,66 @@ const m3 = Object.freeze({
         ret._vertices = [
             0,
             0,
-            0,
             s,
             0,
             0,
-            0,
             s,
-            0,
+            -s,
             s,
             s,
-            0,
-            0,
-            0,
+            -0,
             s,
             s,
             0,
+            0,
+            0,
+            -s,
+            0,
+            0,
+            -s,
             s,
             0,
+            0,
             s,
-            s,
-            s,
-            s,
-            s
+            0
         ];
         ret._indices = [
             0,
             1,
             2,
-            1,
-            3,
-            2,
-            4,
-            5,
-            6,
-            5,
-            7,
-            6,
-            0,
-            1,
-            4,
-            1,
-            5,
-            4,
-            2,
-            3,
-            6,
-            3,
-            7,
-            6,
             0,
             2,
+            3,
             4,
-            2,
+            5,
             6,
             4,
-            1,
+            6,
+            7,
             3,
+            2,
+            6,
+            3,
+            6,
+            7,
+            0,
+            1,
             5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            0,
             3,
             7,
-            5
+            0,
+            7,
+            4
         ];
         return ret;
     },
@@ -2081,6 +2595,7 @@ const m3 = Object.freeze({
             if (line.startsWith('v ')) {
                 const parts = line.split(/\s+/);
                 const vertex = parts.slice(1).map(parseFloat);
+                vertex[0] *= -1;
                 ret._vertices.push(...vertex);
             } else if (line.startsWith('vn ')) {
                 const parts = line.split(/\s+/);

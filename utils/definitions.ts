@@ -1,5 +1,4 @@
 import { mergeDeep, splitPath } from "./_utils.ts";
-import { type BaseGameObject3D, type BaseGameObject2D } from "./game.ts";
 
 export class Definitions<Type>{
     public value:Record<string,Type>
@@ -62,24 +61,6 @@ export class Tree<Type> extends Definitions<Type>{
             }
         }
     }
-}
-export enum DefaultGameDefs{
-    Objects="objects",
-}
-export type DefaultGameDefsMap={
-    [DefaultGameDefs.Objects]:(new()=>BaseGameObject2D|BaseGameObject3D)
-}
-export type GameDefs<Defs extends DefaultGameDefs, Map extends DefaultGameDefsMap>={
-    [K in Defs]: Definitions<Map[K]>
-}
-export function NewGameDef<Defs extends DefaultGameDefs, Map extends DefaultGameDefsMap>(defs:Defs[]):GameDefs<Defs,Map>{
-    const ret:Partial<GameDefs<Defs,Map>>={}
-    for(const i of defs){
-        ret[i]=new Definitions()
-    }
-    // deno-lint-ignore ban-ts-comment
-    //@ts-expect-error
-    return ret
 }
 export class ExtendedMap<K, V> extends Map<K, V> {
     private _get(key: K): V {

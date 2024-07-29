@@ -1,5 +1,5 @@
-import { Vec2, v2 } from "../mod.ts";
 import { SignalManager } from "../utils/_utils.ts";
+import { Vec2, v2 } from "../utils/geometry.ts";
 
 export enum Key{
     A=0,

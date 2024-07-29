@@ -1,0 +1,33 @@
+{
+    "objects":{
+        "players":[
+            {
+                "type":"player",
+                "position":{"x":-2,"y":5,"z":5}
+            }
+        ],
+        "walls":[
+            {
+                "type":"wall",
+                "position":{"x":0,"y":0,"z":5},
+                "scale":{"x":10,"y":2,"z":10}
+            },
+            {
+                "type":"wall",
+                "position":{"x":-4,"y":2,"z":7},
+                "scale":{"x":1,"y":4,"z":1},
+                "vals":{
+                    "color":{"r":100,"g":40,"b":0}
+                }
+            },
+            {
+                "type":"wall",
+                "position":{"x":-2,"y":6,"z":5},
+                "scale":{"x":5,"y":4,"z":5},
+                "vals":{
+                    "color":{"r":0,"g":200,"b":0}
+                }
+            }
+        ]
+    }
+}

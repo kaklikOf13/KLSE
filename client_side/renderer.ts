@@ -1,5 +1,6 @@
+import { v3 } from "../mod.ts";
 import { NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
-import { CircleHitbox2D, Hitbox2D, HitboxType, RectHitbox2D, RectHitbox3D } from "../utils/hitbox.ts"
+import { CircleHitbox2D, Hitbox2D, HitboxType2D,HitboxType3D, RectHitbox2D, BoxHitbox3D } from "../utils/hitbox.ts"
 import { Model3D } from "../utils/models.ts";
 import { type Sprite } from "./resources.ts";
 
@@ -21,8 +22,12 @@ export const RGBA = Object.freeze({
      */
     new(r: number, g: number, b: number, a: number = 255): Color {
         return { r: r / 255, g: g / 255, b: b / 255, a: a / 255 };
+    },
+    from(json:RGBAT): Color{
+        return {r:json.r/255,g:json.g/255,b:json.b/255,a:(json.a??255)/255}
     }
-});
+})
+export type RGBAT={r: number, g: number, b: number, a?: number}
 
 export abstract class Renderer {
     canvas: HTMLCanvasElement
@@ -36,7 +41,7 @@ export abstract class Renderer {
     abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color): void
     abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void
 
-    abstract draw_iso_rect(rect: RectHitbox3D, color: Color): void
+    abstract draw_iso_rect(rect: BoxHitbox3D, color: Color): void
     abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
     abstract clear(): void
 }
@@ -91,10 +96,12 @@ mat3 rotationMatrix(vec3 r) {
 
     return rotZ * rotY * rotX;
 }
+const float camRot=0.05;
+const float camRot2=1.3;
 void main() {
     translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
-    vec2 isoP = vec2(translatedPosition.z+translatedPosition.x, (-translatedPosition.y)+(translatedPosition.x-translatedPosition.z));
-    v_SH=translatedPosition.y;
+    vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);
+    v_SH=isoP.y;
     gl_Position = u_ProjectionMatrix * vec4(isoP, (translatedPosition.z/1000.0), 1.0);
 }
 `;
@@ -118,7 +125,7 @@ precision highp float;
 uniform vec4 a_Color;
 varying float v_SH;
 void main() {
-    float shadowIntensity = smoothstep(0.0, 0.4, (v_SH/10.0));
+    float shadowIntensity = smoothstep(0.0, 0.4, (v_SH/100.0));
     gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), 0.4-shadowIntensity);
 }
 `;
@@ -237,10 +244,10 @@ export class WebglRenderer extends Renderer {
 
     draw_hitbox2D(hitbox: Hitbox2D, color: Color): void {
         switch (hitbox.type) {
-            case HitboxType.circle:
+            case HitboxType2D.circle:
                 this.draw_circle2D(hitbox, color);
                 break;
-            case HitboxType.rect:
+            case HitboxType2D.rect:
                 this.draw_rect2D(hitbox, color);
                 break;
             default:
@@ -359,7 +366,7 @@ export class WebglRenderer extends Renderer {
             gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0);
         }
     }
-    draw_iso_rect(rect: RectHitbox3D, color: Color, wireframe: boolean = false,simple_shadow:boolean=false){
+    draw_iso_rect(rect: BoxHitbox3D, color: Color, wireframe: boolean = false,simple_shadow:boolean=false){
         this._iso_draw_vertices_color([
             // Front face
              0, 0, 1,
@@ -385,7 +392,7 @@ export class WebglRenderer extends Renderer {
             1, 2, 6, 1, 6, 5,
             // Left face
             0, 3, 7, 0, 7, 4
-        ],rect.position,rect.size,NullVec3, color, wireframe,simple_shadow)
+        ],rect.transform.position,v3.mult(rect.size,rect.transform.scale),NullVec3, color, wireframe,simple_shadow)
     }
     color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
         this._iso_draw_vertices_color(m._vertices,m._indices,position,scale,rot,color,wireframe,simple_shadow)

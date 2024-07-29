@@ -1,5 +1,5 @@
 import { type Vec3, v3 } from "./geometry.ts";
-import { RectHitbox3D } from "./hitbox.ts";
+import { BoxHitbox3D } from "./hitbox.ts";
 export interface Face3{
     p1:Vec3
     p2:Vec3
@@ -66,7 +66,7 @@ export class Model3D{
         this._texCoords=[]
         this._texCoordsM=[]
     }
-    toRect():RectHitbox3D{
+    toRect():BoxHitbox3D{
         const min=v3.new(0,0,0)
         const max=v3.new(0,0,0)
         for(let i=0;i+2<=this._vertices.length;i+=3){
@@ -93,7 +93,7 @@ export class Model3D{
                 }
             }
         }
-        return new RectHitbox3D(v3.new(0,0,0),v3.add(v3.absolute(min),v3.absolute(max)))
+        return new BoxHitbox3D(v3.new(0,0,0),v3.add(v3.absolute(min),v3.absolute(max)))
     }
     addFace3(face:Face3):FaceId{
         const ret:FaceId={p1:-1,p2:-1,p3:-1,i:0}

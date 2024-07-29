@@ -1,4 +1,4 @@
-import { NullVec2, NullVec3, v2, v3, Vec2, Vec3 } from "./geometry.ts"
+import { v2, v3, Vec2, Vec3 } from "./geometry.ts"
 import { type Hitbox2D, NullHitbox2D, Hitbox3D, NullHitbox3D } from "./hitbox.ts"
 import { type ID, type Tags } from "./_utils.ts"
 import { NetStream } from "./stream.ts";
@@ -16,7 +16,7 @@ export abstract class BaseObject2D{
     // deno-lint-ignore no-explicit-any
     public manager!:GameObjectManager2D<any>
     public get position():Vec2{
-        return this.hb ? this.hb.position : NullVec2
+        return this.hb ? this.hb.position : v2.new(0,0)
     }
     set position(val:Vec2){
         this.hb.position=val
@@ -47,25 +47,31 @@ export abstract class BaseObject3D{
     public dirtyPart:boolean=false
     // deno-lint-ignore no-explicit-any
     public manager!:GameObjectManager2D<any>
+
     public get position():Vec3{
-        return this.hb ? this.hb.position : NullVec3
+        return this.hb ? this.hb.transform.position : v3.new(0,0,0)
     }
     set position(val:Vec3){
-        this.hb.position=val
+        this.hb.transform.position=val
     }
-    public rotation:Vec3
-    private _scale:Vec3
+
     public get scale():Vec3{
-        return this._scale
+        return this.hb ? this.hb.transform.scale : v3.new(0,0,0)
     }
-    public set scale(val:Vec3){
-        this._scale=v3.mult(this._scale,val)
+    set scale(val:Vec3){
+        this.hb.transform.scale=val
     }
+
+    public get rotation():Vec3{
+        return this.hb ? this.hb.transform.rotation : v3.new(0,0,0)
+    }
+    set rotation(val:Vec3){
+        this.hb.transform.rotation=val
+    }
+
     constructor(){
         this.hb=new NullHitbox3D()
         this.destroyed=false
-        this.rotation=v3.new(0,0,0)
-        this._scale=v3.new(1,1,1)
     }
     abstract update():void
     // deno-lint-ignore no-explicit-any
@@ -112,35 +118,45 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
         this.cells={}
         for(const c of Object.keys(this.objects)){
             for(const obj of Object.values(this.objects[c])){
-                const cp=this.cellPos(obj.position)
-                if(!this.cells[cp.y]){
-                    this.cells[cp.y]={}
+                const rect=obj.hb.toRect()
+                let min = this.cellPos(rect.position)
+                let max = this.cellPos(v2.add(rect.position,rect.size))
+                if(v2.less(max,min)){
+                    const m=min
+                    min=max
+                    max=m
                 }
-                if(!this.cells[cp.y][cp.x]){
-                    this.cells[cp.y][cp.x]={}
+                for(let y=min.y;y<=max.y;y++){
+                    if(!this.cells[y]){
+                        this.cells[y]={}
+                    }
+                    for(let x=min.x;x<=max.x;x++){
+                        if(!this.cells[y][x]){
+                            this.cells[y][x]={}
+                        }
+                        if(!(this.cells[y][x][obj.category])){
+                            this.cells[y][x][obj.category]=[]
+                        }
+                        this.cells[y][x][obj.category].push(obj)
+                    }
                 }
-                if(!(this.cells[cp.y][cp.x][obj.category])){
-                    this.cells[cp.y][cp.x][obj.category]=[]
-                }
-                this.cells[cp.y][cp.x][obj.category].push(obj)
             }
         }
     }
     get_objects(hitbox:Hitbox2D,categorys:Tags):Record<string,GameObject[]>{
         const rect=hitbox.toRect()
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v2.add(rect.position,rect.size));
+        let min = this.cellPos(rect.position)
+        let max = this.cellPos(v2.add(rect.position,rect.size))
+        if(v2.less(max,min)){
+            const m=min
+            min=max
+            max=m
+        }
         const objects:Record<string,GameObject[]> = {};
-        const walky=(max.y-min.y)<0?-1:1
-        const walkx=(max.x-min.x)<0?-1:1
-        for (let y = min.y;max.y-y>-walky;y+=walky) {
-            if(!(this.cells[y])){
-                continue
-            }
-            for (let x = min.x;max.x-x>-walkx;x+=walkx) {
-                if(!(this.cells[y][x])){
-                    continue
-                }
+        for(let y=min.y;y<=max.y;y++){
+            if(!this.cells[y])continue
+            for(let x=min.x;x<=max.x;x++){
+                if(!this.cells[y][x])continue
                 for (const c of categorys) {
                     if(!objects[c]){
                         objects[c]=[]
@@ -153,19 +169,18 @@ export class CellsManager2D<GameObject extends BaseObject2D=BaseObject2D>{
     }
     get_objects2(hitbox:Hitbox2D,categorys:string):GameObject[]{
         const rect=hitbox.toRect()
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v2.add(rect.position,rect.size));
-        const objects:GameObject[] = [];
-        const walky=(max.y-min.y)<0?-1:1
-        const walkx=(max.x-min.x)<0?-1:1
-        for (let y = min.y;max.y-y>-walky;y+=walky) {
-            if(!(this.cells[y])){
-                continue
-            }
-            for (let x = min.x;max.x-x>-walkx;x+=walkx) {
-                if(!(this.cells[y][x])){
-                    continue
-                }
+        let min = this.cellPos(rect.position)
+        let max = this.cellPos(v2.add(rect.position,rect.size))
+        if(v2.less(max,min)){
+            const m=min
+            min=max
+            max=m
+        }
+        const objects:GameObject[] = []
+        for(let y=min.y;y<=max.y;y++){
+            if(!this.cells[y])continue
+            for(let x=min.x;x<=max.x;x++){
+                if(!this.cells[y][x])continue
                 objects.push(...this.cells[y][x][categorys])
             }
         }
@@ -204,44 +219,54 @@ export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
         this.cells={}
         for(const c of Object.keys(this.objects)){
             for(const obj of Object.values(this.objects[c])){
-                const cp=this.cellPos(obj.position)
-                if(!this.cells[cp.z]){
-                    this.cells[cp.z]={}
+                const rect=obj.hb.toBox().gmm()
+                let min = this.cellPos(rect.min)
+                let max = this.cellPos(rect.max)
+                if(v3.less(max,min)){
+                    const m=min
+                    min=max
+                    max=m
                 }
-                if(!this.cells[cp.z][cp.y]){
-                    this.cells[cp.z][cp.y]={}
+                for(let z=min.z;z<=max.z;z++){
+                    if(!this.cells[z]){
+                        this.cells[z]={}
+                    }
+                    for(let y=min.y;y<=max.y;y++){
+                        if(!this.cells[z][y]){
+                            this.cells[z][y]={}
+                        }
+                        for(let x=min.x;x<=max.x;x++){
+                            if(!this.cells[z][y][x]){
+                                this.cells[z][y][x]={}
+                            }
+                            if(!(this.cells[z][y][x][obj.category])){
+                                this.cells[z][y][x][obj.category]=[]
+                            }
+                            this.cells[z][y][x][obj.category].push(obj)
+                        }
+                    }
                 }
-                if(!this.cells[cp.z][cp.y][cp.x]){
-                    this.cells[cp.z][cp.y][cp.x]={}
-                }
-                if(!(this.cells[cp.z][cp.y][cp.x][obj.category])){
-                    this.cells[cp.z][cp.y][cp.x][obj.category]=[]
-                }
-                this.cells[cp.z][cp.y][cp.x][obj.category].push(obj)
             }
         }
     }
     get_objects(hitbox:Hitbox3D,categorys:Tags):Record<string,GameObject[]>{
-        const rect=hitbox.toRect()
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v3.add(rect.position,rect.size));
+        const rect=hitbox.toBox().gmm()
+        let min = this.cellPos(rect.min)
+        let max = this.cellPos(rect.max)
+        if(v3.less(max,min)){
+            const m=min
+            min=max
+            max=m
+        }
         const objects:Record<string,GameObject[]> = {}
-        const walkz=(max.z-min.z)<0?-1:1
-        const walky=(max.y-min.y)<0?-1:1
-        const walkx=(max.x-min.x)<0?-1:1
-        for (let z:number = min.z;max.z-z>-walkz;z+=walkz) {
-            if(!(this.cells[z])){
-                continue
-            }
-            for (let y = min.y;max.y-y>-walky;y+=walky) {
-                if(!(this.cells[z][y])){
-                    continue
-                }
-                for (let x = min.x;max.x-x>-walkx;x+=walkx) {
-                    if(!(this.cells[z][y][x])){
-                        continue
-                    }
+        for(let z=min.z;z<=max.z;z++){
+            if(!this.cells[z])continue
+            for(let y=min.y;y<=max.y;y++){
+                if(!this.cells[z][y])continue
+                for(let x=min.x;x<=max.x;x++){
+                    if(!(this.cells[z][y][x]))continue
                     for (const c of categorys) {
+                        if(!(this.cells[z][y][x][c]))continue
                         if(!objects[c]){
                             objects[c]=[]
                         }
@@ -253,25 +278,21 @@ export class CellsManager3D<GameObject extends BaseObject3D=BaseObject3D>{
         return objects
     }
     get_objects2(hitbox:Hitbox3D,categorys:string):GameObject[]{
-        const rect=hitbox.toRect()
-        const min = this.cellPos(rect.position);
-        const max = this.cellPos(v3.add(rect.position,rect.size));
-        const objects:GameObject[] = [];
-        const walkz=(max.z)<0?-1:1
-        const walky=(max.y)<0?-1:1
-        const walkx=(max.x)<0?-1:1
-        for (let z:number = min.z;max.z-z>-walkz;z+=walkz) {
-            if(!(this.cells[z])){
-                continue
-            }
-            for (let y = min.y;max.y-y>-walky;y+=walky) {
-                if(!(this.cells[z][y])){
-                    continue
-                }
-                for (let x = min.x;max.x-x>-walkx;x+=walkx) {
-                    if(!(this.cells[z][y][x])){
-                        continue
-                    }
+        const rect=hitbox.toBox().gmm()
+        let min = this.cellPos(rect.min)
+        let max = this.cellPos(rect.max)
+        if(v3.less(max,min)){
+            const m=min
+            min=max
+            max=m
+        }
+        const objects:GameObject[] = []
+        for(let z=min.z;z<max.z;z++){
+            if(!this.cells[z])continue
+            for(let y=min.y;y<=max.y;y++){
+                if(!this.cells[z][y])continue
+                for(let x=min.x;x<=max.x;x++){
+                    if(!(this.cells[z][y][x]))continue
                     objects.push(...this.cells[z][y][x][categorys])
                 }
             }
@@ -301,7 +322,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         this.objects={}
     }
     // deno-lint-ignore no-explicit-any
-    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>){
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>):GameObject{
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -323,6 +344,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         this.objects[category].orden.push(obj.id)
         obj.create(args??{})
         this.cells.registry(obj)
+        return obj
     }
     get_object(obj:ObjectKey):GameObject{
         return this.objects[obj.category].objects[obj.id]
@@ -436,7 +458,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         this.stream=new NetStream(new Uint8Array())
     }
     // deno-lint-ignore no-explicit-any
-    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>){
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>):GameObject{
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -458,6 +480,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         this.objects[category].orden.push(obj.id)
         obj.create(args??{})
         this.cells.registry(obj)
+        return obj
     }
     get_object(obj:ObjectKey):GameObject{
         return this.objects[obj.category].objects[obj.id]
