@@ -6,11 +6,11 @@ export default {
   },
   resolve: {
     alias: {
-      /*"KLSE/CLIENT":"https://deno.land/x/klse@0.3.0/client_side/bundle.js",
-      "KLSE":"https://deno.land/x/klse@0.3.0/bundle.js"*/
+      "KLSE/CLIENT":"https://deno.land/x/klse@0.3.0/client_side/bundle.js",
+      "KLSE":"https://deno.land/x/klse@0.3.0/bundle.js"
 
-      "KLSE/CLIENT":path.resolve(__dirname,"../../../client_side/bundle.js"),
-      "KLSE":path.resolve(__dirname,"../../../bundle.js"),
+      /*"KLSE/CLIENT":path.resolve(__dirname,"../../../client_side/bundle.js"),
+      "KLSE":path.resolve(__dirname,"../../../bundle.js"),*/
     },
   },
   server:{
