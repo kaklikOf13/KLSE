@@ -1,7 +1,7 @@
 {
     "imports":{
-        "KLSE":"../../../mod.ts",
-        "KLSE/CLIENT":"../../../client_side/mod.ts",
-        "KLSE/SERVER":"../../../server_side/mod.ts"
+        "KLSE":"https://deno.land/x/klse@0.3/mod.ts",
+        "KLSE/CLIENT":"https://deno.land/x/klse@0.3/client_side/mod.ts",
+        "KLSE/SERVER":"https://deno.land/x/klse@0.3/server_side/mod.ts"
     }
 }
