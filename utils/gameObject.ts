@@ -322,7 +322,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         this.objects={}
     }
     // deno-lint-ignore no-explicit-any
-    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>):GameObject{
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>,sv:Record<string,any>={}):GameObject{
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -342,6 +342,11 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
         obj.manager=this
         this.objects[category].objects[obj.id]=obj
         this.objects[category].orden.push(obj.id)
+        for(const i in sv){
+            // deno-lint-ignore ban-ts-comment
+            //@ts-expect-error
+            obj[i]=sv[i]
+        }
         obj.create(args??{})
         this.cells.registry(obj)
         return obj
@@ -458,7 +463,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         this.stream=new NetStream(new Uint8Array())
     }
     // deno-lint-ignore no-explicit-any
-    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>):GameObject{
+    add_object(obj:GameObject,category:string,id?:number,args?:Record<string,any>,sv:Record<string,any>={}):GameObject{
         if(!this.objects[category]){
             throw new Error(`Invalid Category ${category}`)
         }
@@ -478,6 +483,11 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
         obj.manager=this
         this.objects[category].objects[obj.id]=obj
         this.objects[category].orden.push(obj.id)
+        for(const i in sv){
+            // deno-lint-ignore ban-ts-comment
+            //@ts-expect-error
+            obj[i]=sv[i]
+        }
         obj.create(args??{})
         this.cells.registry(obj)
         return obj

@@ -6,6 +6,7 @@ export class Player extends IMCGameObject3D{
     velocity:Vec3=v3.new(0,0,0)
     moveSpeed:number=.1
     gravity:number=.01
+    jumpHeight:number=.2
     update(): void {
         if(this.game.key.keyPress(Key.A)){
             this.velocity.x=-this.moveSpeed
@@ -23,13 +24,18 @@ export class Player extends IMCGameObject3D{
         }
         this.velocity.y-=this.gravity
         const colo=this.game.scene.cells.get_objects(this.hb,["walls"])
+        let canJump=false
         for(const c in colo){
             for(const obj of colo[c]){
                 const c=this.hb.overlapCollision(obj.hb)
                 if(!c.collided)continue
                 this.velocity=v3.mult(this.velocity,v3.sub(v3.new(1,1,1),v3.absolute(c.dire)))
+                canJump=canJump||c.dire.y==-1
                 this.position=v3.sub(this.position,c.overlap)
             }
+        }
+        if(canJump&&this.game.key.keyPress(Key.Space)){
+            this.velocity.y+=this.jumpHeight
         }
         this.position=v3.add(this.position,this.velocity)
         this.game.camera.position=v3.lerp(this.game.camera.position,this.game.getCameraCenter(this.hb.center()),.1)

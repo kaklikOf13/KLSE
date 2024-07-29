@@ -97,7 +97,7 @@ mat3 rotationMatrix(vec3 r) {
     return rotZ * rotY * rotX;
 }
 const float camRot=0.05;
-const float camRot2=1.3;
+const float camRot2=1.5;
 void main() {
     translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
     vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);
@@ -411,17 +411,17 @@ export function createCanvas(size: Vec2, pixelated: boolean = true, center: bool
     canvas.width = size.x;
     canvas.height = size.y;
     if (pixelated) {
-        canvas.style.imageRendering = "pixelated";
-        canvas.style.imageRendering = "crisp-edges";
-        canvas.style.imageRendering = "-moz-crisp-edges";
+        canvas.style.imageRendering = "pixelated"
+        canvas.style.imageRendering = "crisp-edges"
+        canvas.style.imageRendering = "-moz-crisp-edges"
     }
     if (center) {
-        canvas.style.position = "absolute";
-        canvas.style.left = "0px";
-        canvas.style.right = "0px";
-        canvas.style.top = "0px";
-        canvas.style.bottom = "0px";
-        canvas.style.margin = "auto";
+        canvas.style.position = "absolute"
+        canvas.style.left = "0px"
+        canvas.style.right = "0px"
+        canvas.style.top = "0px"
+        canvas.style.bottom = "0px"
+        canvas.style.margin = "auto"
     }
     return canvas;
 }

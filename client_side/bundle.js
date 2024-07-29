@@ -1483,7 +1483,7 @@ class GameObjectManager2D {
         }
         this.objects = {};
     }
-    add_object(obj, category, id, args) {
+    add_object(obj, category, id, args, sv = {}) {
         if (!this.objects[category]) {
             throw new Error(`Invalid Category ${category}`);
         }
@@ -1501,6 +1501,9 @@ class GameObjectManager2D {
         obj.manager = this;
         this.objects[category].objects[obj.id] = obj;
         this.objects[category].orden.push(obj.id);
+        for(const i in sv){
+            obj[i] = sv[i];
+        }
         obj.create(args ?? {});
         this.cells.registry(obj);
         return obj;
@@ -1615,7 +1618,7 @@ class GameObjectManager3D {
         this.cells = new CellsManager3D(cellsSize);
         this.stream = new NetStream(new Uint8Array());
     }
-    add_object(obj, category, id, args) {
+    add_object(obj, category, id, args, sv = {}) {
         if (!this.objects[category]) {
             throw new Error(`Invalid Category ${category}`);
         }
@@ -1633,6 +1636,9 @@ class GameObjectManager3D {
         obj.manager = this;
         this.objects[category].objects[obj.id] = obj;
         this.objects[category].orden.push(obj.id);
+        for(const i in sv){
+            obj[i] = sv[i];
+        }
         obj.create(args ?? {});
         this.cells.registry(obj);
         return obj;
@@ -1807,8 +1813,9 @@ class Scene2DInstance {
     }
     reset() {
         this.objects.clear();
-        this.objects.add_object = (obj, category, id, args)=>{
-            const ret = GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args);
+        this.objects.add_object = (obj, category, id, args, sv = {})=>{
+            sv["game"] = this.game;
+            const ret = GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
             ret.game = this.game;
             return ret;
         };
@@ -1840,9 +1847,9 @@ class Scene3DInstance {
     }
     reset() {
         this.objects.clear();
-        this.objects.add_object = (obj, category, id, args)=>{
-            const ret = GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args);
-            ret.game = this.game;
+        this.objects.add_object = (obj, category, id, args, sv = {})=>{
+            sv["game"] = this.game;
+            const ret = GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
             return ret;
         };
         for(const c in this.scene.objects){
@@ -2338,7 +2345,7 @@ mat3 rotationMatrix(vec3 r) {
     return rotZ * rotY * rotX;
 }
 const float camRot=0.05;
-const float camRot2=1.3;
+const float camRot2=1.45;
 void main() {
     translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
     vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);

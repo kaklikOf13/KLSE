@@ -130,8 +130,10 @@ export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGame
     }
     reset(){
         this.objects.clear()
-        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined)=>{
-            const ret=GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args)
+        // deno-lint-ignore no-explicit-any
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined,sv:Record<string,any>={})=>{
+            sv["game"]=this.game
+            const ret=GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
             ret.game=this.game
             return ret
         }
@@ -163,9 +165,11 @@ export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGame
     }
     reset(){
         this.objects.clear()
-        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined)=>{
-            const ret=GameObjectManager3D.prototype.add_object.call(this.objects,obj,category,id,args)
-            ret.game=this.game
+        // deno-lint-ignore no-explicit-any
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any>,sv: Record<string, any>={})=>{
+            sv["game"]=this.game
+            const ret=GameObjectManager3D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
+            //ret.game=this.game
             return ret
         }
         for(const c in this.scene.objects){
