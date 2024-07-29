@@ -154,8 +154,14 @@ export class ResourcesManager{
             })
         })
     }
+    set_model3D(id:string,model:Model3D):void{
+        this.sources[id]=model
+    }
     get_model3D(id:string):Model3D{
         return this.sources[id] as Model3D
+    }
+    delete_source(id:string){
+        delete this.sources[id]
     }
     unload(id:string){
         delete this.sources[id]

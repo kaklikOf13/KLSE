@@ -3253,8 +3253,14 @@ class ResourcesManager {
             });
         });
     }
+    set_model3D(id, model) {
+        this.sources[id] = model;
+    }
     get_model3D(id) {
         return this.sources[id];
+    }
+    delete_source(id) {
+        delete this.sources[id];
     }
     unload(id) {
         delete this.sources[id];
