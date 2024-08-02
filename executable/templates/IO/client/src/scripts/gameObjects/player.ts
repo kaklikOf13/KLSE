@@ -1,10 +1,15 @@
 import { PlayerBase } from "common/scripts/gameObjects/player.ts"
-import { Renderer, RGBA } from "KLSE/CLIENT";
+import { Color, FormGameObject2D, RGBA } from "KLSE/CLIENT";
+import { Classes } from "KLSE";
 
-export class Player extends PlayerBase{
-    renderer:Renderer|undefined=undefined
+export class Player extends Classes([FormGameObject2D,PlayerBase]){
+    color:Color
+    objectType:string="player"
+    constructor(){
+        super()
+        this.color=RGBA.new(0,0,0)
+    }
     update(){
-        //this.renderer!.draw_circle(this.hb as CircleHitbox,RGBA.new(255,0,0))
-        this.renderer!.draw_hitbox(this.hb,RGBA.new(255,0,0))
+        
     }
 }

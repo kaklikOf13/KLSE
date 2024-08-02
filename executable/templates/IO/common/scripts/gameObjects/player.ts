@@ -1,28 +1,30 @@
-import { CircleHitbox, BaseGameObject, Vec } from "KLSE";
+import { BaseGameObject2D, CircleHitbox2D, NetStream, v2 } from "KLSE";
 import { GameConstants } from "../constants.ts";
-import { NewPlayer } from "common/scripts/gameObjects/objectsDefinitions.ts";
 
-export abstract class PlayerBase extends BaseGameObject{
+export abstract class PlayerBase extends BaseGameObject2D{
     Name:string
     constructor(){
         super()
-        this.hb=new CircleHitbox(Vec.new(0,0),.25)
-        //this.hb=new RectHitbox(Vec.new(0,0),Vec.new(.25,.25))
+        this.hb=new CircleHitbox2D(v2.new(1,1),1)
+        //this.hb=new RectHitbox(v2.new(1,1),v2.new(5,5))
         this.Name=GameConstants.player.defaultName
     }
-    /*start(){
-        this.hb=(this.parent as Game).categorys[CATEGORYS.PLAYERS].orden.length==1?new CircleHitbox(Vec.new(0,0),.25):new RectHitbox(Vec.new(0,0),Vec.new(.25,.25))
-    }*/
-    fromNewPlayer(np:NewPlayer){
-        this.Name=np.Name
-        this.position=np.Position
-        this.id=np.Id
+    create(): void {
+        
     }
-    toNewPlayer():NewPlayer{
-        return {
-            Id:this.id,
-            Name:this.Name,
-            Position:this.position,
-        }
+    update(): void {
+        
+    }
+    encodePart(stream: NetStream): void {
+        stream.writeVec2(this.position)
+    }
+    encodeComplete(stream: NetStream): void {
+        stream.writeString(this.Name)
+    }
+    decodePart(stream: NetStream): void {
+        this.position=stream.readVec2()
+    }
+    decodeComplete(stream:NetStream){
+        this.Name=stream.readString()
     }
 }

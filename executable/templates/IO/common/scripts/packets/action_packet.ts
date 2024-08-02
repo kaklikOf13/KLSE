@@ -1,16 +1,16 @@
-import { NetStream, Packet, Vec, Vector } from "KLSE"
+import { NetStream, Packet, v2, Vec2 } from "KLSE"
 export class ActionPacket extends Packet{
-    ID=2
+    ID=1
     Name="action"
-    Movement:Vector
-    constructor(movement:Vector=Vec.new(0,0)){
+    Movement:Vec2
+    constructor(movement:Vec2=v2.new(0,0)){
         super()
         this.Movement=movement
     }
     encode(stream: NetStream): void {
-      stream.writeVector(this.Movement)
+      stream.writeVec2(this.Movement)
     }
     decode(stream: NetStream): void {
-      this.Movement=stream.readVector()
+      this.Movement=stream.readVec2()
     }
 }

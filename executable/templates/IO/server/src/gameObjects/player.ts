@@ -1,25 +1,25 @@
 import { PlayerBase } from "common/scripts/gameObjects/player.ts"
 import { Game } from "../game.ts"
-import { NullVector, Vec, Vector } from "KLSE"
+import { NullVec2, v2, Vec2 } from "KLSE"
 import { ActionPacket } from "common/scripts/packets/action_packet.ts"
 
 export class Player extends PlayerBase{
-    velocity:Vector
-    oldPosition:Vector
+    velocity:Vec2
+    oldPosition:Vec2
+    objectType:string="player"
     constructor(){
         super()
-        this.velocity=Vec.new(0,0)
+        this.velocity=v2.new(0,0)
         this.oldPosition=this.position
     }
     update(): void {
-        this.hb.position=Vec.add(this.position,this.velocity)
-        if(!Vec.is(this.position,this.oldPosition)){
-            (this.parent as Game).update_packet.updatedPlayers.push({id:this.id,pos:this.position})
-            this.oldPosition=this.position
+        this.hb.position=v2.add(this.position,this.velocity)
+        if(!v2.is(this.position,this.oldPosition)){
+            this.dirtyPart=true
         }
     }
     process_action(action:ActionPacket){
-        action.Movement=Vec.normalizeSafe(Vec.clamp1(action.Movement,-1,1),NullVector)
-        this.velocity=Vec.scale(action.Movement,(this.parent as Game).config.player.speed)
+        action.Movement=v2.normalizeSafe(v2.clamp1(action.Movement,-1,1),NullVec2)
+        this.velocity=v2.scale(action.Movement,(this.game as Game).config.player.speed)
     }
 }

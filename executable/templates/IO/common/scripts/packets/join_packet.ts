@@ -1,17 +1,16 @@
-import { NetStream, NullVector, Packet } from "KLSE"
-import { NewPlayer, decodeNewPlayer, encodeNewPlayer } from "common/scripts/gameObjects/objectsDefinitions.ts";
+import { type NetStream, Packet } from "KLSE"
 export class JoinPacket extends Packet{
     ID=0
     Name="join"
-    np:NewPlayer
-    constructor(np:NewPlayer={Id:0,Name:"",Position:NullVector}){
+    PlayerName:string
+    constructor(playerName:string=""){
         super()
-        this.np=np
+        this.PlayerName=playerName
     }
     encode(stream: NetStream): void {
-      encodeNewPlayer(this.np,stream)
+      stream.writeString(this.PlayerName)
     }
     decode(stream: NetStream): void {
-      this.np=decodeNewPlayer(stream)
+      this.PlayerName=stream.readString()
     }
 }
