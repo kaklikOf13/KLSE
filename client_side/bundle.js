@@ -485,7 +485,7 @@ class NetStream {
             ...this.buffer,
             ...val
         ]);
-        this.pos = this.buffer.length;
+        this.walk(val.length);
     }
     walk(val) {
         this.pos += val;
@@ -689,12 +689,15 @@ class ObjectsPacket extends Packet {
         this.stream = stream;
     }
     encode(stream) {
+        const p = stream.buffer.length;
         stream.writeUInt32(this.stream.buffer.length);
         stream.insert(this.stream.buffer);
+        stream.pos = p;
     }
     decode(stream) {
         const size = stream.readUInt32();
         this.stream = new NetStream(stream.buffer.subarray(stream.pos, stream.pos + size));
+        this.stream.pos = 0;
     }
 }
 const DefaultSignals = {
@@ -1523,23 +1526,32 @@ class GameObjectManager2D {
             objects: {}
         };
     }
-    proccess(packet, oncreate) {
+    oncreate(_key, _type) {
+        return;
+    }
+    proccess(packet) {
         const csize = packet.stream.readUInt16();
         for(let i = 0; i < csize; i++){
             const category = packet.stream.readString();
             if (!this.objects[category]) {
-                continue;
+                this.add_category(category);
             }
             const osize = packet.stream.readUInt16();
             for(let j = 0; j < osize; j++){
-                const oid = this.stream.readID();
+                const oid = packet.stream.readID();
+                const tp = packet.stream.readString();
+                if (tp === "") {
+                    continue;
+                }
                 if (!this.objects[category].objects[oid]) {
-                    oncreate({
+                    const obj = this.oncreate({
                         category: category,
                         id: oid
-                    });
+                    }, tp);
+                    if (!obj) continue;
+                    this.add_object(obj, category, oid);
                 }
-                const dir = this.stream.readUInt8();
+                const dir = packet.stream.readUInt8();
                 if (dir > 0) {
                     if (dir >= 100) {
                         this.objects[category].objects[oid].destroyed = true;
@@ -1564,6 +1576,7 @@ class GameObjectManager2D {
             for(let j = 0; j < this.objects[c].orden.length; j++){
                 const o = this.objects[c].orden[j];
                 stream.writeID(o);
+                stream.writeString(this.objects[c].objects[o].objectType);
                 stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 this.objects[c].objects[o].encodePart(stream);
                 this.objects[c].objects[o].encodeComplete(stream);
@@ -1582,6 +1595,7 @@ class GameObjectManager2D {
                 const o = this.objects[c].orden[j];
                 this.objects[c].objects[o].update();
                 this.stream.writeID(o);
+                this.stream.writeString(this.objects[c].objects[o].objectType);
                 this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
                     this.objects[c].objects[o].encodePart(this.stream);
@@ -1658,7 +1672,10 @@ class GameObjectManager3D {
             objects: {}
         };
     }
-    proccess(packet, oncreate) {
+    oncreate(_key, _type) {
+        return;
+    }
+    proccess(packet) {
         const csize = packet.stream.readUInt16();
         for(let i = 0; i < csize; i++){
             const category = packet.stream.readString();
@@ -1667,14 +1684,20 @@ class GameObjectManager3D {
             }
             const osize = packet.stream.readUInt16();
             for(let j = 0; j < osize; j++){
-                const oid = this.stream.readID();
+                const oid = packet.stream.readID();
+                const tp = packet.stream.readString();
+                if (tp === "") {
+                    continue;
+                }
                 if (!this.objects[category].objects[oid]) {
-                    oncreate({
+                    const obj = this.oncreate({
                         category: category,
                         id: oid
-                    });
+                    }, tp);
+                    if (!obj) continue;
+                    this.add_object(obj, category, oid);
                 }
-                const dir = this.stream.readUInt8();
+                const dir = packet.stream.readUInt8();
                 if (dir > 0) {
                     if (dir >= 100) {
                         this.objects[category].objects[oid].destroyed = true;
@@ -1699,6 +1722,7 @@ class GameObjectManager3D {
             for(let j = 0; j < this.objects[c].orden.length; j++){
                 const o = this.objects[c].orden[j];
                 stream.writeID(o);
+                stream.writeString(this.objects[c].objects[o].objectType);
                 stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 this.objects[c].objects[o].encodePart(stream);
                 this.objects[c].objects[o].encodeComplete(stream);
@@ -1717,6 +1741,7 @@ class GameObjectManager3D {
                 const o = this.objects[c].orden[j];
                 this.objects[c].objects[o].update();
                 this.stream.writeID(o);
+                this.stream.writeString(this.objects[c].objects[o].objectType);
                 this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
                     this.objects[c].objects[o].encodePart(this.stream);
@@ -1813,16 +1838,19 @@ class Scene2DInstance {
     }
     reset() {
         this.objects.clear();
+        this.objects.oncreate = (_k, t)=>{
+            return new this.game.objects[t]();
+        };
         this.objects.add_object = (obj, category, id, args, sv = {})=>{
-            sv["game"] = this.game;
-            const ret = GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
-            ret.game = this.game;
-            return ret;
+            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
         };
         for(const c in this.scene.objects){
             this.objects.add_category(c);
             for (const o of this.scene.objects[c]){
-                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals);
+                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals, {
+                    "game": this.game,
+                    "objectType": o.type
+                });
                 if (o.position) obj.position = cloneDeep(o.position);
             }
         }
@@ -1847,15 +1875,19 @@ class Scene3DInstance {
     }
     reset() {
         this.objects.clear();
+        this.objects.oncreate = (_k, t)=>{
+            return new this.game.objects[t]();
+        };
         this.objects.add_object = (obj, category, id, args, sv = {})=>{
-            sv["game"] = this.game;
-            const ret = GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
-            return ret;
+            return GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
         };
         for(const c in this.scene.objects){
             this.objects.add_category(c);
             for (const o of this.scene.objects[c]){
-                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals);
+                const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals, {
+                    "game": this.game,
+                    "objectType": o.type
+                });
                 if (o.position) obj.position = o.position;
                 if (o.scale) obj.hb.transform.scale = cloneDeep(o.scale);
                 if (o.rotation) obj.hb.transform.rotation = cloneDeep(o.rotation);
@@ -2345,7 +2377,7 @@ mat3 rotationMatrix(vec3 r) {
     return rotZ * rotY * rotX;
 }
 const float camRot=0.05;
-const float camRot2=1.45;
+const float camRot2=1.5;
 void main() {
     translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
     vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);

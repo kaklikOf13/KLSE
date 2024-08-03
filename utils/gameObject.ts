@@ -13,6 +13,7 @@ export abstract class BaseObject2D{
     public calldestroy:boolean=true
     public dirty:boolean=false
     public dirtyPart:boolean=false
+    abstract objectType:string
     // deno-lint-ignore no-explicit-any
     public manager!:GameObjectManager2D<any>
     public get position():Vec2{
@@ -45,6 +46,7 @@ export abstract class BaseObject3D{
     public calldestroy:boolean=true
     public dirty:boolean=false
     public dirtyPart:boolean=false
+    abstract objectType:string
     // deno-lint-ignore no-explicit-any
     public manager!:GameObjectManager2D<any>
 
@@ -363,20 +365,29 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
     add_category(category:keyof typeof this.objects){
         this.objects[category]={orden:[],objects:{}}
     }
-    proccess(packet:ObjectsPacket,oncreate:(key:ObjectKey)=>GameObject){
+    oncreate(_key:ObjectKey,_type:string):GameObject|undefined{
+        return
+    }
+    proccess(packet:ObjectsPacket){
         const csize=packet.stream.readUInt16()
         for(let i=0;i<csize;i++){
             const category=packet.stream.readString()
             if(!this.objects[category]){
-                continue
+                this.add_category(category)
             }
             const osize=packet.stream.readUInt16()
             for(let j=0;j<osize;j++){
-                const oid=this.stream.readID()
-                if(!this.objects[category].objects[oid]){
-                    oncreate({category:category,id:oid})
+                const oid=packet.stream.readID()
+                const tp=packet.stream.readString()
+                if(tp===""){
+                    continue
                 }
-                const dir=this.stream.readUInt8()
+                if(!this.objects[category].objects[oid]){
+                    const obj=this.oncreate({category:category,id:oid},tp)
+                    if(!obj)continue
+                    this.add_object(obj,category,oid)
+                }
+                const dir=packet.stream.readUInt8()
                 if(dir>0){
                     if(dir>=100){
                         this.objects[category].objects[oid].destroyed=true
@@ -401,6 +412,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
             for(let j=0;j<this.objects[c].orden.length;j++){
                 const o=this.objects[c].orden[j]
                 stream.writeID(o)
+                stream.writeString(this.objects[c].objects[o].objectType)
                 stream.writeUInt8(
                     11
                     +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
@@ -422,6 +434,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                 const o=this.objects[c].orden[j]
                 this.objects[c].objects[o].update()
                 this.stream.writeID(o)
+                this.stream.writeString(this.objects[c].objects[o].objectType)
                 this.stream.writeUInt8(
                     ((this.objects[c].objects[o].dirtyPart?1:0)*1)
                     +((this.objects[c].objects[o].dirty?1:0)*10)
@@ -504,7 +517,10 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
     add_category(category:keyof typeof this.objects){
         this.objects[category]={orden:[],objects:{}}
     }
-    proccess(packet:ObjectsPacket,oncreate:(key:ObjectKey)=>GameObject){
+    oncreate(_key:ObjectKey,_type:string):GameObject|undefined{
+        return
+    }
+    proccess(packet:ObjectsPacket){
         const csize=packet.stream.readUInt16()
         for(let i=0;i<csize;i++){
             const category=packet.stream.readString()
@@ -513,11 +529,17 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
             }
             const osize=packet.stream.readUInt16()
             for(let j=0;j<osize;j++){
-                const oid=this.stream.readID()
-                if(!this.objects[category].objects[oid]){
-                    oncreate({category:category,id:oid})
+                const oid=packet.stream.readID()
+                const tp=packet.stream.readString()
+                if(tp===""){
+                    continue
                 }
-                const dir=this.stream.readUInt8()
+                if(!this.objects[category].objects[oid]){
+                    const obj=this.oncreate({category:category,id:oid},tp)
+                    if(!obj)continue
+                    this.add_object(obj,category,oid)
+                }
+                const dir=packet.stream.readUInt8()
                 if(dir>0){
                     if(dir>=100){
                         this.objects[category].objects[oid].destroyed=true
@@ -542,6 +564,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
             for(let j=0;j<this.objects[c].orden.length;j++){
                 const o=this.objects[c].orden[j]
                 stream.writeID(o)
+                stream.writeString(this.objects[c].objects[o].objectType)
                 stream.writeUInt8(
                     11
                     +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
@@ -563,6 +586,7 @@ export class GameObjectManager3D<GameObject extends BaseObject3D>{
                 const o=this.objects[c].orden[j]
                 this.objects[c].objects[o].update()
                 this.stream.writeID(o)
+                this.stream.writeString(this.objects[c].objects[o].objectType)
                 this.stream.writeUInt8(
                     ((this.objects[c].objects[o].dirtyPart?1:0)*1)
                     +((this.objects[c].objects[o].dirty?1:0)*10)

@@ -18,7 +18,7 @@ export class NetStream {
     //Use Functions
     insert(val: Uint8Array) {
         this.buffer = Uint8Array.from([...this.buffer, ...val])
-        this.pos = this.buffer.length
+        this.walk(val.length)
     }
 
     walk(val: number) {

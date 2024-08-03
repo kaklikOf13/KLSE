@@ -7,6 +7,7 @@ export class Player extends IMCGameObject3D{
     moveSpeed:number=.1
     gravity:number=.01
     jumpHeight:number=.2
+    objectType:string="player"
     update(): void {
         if(this.game.key.keyPress(Key.A)){
             this.velocity.x=-this.moveSpeed

@@ -87,7 +87,7 @@ export class ClientGame2D<Events extends DefaultEvents = DefaultEvents, EMap ext
     key:KeyListener
     mouse:MousePosListener
     resource:ResourcesManager
-    constructor(keyl:KeyListener,mouse:MousePosListener,resource:ResourcesManager,renderer:Renderer,...args:[]){
+    constructor(keyl:KeyListener,mouse:MousePosListener,resource:ResourcesManager,renderer:Renderer,...args:any[]){
         // deno-lint-ignore ban-ts-comment
         //@ts-expect-error
         super(...args)
@@ -115,7 +115,7 @@ export class ClientGame3D<Events extends DefaultEvents = DefaultEvents, EMap ext
     key:KeyListener
     mouse:MousePosListener
     resource:ResourcesManager
-    constructor(keyl:KeyListener,mouse:MousePosListener,renderer:Renderer,resource:ResourcesManager,...args:[]){
+    constructor(keyl:KeyListener,mouse:MousePosListener,renderer:Renderer,resource:ResourcesManager,...args:any[]){
         // deno-lint-ignore ban-ts-comment
         //@ts-expect-error
         super(...args)

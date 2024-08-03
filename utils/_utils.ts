@@ -286,14 +286,23 @@ export const ease=Object.freeze({
         ? 4 * t * t * (3.6 * t - 1.3)
         : 4 * (t - 1) ** 2 * (3.6 * t - 2.3) + 1
 })
+
 // deno-lint-ignore no-explicit-any
-export function mixin(...bases:any[]) {
-    class MixinClass {}
-    for (const base of bases) {
-        Object.assign(MixinClass.prototype, base.prototype);
+export function Classes(bases:any[]):(new()=>any){
+    class Bases {
+      constructor() {
+        bases.forEach(base => Object.assign(this, new base()));
+      }
     }
-    return MixinClass;
-}
+    bases.forEach(base => {
+      Object.getOwnPropertyNames(base.prototype)
+      .filter(prop => prop != 'constructor')
+      // deno-lint-ignore ban-ts-comment
+      //@ts-expect-error
+      .forEach(prop => Bases.prototype[prop] = base.prototype[prop])
+    })
+    return Bases;
+  }
 export class WebPath{
     IP:string
     Port:number

@@ -105,11 +105,14 @@ export class ObjectsPacket extends Packet{
         this.stream=stream
     }
     encode(stream: NetStream): void {
+        const p=stream.buffer.length
         stream.writeUInt32(this.stream.buffer.length)
         stream.insert(this.stream.buffer)
+        stream.pos=p
     }
     decode(stream: NetStream): void {
         const size=stream.readUInt32()
         this.stream=new NetStream(stream.buffer.subarray(stream.pos,stream.pos+size))
+        this.stream.pos=0
     }
 }
