@@ -388,6 +388,13 @@ const v2 = Object.freeze({
     clamp2 (Vec2, min, max) {
         return this.new(Math.max(Math.min(Vec2.x, max.x), min.x), Math.max(Math.min(Vec2.y, max.y), min.y));
     },
+    maxDecimal (vec, decimalPlaces = 3) {
+        const factor = Math.pow(10, decimalPlaces);
+        return this.new(Math.round(vec.x * factor) / factor, Math.round(vec.y * factor) / factor);
+    },
+    round (vec) {
+        return this.new(Math.round(vec.x), Math.round(vec.y));
+    },
     lookTo (x, y) {
         return Math.atan2(y.y - x.y, y.x - x.x);
     },
@@ -1062,11 +1069,11 @@ class NetStream {
         return array;
     }
     writeVec2(vec) {
-        this.writeFloat32(vec.x);
-        this.writeFloat32(vec.y);
+        this.writeFloat64(vec.x);
+        this.writeFloat64(vec.y);
     }
     readVec2() {
-        return v2.new(this.readFloat32(), this.readFloat32());
+        return v2.new(this.readFloat64(), this.readFloat64());
     }
     writeVec3(vec) {
         this.writeFloat32(vec.x);
@@ -1369,20 +1376,19 @@ class GameObjectManager2D {
                         category: category,
                         id: oid
                     }, tp);
-                    if (!obj) continue;
+                    if (!obj) break;
                     this.add_object(obj, category, oid);
                 }
                 const dir = packet.stream.readUInt8();
                 if (dir > 0) {
-                    if (dir >= 100) {
-                        this.objects[category].objects[oid].destroyed = true;
-                        continue;
-                    }
-                    this.objects[category].objects[oid].dirtyPart = true;
+                    this.objects[category].objects[oid].dirtyPart = false;
                     this.objects[category].objects[oid].decodePart(packet.stream);
                     if (dir > 1) {
-                        this.objects[category].objects[oid].dirty = true;
+                        this.objects[category].objects[oid].dirty = false;
                         this.objects[category].objects[oid].decodeComplete(packet.stream);
+                    }
+                    if (dir >= 100) {
+                        this.objects[category].objects[oid].destroyed = true;
                     }
                 }
             }
@@ -1398,7 +1404,7 @@ class GameObjectManager2D {
                 const o = this.objects[c].orden[j];
                 stream.writeID(o);
                 stream.writeString(this.objects[c].objects[o].objectType);
-                stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                stream.writeUInt8(2 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 this.objects[c].objects[o].encodePart(stream);
                 this.objects[c].objects[o].encodeComplete(stream);
             }
@@ -1417,14 +1423,14 @@ class GameObjectManager2D {
                 this.objects[c].objects[o].update();
                 this.stream.writeID(o);
                 this.stream.writeString(this.objects[c].objects[o].objectType);
-                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) + (this.objects[c].objects[o].dirty ? 2 : 0) + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
                     this.objects[c].objects[o].encodePart(this.stream);
                     if (this.objects[c].objects[o].dirty) {
                         this.objects[c].objects[o].dirty = false;
                         this.objects[c].objects[o].encodeComplete(this.stream);
                     }
-                    this.objects[c].objects[o].dirtyPart = true;
+                    this.objects[c].objects[o].dirtyPart = false;
                 }
                 if (this.objects[c].objects[o].destroyed) {
                     this.unregister(this.objects[c].objects[o].get_key());
@@ -1492,18 +1498,18 @@ class Scene2DInstance {
     }
     reset() {
         this.objects.clear();
+        this.objects.add_object = (obj, category, id, args, sv)=>{
+            obj.game = this.game;
+            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
+        };
         this.objects.oncreate = (_k, t)=>{
             return new this.game.objects[t]();
-        };
-        this.objects.add_object = (obj, category, id, args, sv = {})=>{
-            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
         };
         for(const c in this.scene.objects){
             this.objects.add_category(c);
             for (const o of this.scene.objects[c]){
                 const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals, {
-                    "game": this.game,
-                    "objectType": o.type
+                    "game": this.game
                 });
                 if (o.position) obj.position = cloneDeep(o.position);
             }

@@ -388,6 +388,13 @@ const v2 = Object.freeze({
     clamp2 (Vec2, min, max) {
         return this.new(Math.max(Math.min(Vec2.x, max.x), min.x), Math.max(Math.min(Vec2.y, max.y), min.y));
     },
+    maxDecimal (vec, decimalPlaces = 3) {
+        const factor = Math.pow(10, decimalPlaces);
+        return this.new(Math.round(vec.x * factor) / factor, Math.round(vec.y * factor) / factor);
+    },
+    round (vec) {
+        return this.new(Math.round(vec.x), Math.round(vec.y));
+    },
     lookTo (x, y) {
         return Math.atan2(y.y - x.y, y.x - x.x);
     },
@@ -623,11 +630,11 @@ class NetStream {
         return array;
     }
     writeVec2(vec) {
-        this.writeFloat32(vec.x);
-        this.writeFloat32(vec.y);
+        this.writeFloat64(vec.x);
+        this.writeFloat64(vec.y);
     }
     readVec2() {
-        return v2.new(this.readFloat32(), this.readFloat32());
+        return v2.new(this.readFloat64(), this.readFloat64());
     }
     writeVec3(vec) {
         this.writeFloat32(vec.x);
@@ -1548,20 +1555,19 @@ class GameObjectManager2D {
                         category: category,
                         id: oid
                     }, tp);
-                    if (!obj) continue;
+                    if (!obj) break;
                     this.add_object(obj, category, oid);
                 }
                 const dir = packet.stream.readUInt8();
                 if (dir > 0) {
-                    if (dir >= 100) {
-                        this.objects[category].objects[oid].destroyed = true;
-                        continue;
-                    }
-                    this.objects[category].objects[oid].dirtyPart = true;
+                    this.objects[category].objects[oid].dirtyPart = false;
                     this.objects[category].objects[oid].decodePart(packet.stream);
                     if (dir > 1) {
-                        this.objects[category].objects[oid].dirty = true;
+                        this.objects[category].objects[oid].dirty = false;
                         this.objects[category].objects[oid].decodeComplete(packet.stream);
+                    }
+                    if (dir >= 100) {
+                        this.objects[category].objects[oid].destroyed = true;
                     }
                 }
             }
@@ -1577,7 +1583,7 @@ class GameObjectManager2D {
                 const o = this.objects[c].orden[j];
                 stream.writeID(o);
                 stream.writeString(this.objects[c].objects[o].objectType);
-                stream.writeUInt8(11 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                stream.writeUInt8(2 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 this.objects[c].objects[o].encodePart(stream);
                 this.objects[c].objects[o].encodeComplete(stream);
             }
@@ -1596,14 +1602,14 @@ class GameObjectManager2D {
                 this.objects[c].objects[o].update();
                 this.stream.writeID(o);
                 this.stream.writeString(this.objects[c].objects[o].objectType);
-                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) * 1 + (this.objects[c].objects[o].dirty ? 1 : 0) * 10 + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
+                this.stream.writeUInt8((this.objects[c].objects[o].dirtyPart ? 1 : 0) + (this.objects[c].objects[o].dirty ? 2 : 0) + (this.objects[c].objects[o].calldestroy && this.objects[c].objects[o].destroyed ? 100 : 0));
                 if (this.objects[c].objects[o].dirtyPart || this.objects[c].objects[o].dirty) {
                     this.objects[c].objects[o].encodePart(this.stream);
                     if (this.objects[c].objects[o].dirty) {
                         this.objects[c].objects[o].dirty = false;
                         this.objects[c].objects[o].encodeComplete(this.stream);
                     }
-                    this.objects[c].objects[o].dirtyPart = true;
+                    this.objects[c].objects[o].dirtyPart = false;
                 }
                 if (this.objects[c].objects[o].destroyed) {
                     this.unregister(this.objects[c].objects[o].get_key());
@@ -1838,18 +1844,18 @@ class Scene2DInstance {
     }
     reset() {
         this.objects.clear();
+        this.objects.add_object = (obj, category, id, args, sv)=>{
+            obj.game = this.game;
+            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
+        };
         this.objects.oncreate = (_k, t)=>{
             return new this.game.objects[t]();
-        };
-        this.objects.add_object = (obj, category, id, args, sv = {})=>{
-            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
         };
         for(const c in this.scene.objects){
             this.objects.add_category(c);
             for (const o of this.scene.objects[c]){
                 const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals, {
-                    "game": this.game,
-                    "objectType": o.type
+                    "game": this.game
                 });
                 if (o.position) obj.position = cloneDeep(o.position);
             }
@@ -1875,18 +1881,18 @@ class Scene3DInstance {
     }
     reset() {
         this.objects.clear();
+        this.objects.add_object = (obj, category, id, args, sv)=>{
+            obj.game = this.game;
+            return GameObjectManager2D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
+        };
         this.objects.oncreate = (_k, t)=>{
             return new this.game.objects[t]();
-        };
-        this.objects.add_object = (obj, category, id, args, sv = {})=>{
-            return GameObjectManager3D.prototype.add_object.call(this.objects, obj, category, id, args, sv);
         };
         for(const c in this.scene.objects){
             this.objects.add_category(c);
             for (const o of this.scene.objects[c]){
                 const obj = this.objects.add_object(new this.game.objects[o.type](), c, o.id, o.vals, {
-                    "game": this.game,
-                    "objectType": o.type
+                    "game": this.game
                 });
                 if (o.position) obj.position = o.position;
                 if (o.scale) obj.hb.transform.scale = cloneDeep(o.scale);
@@ -2485,11 +2491,11 @@ class WebglRenderer extends Renderer {
         this.gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
-    draw_rect2D(rect, color) {
-        const x1 = rect.position.x;
-        const y1 = rect.position.y;
-        const x2 = rect.position.x + rect.size.x;
-        const y2 = rect.position.y + rect.size.y;
+    draw_rect2D(rect, color, offset = NullVec2) {
+        const x1 = rect.position.x - offset.x;
+        const y1 = rect.position.y - offset.y;
+        const x2 = rect.position.x - offset.x + rect.size.x;
+        const y2 = rect.position.y - offset.y + rect.size.y;
         this._draw_vertices([
             x1,
             y1,
@@ -2505,9 +2511,9 @@ class WebglRenderer extends Renderer {
             y2
         ], color);
     }
-    draw_circle2D(circle, color, precision = 50) {
-        const centerX = circle.position.x;
-        const centerY = circle.position.y;
+    draw_circle2D(circle, color, offset = NullVec2, precision = 50) {
+        const centerX = circle.position.x - offset.x;
+        const centerY = circle.position.y - offset.y;
         const radius = circle.radius;
         const angleIncrement = 2 * Math.PI / precision;
         const vertices = [];
@@ -2520,23 +2526,23 @@ class WebglRenderer extends Renderer {
         }
         this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
     }
-    draw_hitbox2D(hitbox, color) {
+    draw_hitbox2D(hitbox, color, offset = NullVec2) {
         switch(hitbox.type){
             case HitboxType2D.circle:
-                this.draw_circle2D(hitbox, color);
+                this.draw_circle2D(hitbox, color, offset);
                 break;
             case HitboxType2D.rect:
-                this.draw_rect2D(hitbox, color);
+                this.draw_rect2D(hitbox, color, offset);
                 break;
             default:
                 return;
         }
     }
-    draw_image2D(image, position, size) {
-        const x1 = position.x;
-        const y1 = position.y;
-        const x2 = position.x + size.x;
-        const y2 = position.y + size.y;
+    draw_image2D(image, position, size, offset = NullVec2) {
+        const x1 = position.x - offset.x;
+        const y1 = position.y - offset.y;
+        const x2 = position.x - offset.x + size.x;
+        const y2 = position.y - offset.y + size.y;
         const vertices = [
             x1,
             y1,
@@ -3024,9 +3030,7 @@ class FormGameObject2D extends ClientGameObject2D {
         super();
     }
     render(camera, renderer) {
-        this.hb.position = v2.sub(this.hb.position, camera.position);
-        renderer.draw_hitbox2D(this.hb, this.color);
-        this.hb.position = v2.add(this.hb.position, camera.position);
+        renderer.draw_hitbox2D(this.hb, this.color, camera.position);
     }
 }
 class IMCGameObject3D extends ClientGameObject3D {
@@ -3053,6 +3057,7 @@ class ClientGame2D extends Game2D {
         this.resource = resource;
     }
     draw(renderer) {
+        renderer.clear();
         for(const c in this.scene.objects.objects){
             for (const o of this.scene.objects.objects[c].orden){
                 this.scene.objects.objects[c].objects[o].render(this.camera, renderer);
@@ -3082,6 +3087,7 @@ class ClientGame3D extends Game3D {
         this.resource = resource;
     }
     draw(renderer) {
+        renderer.clear();
         for(const c in this.scene.objects.objects){
             for (const o of this.scene.objects.objects[c].orden){
                 this.scene.objects.objects[c].objects[o].render(this.camera, renderer);

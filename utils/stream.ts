@@ -108,7 +108,6 @@ export class NetStream {
             encodeFunc(item)
         }
     }
-
     readString():string{
         const size=this.readUInt16()
         const val=this.buffer.subarray(this.pos,this.pos+size)
@@ -186,11 +185,11 @@ export class NetStream {
     
     // Expecial Types
     writeVec2(vec:Vec2){
-        this.writeFloat32(vec.x)
-        this.writeFloat32(vec.y)
+        this.writeFloat64(vec.x)
+        this.writeFloat64(vec.y)
     }
     readVec2():Vec2{
-        return v2.new(this.readFloat32(),this.readFloat32())
+        return v2.new(this.readFloat64(),this.readFloat64())
     }
 
     writeVec3(vec:Vec3){

@@ -1,5 +1,5 @@
 import { v3 } from "../mod.ts";
-import { NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
+import { NullVec2, NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
 import { CircleHitbox2D, Hitbox2D, HitboxType2D,HitboxType3D, RectHitbox2D, BoxHitbox3D } from "../utils/hitbox.ts"
 import { Model3D } from "../utils/models.ts";
 import { type Sprite } from "./resources.ts";
@@ -27,6 +27,59 @@ export const RGBA = Object.freeze({
         return {r:json.r/255,g:json.g/255,b:json.b/255,a:(json.a??255)/255}
     }
 })
+export const HEXCOLOR=Object.freeze({
+    new(hex:string):Color{
+        let result:RegExpExecArray|null
+        switch(hex.length){
+            case 4:
+                result = /^#?([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})$/i.exec(hex)
+                if(!result){
+                    throw new Error("Invalid Hex")
+                }
+                return {
+                    r:parseInt(result[1], 16)/15,
+                    g:parseInt(result[2], 16)/15,
+                    b:parseInt(result[3], 16)/15,
+                    a:1
+                }
+            case 5:
+                result = /^#?([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})$/i.exec(hex)
+                if(!result){
+                    throw new Error("Invalid Hex")
+                }
+                return {
+                    r:parseInt(hex[1], 16)/15,
+                    g:parseInt(hex[2], 16)/15,
+                    b:parseInt(hex[3], 16)/15,
+                    a:parseInt(hex[4], 16)/15
+                }
+                case 7:
+                    result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+                    if(!result){
+                        throw new Error("Invalid Hex")
+                    }
+                    return {
+                        r:parseInt(result[1], 16)/255,
+                        g:parseInt(result[2], 16)/255,
+                        b:parseInt(result[3], 16)/255,
+                        a:1
+                    }
+                case 9:
+                    result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+                    if(!result){
+                        throw new Error("Invalid Hex")
+                    }
+                    return {
+                        r:parseInt(result[1], 16)/255,
+                        g:parseInt(result[2], 16)/255,
+                        b:parseInt(result[3], 16)/255,
+                        a:parseInt(result[4], 16)/255
+                    }
+            default:
+                throw new Error("Invalid Hex")
+        }
+      }
+})
 export type RGBAT={r: number, g: number, b: number, a?: number}
 
 export abstract class Renderer {
@@ -36,10 +89,10 @@ export abstract class Renderer {
         this.canvas = canvas
         this.meter_size = meter_size
     }
-    abstract draw_rect2D(rect: RectHitbox2D, color: Color): void
-    abstract draw_circle2D(circle: CircleHitbox2D, color: Color): void
-    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color): void
-    abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2): void
+    abstract draw_rect2D(rect: RectHitbox2D, color: Color,offset?:Vec2): void
+    abstract draw_circle2D(circle: CircleHitbox2D, color: Color,offset?:Vec2): void
+    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color,offset?:Vec2): void
+    abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2,offset?:Vec2): void
 
     abstract draw_iso_rect(rect: BoxHitbox3D, color: Color): void
     abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
@@ -208,11 +261,11 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
 
-    draw_rect2D(rect: RectHitbox2D, color: Color) {
-        const x1 = rect.position.x;
-        const y1 = rect.position.y;
-        const x2 = rect.position.x + rect.size.x;
-        const y2 = rect.position.y + rect.size.y;
+    draw_rect2D(rect: RectHitbox2D, color: Color,offset:Vec2=NullVec2) {
+        const x1 = rect.position.x-offset.x
+        const y1 = rect.position.y-offset.y
+        const x2 = (rect.position.x-offset.x) + rect.size.x
+        const y2 = (rect.position.y-offset.y) + rect.size.y
 
         this._draw_vertices([
             x1, y1,
@@ -224,42 +277,42 @@ export class WebglRenderer extends Renderer {
         ], color);
     }
 
-    draw_circle2D(circle: CircleHitbox2D, color: Color, precision: number = 50): void {
-        const centerX = circle.position.x;
-        const centerY = circle.position.y;
-        const radius = circle.radius;
+    draw_circle2D(circle: CircleHitbox2D, color: Color,offset:Vec2=NullVec2 , precision: number = 50): void {
+        const centerX = circle.position.x-offset.x
+        const centerY = circle.position.y-offset.y
+        const radius = circle.radius
 
-        const angleIncrement = (2 * Math.PI) / precision;
+        const angleIncrement = (2 * Math.PI) / precision
 
-        const vertices: number[] = [];
+        const vertices: number[] = []
         vertices.push(centerX, centerY);
         for (let i = 0; i <= precision; i++) {
-            const angle = angleIncrement * i;
-            const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            vertices.push(x, y);
+            const angle = angleIncrement * i
+            const x = centerX + radius * Math.cos(angle)
+            const y = centerY + radius * Math.sin(angle)
+            vertices.push(x, y)
         }
-        this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
+        this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN)
     }
 
-    draw_hitbox2D(hitbox: Hitbox2D, color: Color): void {
+    draw_hitbox2D(hitbox: Hitbox2D, color: Color,offset:Vec2=NullVec2): void {
         switch (hitbox.type) {
             case HitboxType2D.circle:
-                this.draw_circle2D(hitbox, color);
+                this.draw_circle2D(hitbox, color,offset)
                 break;
             case HitboxType2D.rect:
-                this.draw_rect2D(hitbox, color);
+                this.draw_rect2D(hitbox, color,offset)
                 break;
             default:
                 return;
         }
     }
 
-    draw_image2D(image: Sprite, position: Vec2, size: Vec2): void {
-        const x1 = position.x;
-        const y1 = position.y;
-        const x2 = position.x + size.x;
-        const y2 = position.y + size.y;
+    draw_image2D(image: Sprite, position: Vec2, size: Vec2,offset:Vec2=NullVec2): void {
+        const x1 = position.x-offset.x
+        const y1 = position.y-offset.y
+        const x2 = (position.x-offset.x) + size.x
+        const y2 = (position.y-offset.y) + size.y
     
         const vertices: number[] = [
             x1, y1,

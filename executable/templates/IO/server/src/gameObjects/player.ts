@@ -13,9 +13,10 @@ export class Player extends PlayerBase{
         this.oldPosition=this.position
     }
     update(): void {
-        this.hb.position=v2.add(this.position,this.velocity)
+        this.position=v2.maxDecimal(v2.add(this.position,this.velocity),2)
         if(!v2.is(this.position,this.oldPosition)){
             this.dirtyPart=true
+            this.oldPosition=this.position
         }
     }
     process_action(action:ActionPacket){

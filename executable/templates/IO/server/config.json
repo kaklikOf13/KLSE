@@ -1,6 +1,6 @@
 {
     "site":{
-        "enable":true,
+        "enable":false,
         "host":{
             "port":3000,
             "https":false,
@@ -13,7 +13,7 @@
         "config":{
             "maxPlayers":5,
             "player":{
-                "speed":0.05
+                "speed":0.01
             }
         }
     },

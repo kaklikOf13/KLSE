@@ -384,20 +384,19 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                 }
                 if(!this.objects[category].objects[oid]){
                     const obj=this.oncreate({category:category,id:oid},tp)
-                    if(!obj)continue
+                    if(!obj)break
                     this.add_object(obj,category,oid)
                 }
                 const dir=packet.stream.readUInt8()
                 if(dir>0){
-                    if(dir>=100){
-                        this.objects[category].objects[oid].destroyed=true
-                        continue
-                    }
-                    this.objects[category].objects[oid].dirtyPart=true
+                    this.objects[category].objects[oid].dirtyPart=false
                     this.objects[category].objects[oid].decodePart(packet.stream)
                     if(dir>1){
-                        this.objects[category].objects[oid].dirty=true
+                        this.objects[category].objects[oid].dirty=false
                         this.objects[category].objects[oid].decodeComplete(packet.stream)
+                    }
+                    if(dir>=100){
+                        this.objects[category].objects[oid].destroyed=true
                     }
                 }
             }
@@ -414,7 +413,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                 stream.writeID(o)
                 stream.writeString(this.objects[c].objects[o].objectType)
                 stream.writeUInt8(
-                    11
+                    2
                     +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
                 )
                 this.objects[c].objects[o].encodePart(stream)
@@ -436,8 +435,8 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                 this.stream.writeID(o)
                 this.stream.writeString(this.objects[c].objects[o].objectType)
                 this.stream.writeUInt8(
-                    ((this.objects[c].objects[o].dirtyPart?1:0)*1)
-                    +((this.objects[c].objects[o].dirty?1:0)*10)
+                    ((this.objects[c].objects[o].dirtyPart?1:0))
+                    +((this.objects[c].objects[o].dirty?2:0))
                     +(this.objects[c].objects[o].calldestroy&&this.objects[c].objects[o].destroyed?100:0)
                 )
                 if(this.objects[c].objects[o].dirtyPart||this.objects[c].objects[o].dirty){
@@ -446,7 +445,7 @@ export class GameObjectManager2D<GameObject extends BaseObject2D>{
                         this.objects[c].objects[o].dirty=false
                         this.objects[c].objects[o].encodeComplete(this.stream)
                     }
-                    this.objects[c].objects[o].dirtyPart=true
+                    this.objects[c].objects[o].dirtyPart=false
                 }
                 if(this.objects[c].objects[o].destroyed){
                     this.unregister(this.objects[c].objects[o].get_key())

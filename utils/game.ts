@@ -130,17 +130,18 @@ export class Scene2DInstance<DefaultGameObject extends BaseGameObject2D=BaseGame
     }
     reset(){
         this.objects.clear()
+        // deno-lint-ignore no-explicit-any
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined, sv?: Record<string, any>)=>{
+            obj.game=this.game
+            return GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
+        }
         this.objects.oncreate=(_k,t)=>{
             return new (this.game.objects[t])()
-        }
-        // deno-lint-ignore no-explicit-any
-        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined,sv:Record<string,any>={})=>{
-            return GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
         }
         for(const c in this.scene.objects){
             this.objects.add_category(c)
             for(const o of this.scene.objects[c]){
-                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals,{"game":this.game,"objectType":o.type})
+                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals,{"game":this.game})
                 if(o.position)obj.position=cloneDeep(o.position as Vec2)
             }
         }
@@ -165,17 +166,18 @@ export class Scene3DInstance<DefaultGameObject extends BaseGameObject3D=BaseGame
     }
     reset(){
         this.objects.clear()
+        // deno-lint-ignore no-explicit-any
+        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any> | undefined, sv?: Record<string, any>)=>{
+            obj.game=this.game
+            return GameObjectManager2D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
+        }
         this.objects.oncreate=(_k,t)=>{
             return new (this.game.objects[t])()
-        }
-        // deno-lint-ignore no-explicit-any
-        this.objects.add_object=(obj: DefaultGameObject, category: string, id?: number | undefined, args?: Record<string, any>,sv: Record<string, any>={})=>{
-            return GameObjectManager3D.prototype.add_object.call(this.objects,obj,category,id,args,sv)
         }
         for(const c in this.scene.objects){
             this.objects.add_category(c)
             for(const o of this.scene.objects[c]){
-                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals,{"game":this.game,"objectType":o.type})
+                const obj=this.objects.add_object(new this.game.objects[o.type](),c,o.id,o.vals,{"game":this.game})
                 if(o.position)obj.position=o.position as Vec3
                 if(o.scale)obj.hb.transform.scale=cloneDeep(o.scale as Vec3)
                 if(o.rotation)obj.hb.transform.rotation=cloneDeep(o.rotation as Vec3)

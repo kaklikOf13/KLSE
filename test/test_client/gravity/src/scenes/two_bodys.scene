@@ -1,0 +1,24 @@
+{
+    "objects":{
+        "bodys":[
+            {
+                "type":"body",
+                "position":{"x":50,"y":50},
+                "vals":{
+                    "motion":{"x":0,"y":-0.05},
+                    "radius":1,
+                    "mass":1
+                }
+            },
+            {
+                "type":"body",
+                "position":{"x":55,"y":50},
+                "vals":{
+                    "motion":{"x":0,"y":0.05},
+                    "radius":1,
+                    "mass":1
+                }
+            }
+        ]
+    }
+}

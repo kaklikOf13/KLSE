@@ -487,6 +487,24 @@ export const v2 = Object.freeze({
         return this.new(Math.max(Math.min(Vec2.x,max.x),min.x),Math.max(Math.min(Vec2.y,max.y),min.y))
     },
     /**
+     * 
+     * @param vec The Vector
+     * @param decimalPlaces `number of max decimals`
+     * @returns max decimal `Vec2`
+     */
+    maxDecimal(vec:Vec2,decimalPlaces:number=3):Vec2{
+        const factor = Math.pow(10, decimalPlaces)
+        return this.new(Math.round(vec.x * factor) / factor,Math.round(vec.y * factor) / factor)
+    },
+    /**
+     * 
+     * @param vec `Vec2`
+     * @returns Rounded`Vec2`
+     */
+    round(vec:Vec2):Vec2{
+        return this.new(Math.round(vec.x),Math.round(vec.y))
+    },
+    /**
      * @param x `Vec21`
      * @param y `Vec22`
      * @returns A `RadAngle` of 2 Vec2s

@@ -6,7 +6,9 @@ export class Game extends ClientGame2D{
   client:Client
   constructor(ip:string,keyl:KeyListener,mp:MousePosListener,renderer:Renderer,resources:ResourcesManager,...args:any[]){
       super(keyl,mp,resources,renderer,...args)
-      this.scene.objects.add_category(CATEGORYS.PLAYERS)
+      for(const i of Object.keys(CATEGORYS)){
+        this.scene.objects.add_category(CATEGORYS[i])
+      }
       this.client=new Client(new WebSocket(ip),PacketManager)
       this.client.on(DefaultSignals.OBJECTS,(obj:ObjectsPacket)=>{
         this.scene.objects.proccess(obj)

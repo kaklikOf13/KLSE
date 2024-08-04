@@ -64,9 +64,7 @@ export abstract class FormGameObject2D extends ClientGameObject2D{
         super()
     }
     render(camera:Camera2D,renderer:Renderer){
-        this.hb.position=v2.sub(this.hb.position,camera.position)
-        renderer.draw_hitbox2D(this.hb,this.color)
-        this.hb.position=v2.add(this.hb.position,camera.position)
+        renderer.draw_hitbox2D(this.hb,this.color,camera.position)
     }
 }
 export abstract class IMCGameObject3D extends ClientGameObject3D{
@@ -97,6 +95,7 @@ export class ClientGame2D<Events extends DefaultEvents = DefaultEvents, EMap ext
         this.resource=resource
     }
     draw(renderer:Renderer){
+        renderer.clear()
         for(const c in this.scene.objects.objects){
             for(const o of this.scene.objects.objects[c].orden){
                 this.scene.objects.objects[c].objects[o].render(this.camera,renderer)
@@ -125,6 +124,7 @@ export class ClientGame3D<Events extends DefaultEvents = DefaultEvents, EMap ext
         this.resource=resource
     }
     draw(renderer:Renderer){
+        renderer.clear()
         for(const c in this.scene.objects.objects){
             for(const o of this.scene.objects.objects[c].orden){
                 this.scene.objects.objects[c].objects[o].render(this.camera,renderer)
