@@ -1,3 +1,4 @@
+import { Language } from "./definitions.ts";
 import { type Scene2D, type Scene3D } from "./game.ts";
 
 export const halfpi=Math.PI/2
@@ -327,3 +328,4 @@ export async function loadJson<val extends {}>(path:string):Promise<val>{
 }
 export const loadScene2D=loadJson<Scene2D>
 export const loadScene3D=loadJson<Scene3D>
+export const loadLanguage=loadJson<Language>

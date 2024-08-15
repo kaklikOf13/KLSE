@@ -125,3 +125,31 @@ export class ExtendedMap<K, V> extends Map<K, V> {
         return mapper(this._get(key))
     }
 }
+export interface Language{
+    name:string,
+    // deno-lint-ignore no-explicit-any
+    value:Record<string,any>
+}
+export class LocalizatorDefs{
+    language:Language
+    constructor(language:Language){
+        this.language=language
+    }
+    // deno-lint-ignore no-explicit-any
+    protected _get(val:string[],vv:Record<string,any>,err:string):string{
+        if(val.length==1){
+            return vv[val[0]]
+        }else if(val.length>1){
+            if(typeof vv[val[0]]!=="object")return err
+            // deno-lint-ignore no-explicit-any
+            return this._get(val.slice(1,val.length),(vv[val[0]] as Record<string,any>),err)
+        }
+        throw new Error("Null Translation")
+    }
+    /**
+     * mydivision.sub.aaa
+     */
+    get(val:string):string{
+        return this._get(val.split("."),this.language.value,val)
+    }
+}
