@@ -24,5 +24,45 @@
                 bbb
             </tab>
         </tabs-container>
+        <script>
+            function init(){
+                const menu=new Menu()
+                menu.add_option("aaa",(e)=>{console.log(e)})
+                document.body.appendChild(menu)
+            }
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault()
+
+                const menu=new Menu()
+                menu.style.left=`${e.clientX}px`
+                menu.style.top=`${e.clientY}px`
+                menu.add_option("aaa",(e)=>{console.log(e)})
+                const submenu1=new Menu()
+                submenu1.add_option("kaklik")
+                menu.add_submenu("submenu",submenu1)
+                document.body.appendChild(menu)
+            });
+        </script>
+        <kl-menu>
+            <kl-option>opt1</kl-option>
+            <kl-submenu>
+                submenu
+                <kl-menu>
+                    <kl-option>kl2</kl-option>
+                </kl-menu>
+            </kl-submenu>
+            <kl-submenu>
+                submenu2
+                <kl-menu>
+                    <kl-option>kl3</kl-option>
+                    <kl-submenu>
+                        child-sub-menu
+                        <kl-menu>
+                            <kl-option>kl4</kl-option>
+                        </kl-menu>
+                    </kl-submenu>
+                </kl-menu>
+            </kl-submenu>
+        </kl-menu>
     </body>
 </html>
