@@ -1,18 +1,14 @@
 import { Vec3 } from "../mod.ts";
-import { splitPath } from "../utils/_utils.ts";
+import { cloneDeep, splitPath } from "../utils/_utils.ts";
 import { type DefaultEvents, type DefaultEventsMap2D, Game2D, BaseGameObject2D, Game3D, BaseGameObject3D, DefaultEventsMap3D } from "../utils/game.ts";
-import { Vec2, v2, v3 } from "../utils/geometry.ts";
-import { Model3D } from "../utils/models.ts";
+import { Angle, Vec2, v2, v3 } from "../utils/geometry.ts";
+import { Matrix, Model3D, matrix4 } from "../utils/models.ts";
 import { NetStream } from "../utils/stream.ts";
 import { KeyListener, MousePosListener } from "./keys.ts";
-import { Color, Renderer } from "./renderer.ts";
+import { Camera3D, type Color, type GLMaterial, type Renderer } from "./renderer.ts";
 import { ResourcesManager, Sprite } from "./resources.ts";
 export interface Camera2D{
     position:Vec2
-}
-export interface Camera3D{
-    position:Vec3
-    rotation:Vec3
 }
 export abstract class ClientGameObject2D extends BaseGameObject2D{
     // deno-lint-ignore no-explicit-any
@@ -70,13 +66,13 @@ export abstract class FormGameObject2D extends ClientGameObject2D{
 export abstract class IMCGameObject3D extends ClientGameObject3D{
     // deno-lint-ignore no-explicit-any
     declare game:ClientGame3D<any,any>
-    abstract color:Color
+    abstract material:GLMaterial
     abstract model:Model3D
     constructor(){
         super()
     }
     render(camera:Camera3D,renderer:Renderer){
-        renderer.color_draw_iso_model(this.model,v3.sub(this.position,camera.position),this.hb.transform.scale,v3.sub(this.rotation,camera.rotation),this.color,false,true)
+        renderer.draw_model3D(this.model,this.position,this.hb.transform.scale,this.rotation,camera,this.material,false)
     }
 }
 export class ClientGame2D<Events extends DefaultEvents = DefaultEvents, EMap extends DefaultEventsMap2D = DefaultEventsMap2D> extends Game2D<ClientGameObject2D,Events,EMap>{
@@ -84,15 +80,15 @@ export class ClientGame2D<Events extends DefaultEvents = DefaultEvents, EMap ext
     renderer:Renderer
     key:KeyListener
     mouse:MousePosListener
-    resource:ResourcesManager
-    constructor(keyl:KeyListener,mouse:MousePosListener,resource:ResourcesManager,renderer:Renderer,...args:any[]){
+    resources:ResourcesManager
+    constructor(keyl:KeyListener,mouse:MousePosListener,resources:ResourcesManager,renderer:Renderer,...args:any[]){
         // deno-lint-ignore ban-ts-comment
         //@ts-expect-error
         super(...args)
         this.mouse=mouse
         this.key=keyl
         this.renderer=renderer
-        this.resource=resource
+        this.resources=resources
     }
     draw(renderer:Renderer){
         renderer.clear()
@@ -109,35 +105,40 @@ export class ClientGame2D<Events extends DefaultEvents = DefaultEvents, EMap ext
     }
 }
 export class ClientGame3D<Events extends DefaultEvents = DefaultEvents, EMap extends DefaultEventsMap3D = DefaultEventsMap3D> extends Game3D<ClientGameObject3D,Events,EMap>{
-    camera:Camera3D={position:v3.new(0,0,0),rotation:v3.new(0,0,0)}
+    camera:Camera3D=new Camera3D()
     renderer:Renderer
     key:KeyListener
     mouse:MousePosListener
-    resource:ResourcesManager
-    constructor(keyl:KeyListener,mouse:MousePosListener,renderer:Renderer,resource:ResourcesManager,...args:any[]){
+    resources:ResourcesManager
+    constructor(keyl:KeyListener,mouse:MousePosListener,renderer:Renderer,resources:ResourcesManager,...args:any[]){
         // deno-lint-ignore ban-ts-comment
         //@ts-expect-error
         super(...args)
         this.mouse=mouse
         this.key=keyl
         this.renderer=renderer
-        this.resource=resource
+        this.resources=resources
     }
-    draw(renderer:Renderer){
-        renderer.clear()
+    draw(){
+        this.renderer.clear()
+        this.camera.update(this.renderer)
         for(const c in this.scene.objects.objects){
             for(const o of this.scene.objects.objects[c].orden){
-                this.scene.objects.objects[c].objects[o].render(this.camera,renderer)
+                this.scene.objects.objects[c].objects[o].render(this.camera,this.renderer)
             }
         }
+        self.requestAnimationFrame(this.draw.bind(this))
     }
     getCameraCenter(center:Vec3):Vec3{
         return v3.sub(center,v3.new((this.renderer.canvas.width/2)/this.renderer.meter_size,0,-((this.renderer.canvas.height/2)/this.renderer.meter_size)))
     }
     update(){
         Game3D.prototype.update.call(this)
-        this.draw(this.renderer)
         this.key.tick()
+    }
+    mainloop(): void {
+      super.mainloop()
+      this.draw()
     }
 }
 

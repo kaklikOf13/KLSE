@@ -1,4 +1,4 @@
-import { createCanvas,applyShadow, MousePosListener, KeyListener, ResourcesManager,ClientGame3D, WebglRenderer } from "KLSE/CLIENT"
+import { createCanvas,applyShadow, MousePosListener, KeyListener, ResourcesManager,ClientGame3D, WebglRenderer,RGBA } from "KLSE/CLIENT"
 import { loadScene3D, v2, m3 } from "KLSE"
 import { Player } from "./objects/player.ts"
 import { Wall } from "./objects/wall.ts"
@@ -20,6 +20,8 @@ import { Wall } from "./objects/wall.ts"
 
     const resources=new ResourcesManager()
     resources.set_model3D("cube",m3.cube(1))
+    resources.set_material("player/material",renderer.material.normal.generateMaterial(RGBA.new(255,5,70)))
+    resources.set_material("wall/material",renderer.material.normal.generateMaterial(RGBA.new(0,0,0)))
     const game=new ClientGame3D(KeyL,mouseML,renderer,resources,60,{
         "player":Player,
         "wall":Wall

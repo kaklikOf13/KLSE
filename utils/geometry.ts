@@ -244,29 +244,29 @@ export const v3 = Object.freeze({
      * @param fallback A `Vec2` to clone and return in case the normalization operation fails
      * @returns A `Vec2` whose length is 1 and is parallel to the original Vec2
      */
-    normalizeSafe(Vec3:Vec3,fallback:Vec3=NullVec3):Vec3 {
+    normalizeSafe(vec:Vec3,fallback:Vec3=NullVec3):Vec3 {
         const eps = 0.000001
-        const len = this.length(Vec3)
+        const len = this.length(vec)
         return len > eps
             ? {
-                x:Vec3.x/len,
-                y:Vec3.y/len,
-                z:Vec3.z/len
+                x:vec.x/len,
+                y:vec.y/len,
+                z:vec.z/len
             }:this.duplicate(fallback)
     },
     /**
      * @param Vec3 The `Vec3` to normalize
      * @returns A `Vec3` whose length is 1 and is parallel to the original Vec2
      */
-    normalize(Vec3:Vec3): Vec3 {
+    normalize(vec:Vec3): Vec3 {
         const eps = 0.000001
-        const len = this.length(Vec3)
-        return eps
+        const len = this.length(vec)
+        return len > eps
             ? {
-                x:Vec3.x/len,
-                y:Vec3.y/len,
-                z:Vec3.z/len
-            }: this.duplicate(Vec3)
+                x:vec.x/len,
+                y:vec.y/len,
+                z:vec.z/len
+            }: this.duplicate(vec)
     },
     /**
      * 
@@ -287,6 +287,9 @@ export const v3 = Object.freeze({
      */
     squared(vec:Vec3):number{
         return vec.x*vec.x+vec.y*vec.y+vec.z*vec.z
+    },
+    dot(x: Vec3, y: Vec3): number {
+        return x.x * y.x + x.y * y.y + x.z * y.z;
     },
     /**
      * @param x `Vec31`
@@ -555,6 +558,9 @@ export const v2 = Object.freeze({
      */
     squared(Vec2:Vec2):number{
         return Vec2.x*Vec2.x+Vec2.y*Vec2.y
+    },
+    dot(x: Vec2, y: Vec2): number {
+        return x.x * y.x + x.y * y.y;
     },
     /**
      * @param Vec2 The `Vec2` used in lenght

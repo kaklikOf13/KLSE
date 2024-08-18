@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game</title>
+    <style>
+      @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+      canvas{ 
+        -webkit-box-shadow: 0px 4px 17px 0px #ffffff2f;
+        -moz-box-shadow: 0px 4px 17px 0px #ffffff2f;
+        box-shadow: 0px 4px 17px 0px #ffffff2f;
+        -webkit-box-shadow: 0px 4px 17px 0px #ffffff2f;
+        -moz-box-shadow: 0px 4px 17px 0px #ffffff2f;
+        box-shadow: 0px 4px 17px 0px #ffffff50;
+        display: inline-block;
+        vertical-align: top;
+      }
+      #maincanvas{
+        width: 700px;
+        height: 700px;
+      }
+      body{
+        background-color: #001;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="uiContainer">
+      <div id="ui">
+        <div id="fudgeFactor"></div>
+        <div id="x"></div>
+        <div id="y"></div>
+        <div id="z"></div>
+        <div id="angleX"></div>
+        <div id="angleY"></div>
+        <div id="angleZ"></div>
+      </div>
+    </div>
+    <script type="module" src="/main.ts"></script>
+   <!-- for most samples webgl-utils only provides shader compiling/linking and
+    canvas resizing because why clutter the examples with code that's the same in every sample.
+    See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+    and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+    for webgl-utils, m3, m4, and webgl-lessons-ui.
+    -->
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+  </body>
+</html>

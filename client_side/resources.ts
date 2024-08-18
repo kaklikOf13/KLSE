@@ -1,5 +1,6 @@
 import { EaseFunction, ease } from "../utils/_utils.ts";
 import { m3, Model3D } from "../utils/models.ts";
+import { type GLMaterial } from "./renderer.ts";
 
 export interface SoundDef{
     volume:number
@@ -7,7 +8,7 @@ export interface SoundDef{
 }
 export class Sprite{
     source:HTMLImageElement
-    readonly type:SourceType.Sprite=SourceType.Sprite
+    readonly resourceType:SourceType.Sprite=SourceType.Sprite
     constructor(source:HTMLImageElement){
         this.source=source
     }
@@ -20,21 +21,22 @@ export interface KeyFrame{
     delay:number
 }
 export type Animation={
-    type:SourceType.Animation
+    resourceType:SourceType.Animation
     keys:Record<string,KeyFrame[]>
 }
 export interface Sound extends SoundDef{
     volume:number
     buffer:AudioBuffer
-    type:SourceType.Sound
+    resourceType:SourceType.Sound
 }
 export enum SourceType{
     Sprite,
     Animation,
     Sound,
-    Model3D
+    Model3D,
+    GLMaterial
 }
-export type Source=Sprite|Animation|Sound|Model3D
+export type Source=Sprite|Animation|Sound|Model3D|GLMaterial
 function getSvgUrl(svg:string) {
     return  URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
 }
@@ -105,7 +107,7 @@ export class ResourcesManager{
                     return;
                 }
                 this.audioCtx.decodeAudioData(arrayBuffer, (audioBuffer) => {
-                    (this.sources[id] as Sound)={buffer:audioBuffer,...def,type:SourceType.Sound};
+                    (this.sources[id] as Sound)={buffer:audioBuffer,...def,resourceType:SourceType.Sound};
                     resolve(this.sources[id] as Sound)
                 }, () => {
                     reject(`Failed decoding sound: ${id}`);
@@ -124,7 +126,7 @@ export class ResourcesManager{
         const json=await(await fetch(path)).json()
         let anim!:Animation
         for(const k of Object.keys(json["keys"])){
-            anim={type:SourceType.Animation,keys:{}}
+            anim={resourceType:SourceType.Animation,keys:{}}
             anim.keys[k]=[]
             for(const f of json.keys){
                 anim.keys[k].push({ease:ease[f.ease as (keyof typeof ease)],delay:f.delay,value:f.value,dest:f.dest})
@@ -159,6 +161,12 @@ export class ResourcesManager{
     }
     get_model3D(id:string):Model3D{
         return this.sources[id] as Model3D
+    }
+    set_material(id:string,material:GLMaterial):void{
+        this.sources[id]=material
+    }
+    get_material(id:string):GLMaterial{
+        return this.sources[id] as GLMaterial
     }
     delete_source(id:string){
         delete this.sources[id]

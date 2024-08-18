@@ -707,6 +707,7 @@ class ObjectsPacket extends Packet {
         this.stream.pos = 0;
     }
 }
+export { ConnectPacket as ConnectPacket, DisconnectPacket as DisconnectPacket };
 const DefaultSignals = {
     CONNECT: "connect",
     DISCONNECT: "disconnect",
@@ -760,6 +761,8 @@ class Client {
         this.ws.close();
     }
 }
+export { DefaultSignals as DefaultSignals };
+export { Client as Client };
 const Collision = Object.freeze({
     circle_with_rect (hb1, hb2) {
         const cp = v2.clamp2(hb1.position, hb2.position, v2.add(hb2.position, hb2.size));
@@ -2209,13 +2212,13 @@ const m3 = Object.freeze({
             0,
             0,
             s,
-            0,
+            -s,
             0,
             s,
             -s,
             s,
             s,
-            -0,
+            0,
             s,
             s,
             0,
@@ -2308,6 +2311,382 @@ const m3 = Object.freeze({
         return ret;
     }
 });
+const matrix4 = Object.freeze({
+    projection (size) {
+        return [
+            2 / size.x,
+            0,
+            0,
+            0,
+            0,
+            -2 / size.y,
+            0,
+            0,
+            0,
+            0,
+            2 / size.z,
+            0,
+            -1,
+            1,
+            0,
+            1
+        ];
+    },
+    zToMatrix (fov) {
+        return [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            fov,
+            0,
+            0,
+            0,
+            1
+        ];
+    },
+    lookAt (cameraPosition, target, up) {
+        const zAxis = v3.normalize(v3.sub(cameraPosition, target));
+        const xAxis = v3.normalize(v3.cross(up, zAxis));
+        const yAxis = v3.normalize(v3.cross(zAxis, xAxis));
+        return [
+            xAxis.x,
+            xAxis.y,
+            xAxis.z,
+            0,
+            yAxis.x,
+            yAxis.y,
+            yAxis.z,
+            0,
+            zAxis.x,
+            zAxis.y,
+            zAxis.z,
+            0,
+            cameraPosition.x,
+            cameraPosition.y,
+            cameraPosition.z,
+            1
+        ];
+    },
+    perspective: function(fov, aspect, near, far) {
+        const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
+        const rangeInv = 1.0 / (near - far);
+        return [
+            f / aspect,
+            0,
+            0,
+            0,
+            0,
+            f,
+            0,
+            0,
+            0,
+            0,
+            (near + far) * rangeInv,
+            -1,
+            0,
+            0,
+            near * far * rangeInv * 2,
+            0
+        ];
+    },
+    translation (pos) {
+        return [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            pos.x,
+            pos.y,
+            pos.z,
+            1
+        ];
+    },
+    multiply (a, b) {
+        const a00 = a[0 * 4 + 0];
+        const a01 = a[0 * 4 + 1];
+        const a02 = a[0 * 4 + 2];
+        const a03 = a[0 * 4 + 3];
+        const a10 = a[1 * 4 + 0];
+        const a11 = a[1 * 4 + 1];
+        const a12 = a[1 * 4 + 2];
+        const a13 = a[1 * 4 + 3];
+        const a20 = a[2 * 4 + 0];
+        const a21 = a[2 * 4 + 1];
+        const a22 = a[2 * 4 + 2];
+        const a23 = a[2 * 4 + 3];
+        const a30 = a[3 * 4 + 0];
+        const a31 = a[3 * 4 + 1];
+        const a32 = a[3 * 4 + 2];
+        const a33 = a[3 * 4 + 3];
+        const b00 = b[0 * 4 + 0];
+        const b01 = b[0 * 4 + 1];
+        const b02 = b[0 * 4 + 2];
+        const b03 = b[0 * 4 + 3];
+        const b10 = b[1 * 4 + 0];
+        const b11 = b[1 * 4 + 1];
+        const b12 = b[1 * 4 + 2];
+        const b13 = b[1 * 4 + 3];
+        const b20 = b[2 * 4 + 0];
+        const b21 = b[2 * 4 + 1];
+        const b22 = b[2 * 4 + 2];
+        const b23 = b[2 * 4 + 3];
+        const b30 = b[3 * 4 + 0];
+        const b31 = b[3 * 4 + 1];
+        const b32 = b[3 * 4 + 2];
+        const b33 = b[3 * 4 + 3];
+        return [
+            b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30,
+            b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31,
+            b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32,
+            b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33,
+            b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30,
+            b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31,
+            b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32,
+            b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33,
+            b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30,
+            b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31,
+            b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32,
+            b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33,
+            b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30,
+            b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31,
+            b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32,
+            b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33
+        ];
+    },
+    divade (a, b) {
+        const a00 = a[0 * 4 + 0];
+        const a01 = a[0 * 4 + 1];
+        const a02 = a[0 * 4 + 2];
+        const a03 = a[0 * 4 + 3];
+        const a10 = a[1 * 4 + 0];
+        const a11 = a[1 * 4 + 1];
+        const a12 = a[1 * 4 + 2];
+        const a13 = a[1 * 4 + 3];
+        const a20 = a[2 * 4 + 0];
+        const a21 = a[2 * 4 + 1];
+        const a22 = a[2 * 4 + 2];
+        const a23 = a[2 * 4 + 3];
+        const a30 = a[3 * 4 + 0];
+        const a31 = a[3 * 4 + 1];
+        const a32 = a[3 * 4 + 2];
+        const a33 = a[3 * 4 + 3];
+        const b00 = b[0 * 4 + 0];
+        const b01 = b[0 * 4 + 1];
+        const b02 = b[0 * 4 + 2];
+        const b03 = b[0 * 4 + 3];
+        const b10 = b[1 * 4 + 0];
+        const b11 = b[1 * 4 + 1];
+        const b12 = b[1 * 4 + 2];
+        const b13 = b[1 * 4 + 3];
+        const b20 = b[2 * 4 + 0];
+        const b21 = b[2 * 4 + 1];
+        const b22 = b[2 * 4 + 2];
+        const b23 = b[2 * 4 + 3];
+        const b30 = b[3 * 4 + 0];
+        const b31 = b[3 * 4 + 1];
+        const b32 = b[3 * 4 + 2];
+        const b33 = b[3 * 4 + 3];
+        return [
+            b00 / a00 + b01 / a10 + b02 / a20 + b03 / a30,
+            b00 / a01 + b01 / a11 + b02 / a21 + b03 / a31,
+            b00 / a02 + b01 / a12 + b02 / a22 + b03 / a32,
+            b00 / a03 + b01 / a13 + b02 / a23 + b03 / a33,
+            b10 / a00 + b11 / a10 + b12 / a20 + b13 / a30,
+            b10 / a01 + b11 / a11 + b12 / a21 + b13 / a31,
+            b10 / a02 + b11 / a12 + b12 / a22 + b13 / a32,
+            b10 / a03 + b11 / a13 + b12 / a23 + b13 / a33,
+            b20 / a00 + b21 / a10 + b22 / a20 + b23 / a30,
+            b20 / a01 + b21 / a11 + b22 / a21 + b23 / a31,
+            b20 / a02 + b21 / a12 + b22 / a22 + b23 / a32,
+            b20 / a03 + b21 / a13 + b22 / a23 + b23 / a33,
+            b30 / a00 + b31 / a10 + b32 / a20 + b33 / a30,
+            b30 / a01 + b31 / a11 + b32 / a21 + b33 / a31,
+            b30 / a02 + b31 / a12 + b32 / a22 + b33 / a32,
+            b30 / a03 + b31 / a13 + b32 / a23 + b33 / a33
+        ];
+    },
+    xRotation (angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return [
+            1,
+            0,
+            0,
+            0,
+            0,
+            c,
+            s,
+            0,
+            0,
+            -s,
+            c,
+            0,
+            0,
+            0,
+            0,
+            1
+        ];
+    },
+    yRotation (angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return [
+            c,
+            0,
+            -s,
+            0,
+            0,
+            1,
+            0,
+            0,
+            s,
+            0,
+            c,
+            0,
+            0,
+            0,
+            0,
+            1
+        ];
+    },
+    zRotation (angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return [
+            c,
+            s,
+            0,
+            0,
+            -s,
+            c,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+        ];
+    },
+    translate (m, pos) {
+        return this.multiply(m, this.translation(pos));
+    },
+    xRotate (m, angle) {
+        return this.multiply(m, this.xRotation(angle));
+    },
+    yRotate (m, angle) {
+        return this.multiply(m, this.yRotation(angle));
+    },
+    zRotate (m, angle) {
+        return this.multiply(m, this.zRotation(angle));
+    },
+    rotate (m, angle) {
+        return this.zRotate(this.yRotate(this.xRotate(m, angle.x), angle.y), angle.z);
+    },
+    inverse (m) {
+        const m00 = m[0 * 4 + 0];
+        const m01 = m[0 * 4 + 1];
+        const m02 = m[0 * 4 + 2];
+        const m03 = m[0 * 4 + 3];
+        const m10 = m[1 * 4 + 0];
+        const m11 = m[1 * 4 + 1];
+        const m12 = m[1 * 4 + 2];
+        const m13 = m[1 * 4 + 3];
+        const m20 = m[2 * 4 + 0];
+        const m21 = m[2 * 4 + 1];
+        const m22 = m[2 * 4 + 2];
+        const m23 = m[2 * 4 + 3];
+        const m30 = m[3 * 4 + 0];
+        const m31 = m[3 * 4 + 1];
+        const m32 = m[3 * 4 + 2];
+        const m33 = m[3 * 4 + 3];
+        const tmp_0 = m22 * m33;
+        const tmp_1 = m32 * m23;
+        const tmp_2 = m12 * m33;
+        const tmp_3 = m32 * m13;
+        const tmp_4 = m12 * m23;
+        const tmp_5 = m22 * m13;
+        const tmp_6 = m02 * m33;
+        const tmp_7 = m32 * m03;
+        const tmp_8 = m02 * m23;
+        const tmp_9 = m22 * m03;
+        const tmp_10 = m02 * m13;
+        const tmp_11 = m12 * m03;
+        const tmp_12 = m20 * m31;
+        const tmp_13 = m30 * m21;
+        const tmp_14 = m10 * m31;
+        const tmp_15 = m30 * m11;
+        const tmp_16 = m10 * m21;
+        const tmp_17 = m20 * m11;
+        const tmp_18 = m00 * m31;
+        const tmp_19 = m30 * m01;
+        const tmp_20 = m00 * m21;
+        const tmp_21 = m20 * m01;
+        const tmp_22 = m00 * m11;
+        const tmp_23 = m10 * m01;
+        const t0 = tmp_0 * m11 + tmp_3 * m21 + tmp_4 * m31 - (tmp_1 * m11 + tmp_2 * m21 + tmp_5 * m31);
+        const t1 = tmp_1 * m01 + tmp_6 * m21 + tmp_9 * m31 - (tmp_0 * m01 + tmp_7 * m21 + tmp_8 * m31);
+        const t2 = tmp_2 * m01 + tmp_7 * m11 + tmp_10 * m31 - (tmp_3 * m01 + tmp_6 * m11 + tmp_11 * m31);
+        const t3 = tmp_5 * m01 + tmp_8 * m11 + tmp_11 * m21 - (tmp_4 * m01 + tmp_9 * m11 + tmp_10 * m21);
+        const d = 1.0 / (m00 * t0 + m10 * t1 + m20 * t2 + m30 * t3);
+        return [
+            d * t0,
+            d * t1,
+            d * t2,
+            d * t3,
+            d * (tmp_1 * m10 + tmp_2 * m20 + tmp_5 * m30 - (tmp_0 * m10 + tmp_3 * m20 + tmp_4 * m30)),
+            d * (tmp_0 * m00 + tmp_7 * m20 + tmp_8 * m30 - (tmp_1 * m00 + tmp_6 * m20 + tmp_9 * m30)),
+            d * (tmp_3 * m00 + tmp_6 * m10 + tmp_11 * m30 - (tmp_2 * m00 + tmp_7 * m10 + tmp_10 * m30)),
+            d * (tmp_4 * m00 + tmp_9 * m10 + tmp_10 * m20 - (tmp_5 * m00 + tmp_8 * m10 + tmp_11 * m20)),
+            d * (tmp_12 * m13 + tmp_15 * m23 + tmp_16 * m33 - (tmp_13 * m13 + tmp_14 * m23 + tmp_17 * m33)),
+            d * (tmp_13 * m03 + tmp_18 * m23 + tmp_21 * m33 - (tmp_12 * m03 + tmp_19 * m23 + tmp_20 * m33)),
+            d * (tmp_14 * m03 + tmp_19 * m13 + tmp_22 * m33 - (tmp_15 * m03 + tmp_18 * m13 + tmp_23 * m33)),
+            d * (tmp_17 * m03 + tmp_20 * m13 + tmp_23 * m23 - (tmp_16 * m03 + tmp_21 * m13 + tmp_22 * m23)),
+            d * (tmp_14 * m22 + tmp_17 * m32 + tmp_13 * m12 - (tmp_16 * m32 + tmp_12 * m12 + tmp_15 * m22)),
+            d * (tmp_20 * m32 + tmp_12 * m02 + tmp_19 * m22 - (tmp_18 * m22 + tmp_21 * m32 + tmp_13 * m02)),
+            d * (tmp_18 * m12 + tmp_23 * m32 + tmp_15 * m02 - (tmp_22 * m32 + tmp_14 * m02 + tmp_19 * m12)),
+            d * (tmp_22 * m22 + tmp_16 * m02 + tmp_21 * m12 - (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02))
+        ];
+    }
+});
+class Camera3D {
+    position;
+    rotation;
+    fov;
+    near;
+    far;
+    matrix;
+    constructor(position = v3.new(0, 0, 0), rotation = v3.new(0, 0, 0), fov = 80, near = .00001, far = 100){
+        this.position = position;
+        this.rotation = rotation;
+        this.fov = fov;
+        this.matrix = [];
+        this.near = near;
+        this.far = far;
+    }
+    update(renderer) {
+        this.matrix = matrix4.translate(matrix4.rotate(matrix4.perspective(Angle.deg2rad(this.fov), renderer.canvas.width / renderer.meter_size / (renderer.canvas.height / renderer.meter_size), this.near, this.far), v3.scale(this.rotation, Angle.deg2rad(1))), v3.neg(this.position));
+    }
+}
 const RGBA = Object.freeze({
     new (r, g, b, a = 255) {
         return {
@@ -2324,6 +2703,59 @@ const RGBA = Object.freeze({
             b: json.b / 255,
             a: (json.a ?? 255) / 255
         };
+    }
+});
+const HEXCOLOR = Object.freeze({
+    new (hex) {
+        let result;
+        switch(hex.length){
+            case 4:
+                result = /^#?([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})$/i.exec(hex);
+                if (!result) {
+                    throw new Error("Invalid Hex");
+                }
+                return {
+                    r: parseInt(result[1], 16) / 15,
+                    g: parseInt(result[2], 16) / 15,
+                    b: parseInt(result[3], 16) / 15,
+                    a: 1
+                };
+            case 5:
+                result = /^#?([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})$/i.exec(hex);
+                if (!result) {
+                    throw new Error("Invalid Hex");
+                }
+                return {
+                    r: parseInt(hex[1], 16) / 15,
+                    g: parseInt(hex[2], 16) / 15,
+                    b: parseInt(hex[3], 16) / 15,
+                    a: parseInt(hex[4], 16) / 15
+                };
+            case 7:
+                result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                if (!result) {
+                    throw new Error("Invalid Hex");
+                }
+                return {
+                    r: parseInt(result[1], 16) / 255,
+                    g: parseInt(result[2], 16) / 255,
+                    b: parseInt(result[3], 16) / 255,
+                    a: 1
+                };
+            case 9:
+                result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                if (!result) {
+                    throw new Error("Invalid Hex");
+                }
+                return {
+                    r: parseInt(result[1], 16) / 255,
+                    g: parseInt(result[2], 16) / 255,
+                    b: parseInt(result[3], 16) / 255,
+                    a: parseInt(result[4], 16) / 255
+                };
+            default:
+                throw new Error("Invalid Hex");
+        }
     }
 });
 class Renderer {
@@ -2351,13 +2783,54 @@ uniform vec4 a_Color;
 void main() {
     gl_FragColor = a_Color;
 }`;
-const isoVertexShaderSource = `
+class GLMaterialFactory {
+    program;
+    attributes;
+    uniforms;
+    renderer;
+    vertexAttributeArray = true;
+    constructor(vertexShader, fragShader, renderer){
+        this.renderer = renderer;
+        const vertex = renderer.createShader(vertexShader, renderer.gl.VERTEX_SHADER);
+        const frag = renderer.createShader(fragShader, renderer.gl.FRAGMENT_SHADER);
+        const program = renderer.gl.createProgram();
+        if (!program) {
+            throw new Error("Failed to create WebGL program");
+        }
+        renderer.gl.attachShader(program, vertex);
+        renderer.gl.attachShader(program, frag);
+        renderer.gl.linkProgram(program);
+        if (!renderer.gl.getProgramParameter(program, renderer.gl.LINK_STATUS)) {
+            const info = renderer.gl.getProgramInfoLog(program);
+            throw new Error(`Failed to link program: ${info}`);
+        }
+        this.program = program;
+        this.attributes = {};
+        this.uniforms = {};
+    }
+    add_attrL(name) {
+        this.attributes[name] = this.renderer.gl.getAttribLocation(this.program, name);
+    }
+    add_uniformL(name) {
+        this.uniforms[name] = this.renderer.gl.getUniformLocation(this.program, name) || undefined;
+    }
+    generateMaterial(normal, texture) {
+        return {
+            factory: this,
+            normal: normal,
+            texture: texture
+        };
+    }
+}
+const normal3DVertexShader = `
 attribute vec3 a_Position;
+
 uniform vec3 u_Translation;
 uniform vec3 u_Scale;
 uniform vec3 u_Rotation;
+
 uniform mat4 u_ProjectionMatrix;
-varying highp float v_SH;
+
 varying vec3 translatedPosition;
 
 mat3 rotationMatrix(vec3 r) {
@@ -2367,13 +2840,13 @@ mat3 rotationMatrix(vec3 r) {
         0.0, cos(radians.x), -sin(radians.x),
         0.0, sin(radians.x), cos(radians.x)
     );
-    
+
     mat3 rotY = mat3(
         cos(radians.y), 0.0, sin(radians.y),
         0.0, 1.0, 0.0,
         -sin(radians.y), 0.0, cos(radians.y)
     );
-    
+
     mat3 rotZ = mat3(
         cos(radians.z), -sin(radians.z), 0.0,
         sin(radians.z), cos(radians.z), 0.0,
@@ -2382,47 +2855,20 @@ mat3 rotationMatrix(vec3 r) {
 
     return rotZ * rotY * rotX;
 }
-const float camRot=0.05;
-const float camRot2=1.5;
-void main() {
-    translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
-    vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);
-    v_SH=isoP.y;
-    gl_Position = u_ProjectionMatrix * vec4(isoP, (translatedPosition.z/1000.0), 1.0);
-}
-`;
-const isoSimpleFragShaderSource = `
-#ifdef GL_ES
-precision highp float;
-#endif
 
-uniform vec4 a_Color;
-varying vec3 translatedPosition;
 void main() {
-    float depth = translatedPosition.z;
-    gl_FragColor = gl_FragColor = a_Color;
-}
-`;
-const isoSimpleShadowFragShaderSource = `
-#ifdef GL_ES
-precision highp float;
-#endif
-
-uniform vec4 a_Color;
-varying float v_SH;
-void main() {
-    float shadowIntensity = smoothstep(0.0, 0.4, (v_SH/100.0));
-    gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), 0.4-shadowIntensity);
+    // Apply rotation
+    translatedPosition = ((rotationMatrix(u_Rotation) * a_Position) * u_Scale) + u_Translation;
+    gl_Position = u_ProjectionMatrix*vec4(translatedPosition,1.0);
 }
 `;
 class WebglRenderer extends Renderer {
     gl;
-    simple_program;
-    isometric_simple_shadow_program;
-    isometric_simple_program;
     background = RGBA.new(255, 255, 255);
     projectionMatrix;
-    constructor(canvas, meter_size = 100, background = RGBA.new(255, 255, 255)){
+    simple_program;
+    material;
+    constructor(canvas, meter_size = 100, background = RGBA.new(255, 255, 255), depth = 500){
         super(canvas, meter_size);
         const gl = this.canvas.getContext("webgl");
         this.background = background;
@@ -2433,36 +2879,30 @@ class WebglRenderer extends Renderer {
         gl.attachShader(simple_program, this.createShader(rectFragmentShaderSource, gl.FRAGMENT_SHADER));
         this.simple_program = simple_program;
         gl.linkProgram(this.simple_program);
-        const isometric_simple_program = gl.createProgram();
-        gl.attachShader(isometric_simple_program, this.createShader(isoVertexShaderSource, gl.VERTEX_SHADER));
-        gl.attachShader(isometric_simple_program, this.createShader(isoSimpleFragShaderSource, gl.FRAGMENT_SHADER));
-        this.isometric_simple_program = isometric_simple_program;
-        gl.linkProgram(this.isometric_simple_program);
-        const isometric_simple_shadow_program = gl.createProgram();
-        gl.attachShader(isometric_simple_shadow_program, this.createShader(isoVertexShaderSource, gl.VERTEX_SHADER));
-        gl.attachShader(isometric_simple_shadow_program, this.createShader(isoSimpleShadowFragShaderSource, gl.FRAGMENT_SHADER));
-        this.isometric_simple_shadow_program = isometric_simple_shadow_program;
-        gl.linkProgram(this.isometric_simple_shadow_program);
-        const scaleX = 2 / (this.canvas.width / this.meter_size);
-        const scaleY = 2 / (this.canvas.height / this.meter_size);
-        this.projectionMatrix = new Float32Array([
-            scaleX,
-            0,
-            0,
-            0,
-            0,
-            -scaleY,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            -1,
-            1,
-            0,
-            1
-        ]);
+        this.material = {
+            normal: new GLMaterialFactory(normal3DVertexShader, `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform vec4 u_Color;
+varying vec3 translatedPosition;
+void main() {
+    gl_FragColor = u_Color;
+}
+`, this)
+        };
+        this.gl.useProgram(this.material.normal.program);
+        this.material.normal.add_attrL("a_Position");
+        this.material.normal.add_uniformL("u_Color");
+        this.material.normal.add_uniformL("u_Translation");
+        this.material.normal.add_uniformL("u_Scale");
+        this.material.normal.add_uniformL("u_Rotation");
+        this.material.normal.add_uniformL("u_ProjectionMatrix");
+        this.material.normal.add_uniformL("u_ViewMatrix");
+        const scaleX = this.canvas.width / this.meter_size;
+        const scaleY = this.canvas.height / this.meter_size;
+        this.projectionMatrix = new Float32Array(matrix4.projection(v3.new(scaleX, scaleY, depth / this.meter_size)));
         gl.enable(gl.DEPTH_TEST);
     }
     createShader(src, type) {
@@ -2477,7 +2917,7 @@ class WebglRenderer extends Renderer {
         }
         throw Error("Can't create shader");
     }
-    _draw_vertices(vertices, color, mode = this.gl.TRIANGLES) {
+    _draw_vertices(vertices, normal, mode = this.gl.TRIANGLES) {
         const vertexBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
@@ -2486,12 +2926,12 @@ class WebglRenderer extends Renderer {
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
         const colorUniformLocation = this.gl.getUniformLocation(this.simple_program, "a_Color");
-        this.gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
+        this.gl.uniform4f(colorUniformLocation, normal.r, normal.g, normal.b, normal.a);
         const projectionMatrixLocation = this.gl.getUniformLocation(this.simple_program, "u_ProjectionMatrix");
         this.gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
-    draw_rect2D(rect, color, offset = NullVec2) {
+    draw_rect2D(rect, normal, offset = NullVec2) {
         const x1 = rect.position.x - offset.x;
         const y1 = rect.position.y - offset.y;
         const x2 = rect.position.x - offset.x + rect.size.x;
@@ -2509,9 +2949,9 @@ class WebglRenderer extends Renderer {
             y1,
             x2,
             y2
-        ], color);
+        ], normal);
     }
-    draw_circle2D(circle, color, offset = NullVec2, precision = 50) {
+    draw_circle2D(circle, normal, offset = NullVec2, precision = 50) {
         const centerX = circle.position.x - offset.x;
         const centerY = circle.position.y - offset.y;
         const radius = circle.radius;
@@ -2524,15 +2964,15 @@ class WebglRenderer extends Renderer {
             const y = centerY + radius * Math.sin(angle);
             vertices.push(x, y);
         }
-        this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN);
+        this._draw_vertices(vertices, normal, this.gl.TRIANGLE_FAN);
     }
-    draw_hitbox2D(hitbox, color, offset = NullVec2) {
+    draw_hitbox2D(hitbox, normal, offset = NullVec2) {
         switch(hitbox.type){
             case HitboxType2D.circle:
-                this.draw_circle2D(hitbox, color, offset);
+                this.draw_circle2D(hitbox, normal, offset);
                 break;
             case HitboxType2D.rect:
-                this.draw_rect2D(hitbox, color, offset);
+                this.draw_rect2D(hitbox, normal, offset);
                 break;
             default:
                 return;
@@ -2598,7 +3038,7 @@ class WebglRenderer extends Renderer {
         this.gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 2);
     }
-    _iso_draw_vertices_color(vertices, indices, pos, scale, rot, color, wireframe = false, simple_shadow = false, mode = this.gl.TRIANGLES) {
+    _draw3d_vertices(vertices, indices, pos, scale, rot, camera, material, wireframe = false, mode = this.gl.TRIANGLES) {
         const gl = this.gl;
         const vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -2606,24 +3046,22 @@ class WebglRenderer extends Renderer {
         const indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-        let program = this.isometric_simple_program;
-        if (simple_shadow && !wireframe) {
-            program = this.isometric_simple_shadow_program;
-        }
-        gl.useProgram(program);
-        const positionAttributeLocation = gl.getAttribLocation(program, "a_Position");
+        gl.useProgram(material.factory.program);
+        const positionAttributeLocation = material.factory.attributes["a_Position"];
         gl.enableVertexAttribArray(positionAttributeLocation);
         gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-        const colorUniformLocation = gl.getUniformLocation(program, "a_Color");
-        gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
-        const projectionMatrixLocation = gl.getUniformLocation(program, "u_ProjectionMatrix");
-        gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
-        const translationLocation = gl.getUniformLocation(program, "u_Translation");
-        gl.uniform3f(translationLocation, pos.x, pos.y, pos.z);
-        const scaleLocation = gl.getUniformLocation(program, "u_Scale");
-        gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z);
-        const rotLocation = gl.getUniformLocation(program, "u_Rotation");
-        gl.uniform3f(rotLocation, rot.x, rot.y, rot.z);
+        gl.uniform3f(material.factory.uniforms["u_Translation"], pos.x, pos.y, pos.z);
+        gl.uniform3f(material.factory.uniforms["u_Scale"], scale.x, scale.y, scale.z);
+        gl.uniform3f(material.factory.uniforms["u_Rotation"], rot.x, rot.y, rot.z);
+        gl.uniformMatrix4fv(material.factory.uniforms["u_ProjectionMatrix"], false, camera.matrix);
+        if (material.normal) {
+            gl.uniform4f(material.factory.uniforms["u_Color"], material.normal.r, material.normal.g, material.normal.b, material.normal.a);
+        } else {
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, material.texture.source);
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        }
         if (wireframe) {
             const wireframeIndices = [];
             for(let i = 0; i < indices.length; i += 3){
@@ -2639,12 +3077,12 @@ class WebglRenderer extends Renderer {
             gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0);
         }
     }
-    draw_iso_rect(rect, color, wireframe = false, simple_shadow = false) {
-        this._iso_draw_vertices_color([
+    draw_cube(rect, camera, material, wireframe = false) {
+        this._draw3d_vertices([
             0,
             0,
             1,
-            0,
+            -1,
             0,
             1,
             -1,
@@ -2702,13 +3140,13 @@ class WebglRenderer extends Renderer {
             0,
             7,
             4
-        ], rect.transform.position, v3.mult(rect.size, rect.transform.scale), NullVec3, color, wireframe, simple_shadow);
+        ], rect.transform.position, v3.mult(rect.size, rect.transform.scale), rect.transform.rotation, camera, material, wireframe);
     }
-    color_draw_iso_model(m, position, scale, rot, color, wireframe = false, simple_shadow = true) {
-        this._iso_draw_vertices_color(m._vertices, m._indices, position, scale, rot, color, wireframe, simple_shadow);
+    draw_model3D(m, position, scale, rot, camera, material, wireframe = false) {
+        this._draw3d_vertices(m._vertices, m._indices, position, scale, rot, camera, material, wireframe);
     }
     clear() {
-        this.gl.clearDepth(100.0);
+        this.gl.clearDepth(1000.0);
         this.gl.depthFunc(this.gl.LEQUAL);
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -2740,6 +3178,15 @@ function applyShadow(elem) {
     elem.style.boxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
     elem.style.webkitBoxShadow = "0px 4px 17px 0px rgba(0,0,0,0.19)";
 }
+export { Camera3D as Camera3D };
+export { RGBA as RGBA };
+export { HEXCOLOR as HEXCOLOR };
+export { Renderer as Renderer };
+export { GLMaterialFactory as GLMaterialFactory };
+export { WebglRenderer as WebglRenderer };
+export { createCanvas as createCanvas };
+export { applyBorder as applyBorder };
+export { applyShadow as applyShadow };
 var Key;
 (function(Key) {
     Key[Key["A"] = 0] = "A";
@@ -3038,7 +3485,7 @@ class IMCGameObject3D extends ClientGameObject3D {
         super();
     }
     render(camera, renderer) {
-        renderer.color_draw_iso_model(this.model, v3.sub(this.position, camera.position), this.hb.transform.scale, v3.sub(this.rotation, camera.rotation), this.color, false, true);
+        renderer.draw_model3D(this.model, this.position, this.hb.transform.scale, this.rotation, camera, this.material, false);
     }
 }
 class ClientGame2D extends Game2D {
@@ -3048,13 +3495,13 @@ class ClientGame2D extends Game2D {
     renderer;
     key;
     mouse;
-    resource;
-    constructor(keyl, mouse, resource, renderer, ...args){
+    resources;
+    constructor(keyl, mouse, resources, renderer, ...args){
         super(...args);
         this.mouse = mouse;
         this.key = keyl;
         this.renderer = renderer;
-        this.resource = resource;
+        this.resources = resources;
     }
     draw(renderer) {
         renderer.clear();
@@ -3071,36 +3518,38 @@ class ClientGame2D extends Game2D {
     }
 }
 class ClientGame3D extends Game3D {
-    camera = {
-        position: v3.new(0, 0, 0),
-        rotation: v3.new(0, 0, 0)
-    };
+    camera = new Camera3D();
     renderer;
     key;
     mouse;
-    resource;
-    constructor(keyl, mouse, renderer, resource, ...args){
+    resources;
+    constructor(keyl, mouse, renderer, resources, ...args){
         super(...args);
         this.mouse = mouse;
         this.key = keyl;
         this.renderer = renderer;
-        this.resource = resource;
+        this.resources = resources;
     }
-    draw(renderer) {
-        renderer.clear();
+    draw() {
+        this.renderer.clear();
+        this.camera.update(this.renderer);
         for(const c in this.scene.objects.objects){
             for (const o of this.scene.objects.objects[c].orden){
-                this.scene.objects.objects[c].objects[o].render(this.camera, renderer);
+                this.scene.objects.objects[c].objects[o].render(this.camera, this.renderer);
             }
         }
+        self.requestAnimationFrame(this.draw.bind(this));
     }
     getCameraCenter(center) {
         return v3.sub(center, v3.new(this.renderer.canvas.width / 2 / this.renderer.meter_size, 0, -(this.renderer.canvas.height / 2 / this.renderer.meter_size)));
     }
     update() {
         Game3D.prototype.update.call(this);
-        this.draw(this.renderer);
         this.key.tick();
+    }
+    mainloop() {
+        super.mainloop();
+        this.draw();
     }
 }
 class ContainerSprite {
@@ -3147,7 +3596,7 @@ export { ClientGame3D as ClientGame3D };
 export { ContainerSprite as ContainerSprite };
 class Sprite {
     source;
-    type = SourceType.Sprite;
+    resourceType = SourceType.Sprite;
     constructor(source){
         this.source = source;
     }
@@ -3158,6 +3607,7 @@ var SourceType;
     SourceType[SourceType["Animation"] = 1] = "Animation";
     SourceType[SourceType["Sound"] = 2] = "Sound";
     SourceType[SourceType["Model3D"] = 3] = "Model3D";
+    SourceType[SourceType["GLMaterial"] = 4] = "GLMaterial";
 })(SourceType || (SourceType = {}));
 function getSvgUrl(svg) {
     return URL.createObjectURL(new Blob([
@@ -3239,7 +3689,7 @@ class ResourcesManager {
                     this.sources[id] = {
                         buffer: audioBuffer,
                         ...def,
-                        type: SourceType.Sound
+                        resourceType: SourceType.Sound
                     };
                     resolve(this.sources[id]);
                 }, ()=>{
@@ -3260,7 +3710,7 @@ class ResourcesManager {
         let anim;
         for (const k of Object.keys(json["keys"])){
             anim = {
-                type: SourceType.Animation,
+                resourceType: SourceType.Animation,
                 keys: {}
             };
             anim.keys[k] = [];
@@ -3304,6 +3754,12 @@ class ResourcesManager {
     get_model3D(id) {
         return this.sources[id];
     }
+    set_material(id, material) {
+        this.sources[id] = material;
+    }
+    get_material(id) {
+        return this.sources[id];
+    }
     delete_source(id) {
         delete this.sources[id];
     }
@@ -3324,5 +3780,3 @@ export { Sprite as Sprite };
 export { SourceType as SourceType };
 export { ResourcesManager as ResourcesManager };
 export { AudioState as AudioState };
-export { Client as Client, ConnectPacket as ConnectPacket, DefaultSignals as DefaultSignals, DisconnectPacket as DisconnectPacket };
-export { WebglRenderer as WebglRenderer, Renderer as Renderer, RGBA as RGBA, createCanvas as createCanvas, applyBorder as applyBorder, applyShadow as applyShadow };

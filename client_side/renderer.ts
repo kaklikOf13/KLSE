@@ -1,9 +1,40 @@
 import { v3 } from "../mod.ts";
-import { NullVec2, NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
+import { Angle, NullVec2, NullVec3, Vec2, Vec3 } from "../utils/geometry.ts"
 import { CircleHitbox2D, Hitbox2D, HitboxType2D,HitboxType3D, RectHitbox2D, BoxHitbox3D } from "../utils/hitbox.ts"
-import { Model3D } from "../utils/models.ts";
+import { type Matrix, matrix4, type Model3D } from "../utils/models.ts";
 import { type Sprite } from "./resources.ts";
+export class Camera3D{
+    position:Vec3
+    rotation:Vec3
+    fov:number
+    near:number
+    far:number
+    matrix:Matrix
+    constructor(position:Vec3=v3.new(0,0,0),rotation:Vec3=v3.new(0,0,0),fov=80,near:number=.00001,far:number=5000){
+        this.position=position
+        this.rotation=rotation
+        this.fov=fov
+        this.matrix=[]
+        this.near=near
+        this.far=far
+    }
+    update(renderer:Renderer){
+        const aspect = renderer.canvas.width / renderer.canvas.height;
+        const perspectiveMatrix = matrix4.perspective(
+            Angle.deg2rad(this.fov),
+            aspect,
+            this.near,
+            this.far
+        );
 
+        const viewMatrix = matrix4.translate(
+            matrix4.rotate(matrix4.identity(), v3.scale(this.rotation,Angle.deg2rad(1))),
+            v3.neg(this.position)
+        );
+
+        this.matrix = matrix4.mult(perspectiveMatrix, viewMatrix)
+    }
+}
 export interface Color {
     r: number; // Red
     g: number; // Green
@@ -84,18 +115,18 @@ export type RGBAT={r: number, g: number, b: number, a?: number}
 
 export abstract class Renderer {
     canvas: HTMLCanvasElement
-    meter_size: number
+    readonly meter_size: number
     constructor(canvas: HTMLCanvasElement, meter_size: number = 100) {
         this.canvas = canvas
         this.meter_size = meter_size
     }
-    abstract draw_rect2D(rect: RectHitbox2D, color: Color,offset?:Vec2): void
-    abstract draw_circle2D(circle: CircleHitbox2D, color: Color,offset?:Vec2): void
-    abstract draw_hitbox2D(hitbox: Hitbox2D, color: Color,offset?:Vec2): void
+    abstract draw_rect2D(rect: RectHitbox2D, normal: Color,offset?:Vec2): void
+    abstract draw_circle2D(circle: CircleHitbox2D, normal: Color,offset?:Vec2): void
+    abstract draw_hitbox2D(hitbox: Hitbox2D, normal: Color,offset?:Vec2): void
     abstract draw_image2D(image: Sprite, position: Vec2, size: Vec2,offset?:Vec2): void
 
-    abstract draw_iso_rect(rect: BoxHitbox3D, color: Color): void
-    abstract color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe?:boolean,simple_shadow?:boolean):void
+    abstract draw_cube(rect: BoxHitbox3D, camera:Camera3D, material:GLMaterial): void
+    abstract draw_model3D(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3, camera:Camera3D, material:GLMaterial,wireframe?:boolean):void
     abstract clear(): void
 }
 
@@ -111,122 +142,180 @@ const rectFragmentShaderSource = `
 #ifdef GL_ES
 precision highp float;
 #endif
-
 uniform vec4 a_Color;
 
 void main() {
     gl_FragColor = a_Color;
 }`;
 
-const isoVertexShaderSource = `
-attribute vec3 a_Position;
+export class GLMaterialFactory{
+    program:WebGLProgram
+    attributes:Record<string,number>
+    uniforms:Partial<Record<string,WebGLUniformLocation>>
+    renderer:WebglRenderer
+    vertexAttributeArray:boolean=true
+    constructor(vertexShader:string,fragShader:string,renderer:WebglRenderer){
+        this.renderer = renderer;
+        
+        // Create shaders
+        const vertex = renderer.createShader(vertexShader, renderer.gl.VERTEX_SHADER);
+        const frag = renderer.createShader(fragShader, renderer.gl.FRAGMENT_SHADER);
+        
+        // Create and link program
+        const program = renderer.gl.createProgram();
+        if (!program) {
+            throw new Error("Failed to create WebGL program");
+        }
+        renderer.gl.attachShader(program, vertex);
+        renderer.gl.attachShader(program, frag);
+        renderer.gl.linkProgram(program);
+        
+        // Check program link status
+        if (!renderer.gl.getProgramParameter(program, renderer.gl.LINK_STATUS)) {
+            const info = renderer.gl.getProgramInfoLog(program);
+            throw new Error(`Failed to link program: ${info}`);
+        }
+        
+        this.program = program;
+        this.attributes = {};
+        this.uniforms = {};
+    }
+    add_attrL(name:string){
+        this.attributes[name]=this.renderer.gl.getAttribLocation(this.program,name)
+    }
+    add_uniformL(name:string){
+        this.uniforms[name]=this.renderer.gl.getUniformLocation(this.program,name)||undefined
+    }
+    generateMaterial(color?:Color,texture?:Sprite,lightAffect:boolean=true):GLMaterial{
+        return {
+            factory:this,
+            color,
+            texture,
+            lightAffect
+        }
+    }
+}
+export interface GLMaterial{
+    factory:GLMaterialFactory
+    color?:Color
+    texture?:Sprite
+    lightAffect?:boolean
+}
+const normal3DVertexShader=`
+attribute vec4 a_Position;
+attribute vec3 a_Normals;
+
 uniform vec3 u_Translation;
 uniform vec3 u_Scale;
 uniform vec3 u_Rotation;
-uniform mat4 u_ProjectionMatrix;
-varying highp float v_SH;
-varying vec3 translatedPosition;
 
-mat3 rotationMatrix(vec3 r) {
+uniform mat4 u_ProjectionMatrix;
+
+varying vec4 translatedPosition;
+varying vec3 v_normal;
+
+mat4 rotationMatrix(vec3 r) {
     vec3 radians = r * 3.14159265 / 180.0;
-    mat3 rotX = mat3(
-        1.0, 0.0, 0.0,
-        0.0, cos(radians.x), -sin(radians.x),
-        0.0, sin(radians.x), cos(radians.x)
+    mat4 rotX = mat4(
+        1.0, 0.0, 0.0, 0.0,
+        0.0, cos(radians.x), -sin(radians.x), 0.0,
+        0.0, sin(radians.x), cos(radians.x), 0.0,
+        0.0, 0.0, 0.0, 1.0
     );
-    
-    mat3 rotY = mat3(
-        cos(radians.y), 0.0, sin(radians.y),
-        0.0, 1.0, 0.0,
-        -sin(radians.y), 0.0, cos(radians.y)
+
+    mat4 rotY = mat4(
+        cos(radians.y), 0.0, sin(radians.y), 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        -sin(radians.y), 0.0, cos(radians.y), 0.0,
+        0.0, 0.0, 0.0, 1.0
     );
-    
-    mat3 rotZ = mat3(
-        cos(radians.z), -sin(radians.z), 0.0,
-        sin(radians.z), cos(radians.z), 0.0,
-        0.0, 0.0, 1.0
+
+    mat4 rotZ = mat4(
+        cos(radians.z), -sin(radians.z), 0.0, 0.0,
+        sin(radians.z), cos(radians.z), 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
     );
 
     return rotZ * rotY * rotX;
 }
-const float camRot=0.05;
-const float camRot2=1.5;
-void main() {
-    translatedPosition = ((rotationMatrix(u_Rotation)*a_Position) * u_Scale) + u_Translation;
-    vec2 isoP = vec2((translatedPosition.z*camRot+translatedPosition.x*camRot2), (translatedPosition.x*camRot-translatedPosition.z)-translatedPosition.y);
-    v_SH=isoP.y;
-    gl_Position = u_ProjectionMatrix * vec4(isoP, (translatedPosition.z/1000.0), 1.0);
-}
-`;
-const isoSimpleFragShaderSource = `
-#ifdef GL_ES
-precision highp float;
-#endif
 
-uniform vec4 a_Color;
-varying vec3 translatedPosition;
 void main() {
-    float depth = translatedPosition.z;
-    gl_FragColor = gl_FragColor = a_Color;
+    // Apply rotation
+    translatedPosition = ((rotationMatrix(u_Rotation) * a_Position) * vec4(u_Scale,1.0)) + vec4(u_Translation,1.0);
+    v_normal = vec3(a_Normals);
+    gl_Position = u_ProjectionMatrix*translatedPosition;
 }
-`;
-const isoSimpleShadowFragShaderSource = `
-#ifdef GL_ES
-precision highp float;
-#endif
+`
 
-uniform vec4 a_Color;
-varying float v_SH;
-void main() {
-    float shadowIntensity = smoothstep(0.0, 0.4, (v_SH/100.0));
-    gl_FragColor = mix(a_Color, vec4(0, 0, 0, 1), 0.4-shadowIntensity);
-}
-`;
 
 export class WebglRenderer extends Renderer {
-    gl: WebGLRenderingContext;
-    private simple_program: WebGLProgram;
-    private isometric_simple_shadow_program: WebGLProgram
-    private isometric_simple_program: WebGLProgram
+    readonly gl: WebGLRenderingContext;
     background: Color = RGBA.new(255, 255, 255);
-    private projectionMatrix: Float32Array;
-    
-    constructor(canvas: HTMLCanvasElement, meter_size: number = 100, background: Color = RGBA.new(255, 255, 255)) {
+    readonly projectionMatrix: Float32Array;
+    readonly simple_program:WebGLProgram
+    readonly material
+    reverseLightDir:Vec3
+    constructor(canvas: HTMLCanvasElement, meter_size: number = 100, background: Color = RGBA.new(255, 255, 255),depth:number=500) {
         super(canvas, meter_size);
         const gl = this.canvas.getContext("webgl");
         this.background = background;
-        gl!.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl = gl!;
 
         const simple_program = gl!.createProgram();
-        gl!.attachShader(simple_program!, this.createShader(rectVertexShaderSource, gl!.VERTEX_SHADER));
-        gl!.attachShader(simple_program!, this.createShader(rectFragmentShaderSource, gl!.FRAGMENT_SHADER));
-        this.simple_program = simple_program!;
-        gl!.linkProgram(this.simple_program);
+        gl!.attachShader(simple_program!, this.createShader(rectVertexShaderSource, gl!.VERTEX_SHADER))
+        gl!.attachShader(simple_program!, this.createShader(rectFragmentShaderSource, gl!.FRAGMENT_SHADER))
+        this.simple_program = simple_program!
+        gl!.linkProgram(this.simple_program)
 
-        const isometric_simple_program = gl!.createProgram();
-        gl!.attachShader(isometric_simple_program!, this.createShader(isoVertexShaderSource, gl!.VERTEX_SHADER));
-        gl!.attachShader(isometric_simple_program!, this.createShader(isoSimpleFragShaderSource, gl!.FRAGMENT_SHADER));
-        this.isometric_simple_program = isometric_simple_program!;
-        gl!.linkProgram(this.isometric_simple_program);
+        this.material={
+            normal:new GLMaterialFactory(normal3DVertexShader,`
+#ifdef GL_ES
+precision mediump float;
+#endif
 
-        const isometric_simple_shadow_program = gl!.createProgram();
-        gl!.attachShader(isometric_simple_shadow_program!, this.createShader(isoVertexShaderSource, gl!.VERTEX_SHADER));
-        gl!.attachShader(isometric_simple_shadow_program!, this.createShader(isoSimpleShadowFragShaderSource, gl!.FRAGMENT_SHADER));
-        this.isometric_simple_shadow_program = isometric_simple_shadow_program!;
-        gl!.linkProgram(this.isometric_simple_shadow_program);
+uniform vec4 u_Color;
+uniform vec3 u_ReverseLightDirection;
+varying vec4 translatedPosition;
+varying vec3 v_normal;
+void main() {
+    // because v_normal is a varying it's interpolated
+    // so it will not be a unit vector. Normalizing it
+    // will make it a unit vector again
+    vec3 normal = normalize(v_normal);
+
+    float light = dot(normal, u_ReverseLightDirection);
+
+    gl_FragColor = u_Color;
+
+    // Lets multiply just the color portion (not the alpha)
+    // by the light
+    gl_FragColor.rgb *= light;
+}
+`,this),
+        }
+        //Normal
+        this.gl.useProgram(this.material.normal.program)
+        this.material.normal.add_attrL("a_Position")
+        this.material.normal.add_attrL("a_Normals")
+
+        this.material.normal.add_uniformL("u_ReverseLightDirection")
+        this.material.normal.add_uniformL("u_Color")
+    
+        this.material.normal.add_uniformL("u_Translation")
+        this.material.normal.add_uniformL("u_Scale")
+        this.material.normal.add_uniformL("u_Rotation")
+
+        this.material.normal.add_uniformL("u_ProjectionMatrix")
+
+        this.reverseLightDir=v3.normalize(v3.new(.1,.1,.1))
+
 
         // Configurando a matriz de projeção para coordenadas de pixel
-        const scaleX = 2 / (this.canvas.width / this.meter_size);
-        const scaleY = 2 / (this.canvas.height / this.meter_size);
-        this.projectionMatrix = new Float32Array([
-            scaleX, 0, 0, 0,
-            0, -scaleY, 0, 0,
-            0, 0, 1, 0,
-            -1, 1, 0, 1
-        ]);
+        const scaleX = this.canvas.width / this.meter_size
+        const scaleY = this.canvas.height / this.meter_size
+        this.projectionMatrix = new Float32Array(matrix4.projection(v3.new(scaleX,scaleY,depth/this.meter_size)))
 
-        gl!.enable(gl!.DEPTH_TEST);
     }
 
     createShader(src: string, type: number): WebGLShader {
@@ -242,7 +331,7 @@ export class WebglRenderer extends Renderer {
         throw Error("Can't create shader");
     }
 
-    _draw_vertices(vertices: number[], color: Color, mode: number = this.gl.TRIANGLES) {
+    _draw_vertices(vertices: number[], normal: Color, mode: number = this.gl.TRIANGLES) {
         const vertexBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
@@ -253,7 +342,7 @@ export class WebglRenderer extends Renderer {
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
         const colorUniformLocation = this.gl.getUniformLocation(this.simple_program, "a_Color");
-        this.gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
+        this.gl.uniform4f(colorUniformLocation, normal.r, normal.g, normal.b, normal.a);
 
         const projectionMatrixLocation = this.gl.getUniformLocation(this.simple_program, "u_ProjectionMatrix");
         this.gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
@@ -261,7 +350,7 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(mode, 0, vertices.length / 2);
     }
 
-    draw_rect2D(rect: RectHitbox2D, color: Color,offset:Vec2=NullVec2) {
+    draw_rect2D(rect: RectHitbox2D, normal: Color,offset:Vec2=NullVec2) {
         const x1 = rect.position.x-offset.x
         const y1 = rect.position.y-offset.y
         const x2 = (rect.position.x-offset.x) + rect.size.x
@@ -274,10 +363,10 @@ export class WebglRenderer extends Renderer {
             x1, y2,
             x2, y1,
             x2, y2
-        ], color);
+        ], normal);
     }
 
-    draw_circle2D(circle: CircleHitbox2D, color: Color,offset:Vec2=NullVec2 , precision: number = 50): void {
+    draw_circle2D(circle: CircleHitbox2D, normal: Color,offset:Vec2=NullVec2 , precision: number = 50): void {
         const centerX = circle.position.x-offset.x
         const centerY = circle.position.y-offset.y
         const radius = circle.radius
@@ -292,16 +381,16 @@ export class WebglRenderer extends Renderer {
             const y = centerY + radius * Math.sin(angle)
             vertices.push(x, y)
         }
-        this._draw_vertices(vertices, color, this.gl.TRIANGLE_FAN)
+        this._draw_vertices(vertices, normal, this.gl.TRIANGLE_FAN)
     }
 
-    draw_hitbox2D(hitbox: Hitbox2D, color: Color,offset:Vec2=NullVec2): void {
+    draw_hitbox2D(hitbox: Hitbox2D, normal: Color,offset:Vec2=NullVec2): void {
         switch (hitbox.type) {
             case HitboxType2D.circle:
-                this.draw_circle2D(hitbox, color,offset)
+                this.draw_circle2D(hitbox, normal,offset)
                 break;
             case HitboxType2D.rect:
-                this.draw_rect2D(hitbox, color,offset)
+                this.draw_rect2D(hitbox, normal,offset)
                 break;
             default:
                 return;
@@ -355,9 +444,9 @@ export class WebglRenderer extends Renderer {
         const texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image.source);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
     
         const colorUniformLocation = this.gl.getUniformLocation(this.simple_program, "u_Color");
         this.gl.uniform4f(colorUniformLocation, 1.0, 1.0, 1.0, 1.0);
@@ -368,7 +457,7 @@ export class WebglRenderer extends Renderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 2);
     }
     
-    _iso_draw_vertices_color(vertices: number[], indices: number[],pos:Vec3,scale:Vec3,rot:Vec3, color: Color, wireframe: boolean = false,simple_shadow:boolean=false, mode: number = this.gl.TRIANGLES) {
+    _draw3d_vertices(vertices: Matrix, indices: Matrix,normals:number[],pos:Vec3,scale:Vec3,rot:Vec3,camera:Camera3D,material:GLMaterial, wireframe: boolean = false, mode: number = this.gl.TRIANGLES) {
         const gl = this.gl;
 
         const vertexBuffer = gl.createBuffer()
@@ -379,51 +468,57 @@ export class WebglRenderer extends Renderer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
-        let program:WebGLProgram=this.isometric_simple_program
-        if(simple_shadow&&!wireframe){
-            program=this.isometric_simple_shadow_program
+        gl.useProgram(material.factory.program)
+
+        const positionAttributeLocation=material.factory.attributes["a_Position"]
+        gl.enableVertexAttribArray(positionAttributeLocation)
+        gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0)
+
+        if(material.lightAffect){
+            const normalBuffer = gl.createBuffer()
+            const normalsAttributeLocation=material.factory.attributes["a_Normals"]
+            gl.enableVertexAttribArray(normalsAttributeLocation)
+            gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
+            gl.vertexAttribPointer(normalsAttributeLocation,3,gl.FLOAT,false,0,0)
+
+            gl.uniform3f(material.factory.uniforms["u_ReverseLightDirection"]!, this.reverseLightDir.x, this.reverseLightDir.y, this.reverseLightDir.z)
         }
-        gl.useProgram(program)
 
-        const positionAttributeLocation = gl.getAttribLocation(program,"a_Position")
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.uniform3f(material.factory.uniforms["u_Translation"]!,pos.x,pos.y,pos.z)
+        gl.uniform3f(material.factory.uniforms["u_Scale"]!,scale.x,scale.y,scale.z)
+        gl.uniform3f(material.factory.uniforms["u_Rotation"]!,rot.x,rot.y,rot.z)
 
-        const colorUniformLocation = gl.getUniformLocation(program, "a_Color");
-        gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, color.a);
+        gl.uniformMatrix4fv(material.factory.uniforms["u_ProjectionMatrix"]!, false, camera.matrix)
 
-        const projectionMatrixLocation = gl.getUniformLocation(program, "u_ProjectionMatrix");
-        gl.uniformMatrix4fv(projectionMatrixLocation, false, this.projectionMatrix);
-
-        const translationLocation = gl.getUniformLocation(program, "u_Translation");
-        gl.uniform3f(translationLocation, pos.x, pos.y, pos.z)
-
-        const scaleLocation = gl.getUniformLocation(program, "u_Scale")
-        gl.uniform3f(scaleLocation, scale.x, scale.y, scale.z)
-
-        const rotLocation = gl.getUniformLocation(program, "u_Rotation")
-        gl.uniform3f(rotLocation, rot.x, rot.y, rot.z)
-
+        if(material.color){
+            gl.uniform4f(material.factory.uniforms["u_Color"]!, material.color.r, material.color.g, material.color.b, material.color.a)
+        }else{
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, material.texture!.source)
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE)
+            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
+        }
         if (wireframe) {
-            const wireframeIndices:number[] = [];
+            const wireframeIndices:number[] = []
             for (let i = 0; i < indices.length; i += 3) {
-                wireframeIndices.push(indices[i], indices[i + 1]);
-                wireframeIndices.push(indices[i + 1], indices[i + 2]);
-                wireframeIndices.push(indices[i + 2], indices[i]);
+                wireframeIndices.push(indices[i], indices[i + 1])
+                wireframeIndices.push(indices[i + 1], indices[i + 2])
+                wireframeIndices.push(indices[i + 2], indices[i])
             }
-            const wireframeIndexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireframeIndexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wireframeIndices), gl.STATIC_DRAW);
-            gl.drawElements(gl.LINES, wireframeIndices.length, gl.UNSIGNED_SHORT, 0);
+            const wireframeIndexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireframeIndexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wireframeIndices), gl.STATIC_DRAW)
+            gl.drawElements(gl.LINES, wireframeIndices.length, gl.UNSIGNED_SHORT, 0)
         } else {
-            gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(mode, indices.length, gl.UNSIGNED_SHORT, 0)
         }
     }
-    draw_iso_rect(rect: BoxHitbox3D, color: Color, wireframe: boolean = false,simple_shadow:boolean=false){
-        this._iso_draw_vertices_color([
+    draw_cube(rect: BoxHitbox3D,camera:Camera3D, material:GLMaterial, wireframe: boolean = false){
+        this._draw3d_vertices([
             // Front face
              0, 0, 1,
-             0, 0, 1,
+            -1, 0, 1,
             -1, 1, 1,
              0, 1, 1,
     
@@ -445,17 +540,20 @@ export class WebglRenderer extends Renderer {
             1, 2, 6, 1, 6, 5,
             // Left face
             0, 3, 7, 0, 7, 4
-        ],rect.transform.position,v3.mult(rect.size,rect.transform.scale),NullVec3, color, wireframe,simple_shadow)
+        ],[],rect.transform.position,v3.mult(rect.size,rect.transform.scale),rect.transform.rotation,camera,material, wireframe)
     }
-    color_draw_iso_model(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,color:Color,wireframe:boolean=false,simple_shadow:boolean=true){
-        this._iso_draw_vertices_color(m._vertices,m._indices,position,scale,rot,color,wireframe,simple_shadow)
+    draw_model3D(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3,camera:Camera3D,material:GLMaterial,wireframe:boolean=false){
+        this._draw3d_vertices(m._vertices,m._indices,m._normals,position,scale,rot,camera,material,wireframe)
     }
 
     clear() {
-        this.gl.clearDepth(100.0);
-        this.gl.depthFunc(this.gl.LEQUAL); // Teste de profundidade
-        this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+        this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a)
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
+        this.gl.enable(this.gl.DEPTH_TEST);
+        //this.gl.enable(this.gl.CULL_FACE)
+        //this.gl.cullFace(this.gl.BACK)
+        //this.gl.depthFunc(this.gl.LEQUAL);
     }
 }
 

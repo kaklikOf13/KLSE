@@ -1,12 +1,14 @@
-import { RGBA, WebglRenderer, createCanvas } from "../../../../client_side/renderer.ts"
+import { RGBA, WebglRenderer, createCanvas,Camera3D } from "../../../../client_side/renderer.ts"
 import { ResourcesManager } from "../../../../client_side/resources.ts";
 import { NullVec3, v2, v3 } from "../../../../utils/geometry.ts";
 import { RectHitbox2D, CircleHitbox2D, BoxHitbox3D } from "../../../../utils/hitbox.ts"
 import { Model3D, m3 } from "../../../../utils/models.ts";
 const canvas=createCanvas(v2.new(700,700),true)
 document.body.appendChild(canvas)
+const camera:Camera3D=new Camera3D(v3.new(0,8,0),v3.new(280,90,0))
 const renderer=new WebglRenderer(canvas,40,RGBA.new(5,0,0))
 renderer.clear()
+camera.update(renderer)
 console.log("begin",new Date().getMilliseconds())
 for(let i=0;i<5000;i++){
     const circle=new CircleHitbox2D(v2.new(2,1),1)
@@ -16,9 +18,10 @@ for(let i=0;i<5000;i++){
     const rect=new RectHitbox2D(v2.new(0,0),v2.new(1,1))
     renderer.draw_rect2D(rect,RGBA.new(0,0,255,255))
 }
+const cubeMaterial1=renderer.material.normal.generateMaterial(RGBA.new(100,5,255))
 for(let i=0;i<1000;i++){
-    const rect=new BoxHitbox3D(v3.new(5,-6,2),v3.new(3,3,3))
-    renderer.draw_iso_rect(rect,RGBA.new(0,0,255,255),false,true)
+    const rect=new BoxHitbox3D(v3.new(5,0,0),v3.new(3,3,3),undefined,v3.new(0,0,0))
+    renderer.draw_cube(rect, camera, cubeMaterial1,false)
 }
 console.log("end",new Date().getMilliseconds())
 //rect with rect
@@ -28,6 +31,7 @@ setTimeout(()=>{
     const rhb2=new RectHitbox2D(v2.new(2,2),v2.new(1,1))
     const interval=setInterval(()=>{
         renderer.clear()
+        camera.update(renderer)
         const collision=rhb1.overlapCollision(rhb2)
         rhb1.position=v2.sub(rhb1.position,v2.scale(collision.overlap,.05))
         renderer.draw_hitbox2D(rhb1,RGBA.new(50,10,255))
@@ -130,8 +134,8 @@ async function test_image(){
 //rect iso
 function rect_iso(){
     console.log("begin",new Date().getMilliseconds())
-    const chb1=new BoxHitbox3D(v3.new(5,-7,0),v3.new(1,1,1))
-    const chb2=new BoxHitbox3D(v3.new(5,-7,3),v3.new(1,1,1))
+    const chb1=new BoxHitbox3D(v3.new(0,0,0),v3.new(1,1,1))
+    const chb2=new BoxHitbox3D(v3.new(0,0,5),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -140,8 +144,8 @@ function rect_iso(){
             chb1.transform.position.z+=.1
         }
         chb1.transform.position=v3.sub(chb1.transform.position,v3.scale(collision.overlap,.05))
-        renderer.draw_iso_rect(chb1,RGBA.new(50,10,255),true)
-        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255))
+        renderer.draw_cube(chb1, camera, cubeMaterial1,true)
+        renderer.draw_cube(chb2, camera, cubeMaterial1)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -154,8 +158,8 @@ function rect_iso(){
 //rect iso2
 function rect_iso2(){
     console.log("begin",new Date().getMilliseconds())
-    const chb1=new BoxHitbox3D(v3.new(5,-5,1),v3.new(1,1,1))
-    const chb2=new BoxHitbox3D(v3.new(5,-5,3),v3.new(1,1,1))
+    const chb1=new BoxHitbox3D(v3.new(0,0,-1),v3.new(1,1,1))
+    const chb2=new BoxHitbox3D(v3.new(0,0,4),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -164,8 +168,8 @@ function rect_iso2(){
             chb2.transform.position.z-=.1
         }
         chb2.transform.position=v3.add(chb2.transform.position,v3.scale(collision.overlap,.05))
-        renderer.draw_iso_rect(chb1,RGBA.new(50,10,255),true,true)
-        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255),false,true)
+        renderer.draw_cube(chb1, camera, cubeMaterial1)
+        renderer.draw_cube(chb2, camera, cubeMaterial1)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -181,8 +185,8 @@ function model_iso(){
     console.log("begin",new Date().getMilliseconds())
     const model=m3.cube(1)
     const chb1=model.toRect()
-    chb1.transform.position=v3.new(4,-7,-3)
-    const chb2=new BoxHitbox3D(v3.new(7,-7,-3),v3.new(1,1,1))
+    chb1.transform.position=v3.new(5,0,0)
+    const chb2=new BoxHitbox3D(v3.new(7,0,0),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -191,8 +195,8 @@ function model_iso(){
             chb2.transform.position.x-=.1
         }
         chb2.transform.position=v3.add(chb2.transform.position,v3.scale(collision.overlap,.05))
-        renderer.color_draw_iso_model(model,chb1.transform.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255))
-        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255),false,true)
+        renderer.draw_model3D(model,chb1.transform.position,v3.new(1,1,1),NullVec3, camera, cubeMaterial1)
+        renderer.draw_cube(chb2, camera, cubeMaterial1)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
@@ -250,8 +254,8 @@ f 5/12/6 1/3/6 2/9/6
 `)
     console.log(model)
     const chb1=model.toRect()
-    chb1.transform.position=v3.new(6,-7,3)
-    const chb2=new BoxHitbox3D(v3.new(3,-7,3),v3.new(1,1,1))
+    chb1.transform.position=v3.new(5,0,0)
+    const chb2=new BoxHitbox3D(v3.new(3,0,0),v3.new(1,1,1))
     let ok=false
     const interval=setInterval(()=>{
         renderer.clear()
@@ -260,13 +264,13 @@ f 5/12/6 1/3/6 2/9/6
             chb2.transform.position.x+=.1
         }
         chb2.transform.position=v3.add(chb2.transform.position,v3.scale(collision.overlap,.05))
-        renderer.color_draw_iso_model(model,chb1.transform.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),true)
-        renderer.draw_iso_rect(chb2,RGBA.new(50,10,255))
+        renderer.draw_model3D(model,chb1.transform.position,v3.new(1,1,1),NullVec3, camera, cubeMaterial1)
+        renderer.draw_cube(chb2, camera, cubeMaterial1)
         ok=ok||collision.collided
         console.log(collision)
         if(!collision.collided&&ok){
             model.addFace3({p1:v3.new(1,1,1),p2:v3.new(-4,-1,-4),p3:v3.new(-4,-4,4)})
-            renderer.color_draw_iso_model(model,chb1.transform.position,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),false,true)
+            renderer.draw_model3D(model,chb1.transform.position,v3.new(1,1,1),NullVec3, camera, cubeMaterial1)
             clearInterval(interval)
             console.log("end",new Date().getMilliseconds())
             setTimeout(model2_obj_iso,800)
@@ -280,20 +284,23 @@ async function model2_obj_iso(){
     const model=m3.parseObj(await (await fetch("/mountains.obj")).text())
     renderer.clear()
     let frame=0
-    const pos=v3.new(6,-7,0)
+    const pos=v3.new(0,0,0)
     const rot=v3.new(0,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(.045,.045,.045),rot,RGBA.new(50,10,255),false,true)
+        renderer.draw_model3D(model,pos,v3.new(.045,.045,.045),rot, camera, cubeMaterial1)
         if(frame<100){
-            pos.y+=.01
+            pos.y-=.1
             rot.y+=1
+            //camera.rotation.y+=1
             self.requestAnimationFrame(func)
         }else if(frame<200){
-            pos.y-=.01
+            pos.y+=.1
             rot.y+=1
+            //camera.rotation.y-=1
             self.requestAnimationFrame(func)
         }else{
+            camera.rotation=v3.new(0,0,0)
             setTimeout(model3_obj_iso,1000)
         }
         frame++
@@ -307,20 +314,18 @@ async function model3_obj_iso(){
     const model=m3.parseObj(await (await fetch("/teapot.obj")).text())
     renderer.clear()
     let frame=0
-    const pos=v3.new(8,-5,0)
+    const pos=v3.new(0,-4,0)
     const rot=v3.new(0,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),rot,RGBA.new(50,10,255),false,true)
+        renderer.draw_model3D(model,pos,v3.new(.045,.045,.045),rot, camera, cubeMaterial1)
         if(frame<100){
             pos.y+=.01
-            rot.z+=.5
-            rot.x+=.5
+            rot.z+=1
             self.requestAnimationFrame(func)
         }else if(frame<200){
             pos.y-=.01
-            rot.z+=.5
-            rot.x+=.5
+            rot.z-=1
             self.requestAnimationFrame(func)
         }else{
             setTimeout(model4_obj_iso,1000)
@@ -338,10 +343,10 @@ function model4_obj_iso(){
     const f2=model.addFace4({p1:v3.new(0,1,0),p2:v3.new(0,1,1),p3:v3.new(1,1,1),p4:v3.new(1,1,0)})
     console.log(model._vertices,model._vertices.length/3,model._indices,model._indices.length/3,12,(3*2)*3,f1,f2)
     let frame=0
-    const pos=v3.new(4,-7,0)
+    const pos=v3.new(0,0,0)
     function func(){
         renderer.clear()
-        renderer.color_draw_iso_model(model,pos,v3.new(1,1,1),NullVec3,RGBA.new(50,10,255),false,true)
+        renderer.draw_model3D(model,pos,v3.new(.045,.045,.045),NullVec3, camera, cubeMaterial1)
         if(frame<50){
             pos.z+=.1
             self.requestAnimationFrame(func)
