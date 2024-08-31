@@ -1,0 +1,37 @@
+{
+    "name":"klse",
+    "version":"1.0",
+    "windows_tasks":{
+        "task":"klse task windows lib && klse task windows executable && klse task windows gl && klse task windows vulkan",
+        "childs":{
+            "lib":{
+                "task":"klse compile-static-lib KLSE dist/windows \"-fPIC -I./includes -L./libs\""
+            },
+            "executable":{
+                "task":"klse build-dir dist/windows/bin/main && g++ src/EXE/main.cpp -L./dist/windows/libs -lKLSE -I./includes -o dist/windows/bin/main/klse.exe"
+            },
+            "test-compile":{
+                "childs":{
+                    "window":{
+                        "task":"g++ src/tests/window.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/window.exe"
+                    }
+                },
+                "task":"klse build-dir dist/windows/bin/tests && klse task windows test-compile window"
+            },
+            "test":{
+                "childs":{
+                    "window":{
+                        "task":"klse task windows lib && klse task windows gl && klse task windows test-compile && \"dist/windows/bin/tests/window.exe\""
+                    }
+                },
+                "task":""
+            },
+            "gl":{
+                "task":"klse compile-static-lib KLSE/openGL dist/windows \"-fPIC -I./includes -L./dist/windows/libs\""
+            },
+            "vulkan":{
+                "task":"klse compile-static-lib KLSE/vulkan dist/windows -L%VULKAN_SDK%/Lib \"-fPIC -I./includes -L./dist/windows/libs -std=c++17\""
+            }
+        }
+    }
+}

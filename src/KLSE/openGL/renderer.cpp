@@ -1,0 +1,180 @@
+#include <KLSE/openGL/renderer.hpp>
+#include <GLFW/glfw3.h>
+#include <KLSE/openGL/utils.hpp>
+namespace KLSE
+{
+    const char* simpleVertexShaderSource = R"(
+        #version 330 core
+        layout (location = 0) in vec2 a_Position;
+        uniform mat4 u_ProjectionMatrix;
+
+        void main() {
+            gl_Position = u_ProjectionMatrix * vec4(a_Position, 0, 1.0);
+        }
+    )";
+
+    const char* simpleFragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+        uniform vec4 u_Color;
+
+        void main() {
+            FragColor = u_Color;
+        }
+    )";
+
+
+
+    #define DEFAULT_WINDOWS_SIZE_X 800
+    #define DEFAULT_WINDOWS_SIZE_Y 600
+    void GLInit(){
+        // Inicializar GLFW
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW" << std::endl;
+            exit(-1);
+        }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    }
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+        GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
+        if(wuser){
+            wuser->renderer->set_viewport(IVec2(width,height));
+        }
+    }
+    GLWindow::GLWindow():Window(){
+        window=glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
+        if (!window) {
+            std::cerr << "Failed to create GLFW window " << window << std::endl;
+            glfwTerminate();
+            exit(-1);
+        }
+        glfwMakeContextCurrent(window);
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+            std::cerr << "Failed to initialize GLAD" << std::endl;
+            exit(-1);
+        }
+
+        renderer=new GLRenderer();
+
+        // Set the user pointer to this instance
+        glfwSetWindowUserPointer(window, this);
+
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+        renderer->init(this);
+        renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
+
+        glEnable(GL_DEPTH_TEST);
+    }
+    IVec2 GLWindow::get_size(){
+        IVec2 ret;
+        glfwGetWindowSize(window,&(ret.x),&(ret.y));
+        return ret;
+    }
+    void GLWindow::set_size(IVec2 size){
+        glfwSetWindowSize(window,size.x,size.y);
+    }
+    std::string GLWindow::get_title(){
+        return glfwGetWindowTitle(window);
+    }
+    void GLWindow::set_title(std::string title){
+        return glfwSetWindowTitle(window,title.c_str());
+    }
+    void GLWindow::close(){
+        glfwTerminate();
+    }
+    bool GLWindow::closed(){
+        return glfwWindowShouldClose(window);
+    }
+    void GLWindow::update(){
+        // Trocar os buffers
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    void GLRenderer::init(Window* window){
+        this->window=window;
+        simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
+    }
+    void GLRenderer::clear(){
+        glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    
+    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color normal,Vec2 offset){
+        // 1. Calculate the rectangle vertices
+        float x1 = rect->position.x - offset.x;
+        float y1 = rect->position.y - offset.y;
+        float x2 = x1 + rect->size.x;
+        float y2 = y1 + rect->size.y;
+
+        std::vector<float> vertices = {
+            x1, y1,  // Bottom-left
+            x2, y1,  // Bottom-right
+            x2, y2,  // Top-right
+            x1, y2   // Top-left
+        };
+
+        std::vector<int> indices = {
+            0, 1, 2,  // First triangle
+            2, 3, 0   // Second triangle
+        };
+
+        // 2. Call _draw_simple_vertex with the vertices and indices
+        _draw_simple_vertex(vertices, indices, normal, GL_TRIANGLES);
+    }
+    void GLRenderer::_draw_simple_vertex(const std::vector<float>& vertex, const std::vector<int>& index, Color color, GLenum mode) {
+        // 1. Generate and bind VAO
+        unsigned int VAO, VBO, EBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        // 2. Bind and set vertex buffer data
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), vertex.data(), GL_STATIC_DRAW);
+
+        // 3. Bind and set element buffer data
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
+
+        // 4. Define the vertex attribute pointers (assuming 2D position)
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // 5. Use the shader program and set the uniform values
+        glUseProgram(simple_program);
+
+        // Correct uniform locations
+        int projLoc = glGetUniformLocation(simple_program, "u_ProjectionMatrix");
+        int colorLoc = glGetUniformLocation(simple_program, "u_Color");
+
+        // Set the projection matrix uniform
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix);
+
+        // Set the color uniform
+        glUniform4f(colorLoc, color.r, color.g, color.b, color.a);
+
+        // 6. Draw the vertices using the index buffer
+        glDrawElements(mode, index.size(), GL_UNSIGNED_INT, 0);
+
+        // 7. Unbind the VAO
+        glBindVertexArray(0);
+
+        // 8. Cleanup
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
+    void GLRenderer::set_viewport(IVec2 size){
+        if(projectionMatrix){
+            delete projectionMatrix;
+        }
+        projectionMatrix=matrix4::projection(Vec3(size.x/this->meter_size,size.y/this->meter_size,500/this->meter_size));
+        glViewport(0,0,size.x, size.y);
+    }
+}

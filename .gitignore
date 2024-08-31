@@ -5,5 +5,7 @@ dist
 .dist
 ./dist
 
+.vscode
+
 temp
 private

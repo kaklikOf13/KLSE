@@ -1,12 +1,12 @@
 <h1>KAKLIK SIMPLE ENGINE</h1>
 
-You Need Deno https://deno.com
-
+You Need GCC https://gcc.gnu.org/
+You Need Download And Install THE klse program
 Compile_Executable:
 ```
-deno task build
+klse task windows # on Windows
+klse task linux # on Windows
 ```
-Add To ProgramPath
 
 Create Project:
 ```
