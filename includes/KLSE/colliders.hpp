@@ -31,13 +31,13 @@ namespace KLSE{
         },
     })*/
 
-    enum class HitboxType2D: unsigned char{
+    enum class ColliderType2D: unsigned char{
         circle=0,
         rect=1,
         null=2,
         //group,
     };
-    enum class HitboxType3D: unsigned char{
+    enum class ColliderType3D: unsigned char{
         sphere=0,
         box=1,
         null=2,
@@ -64,15 +64,15 @@ namespace KLSE{
 
     class Collider2D{
         public:
-            HitboxType2D type=HitboxType2D::null;
+            ColliderType2D type=ColliderType2D::null;
     
-            bool collidingWith(Collider2D* other);
-            OverlapCollision2D overlapCollision(Collider2D* other);
-            bool pointInside(Vec2 point);
-            Vec2 center();
-            void scale(Dimention scale);
-            Vec2 randomPoint();
-            RectCollider2D* toRect();
+            virtual bool collidingWith(Collider2D* other);
+            virtual OverlapCollision2D overlapCollision(Collider2D* other);
+            virtual bool pointInside(Vec2 point);
+            virtual Vec2 center();
+            virtual void scale(Dimention scale);
+            virtual Vec2 randomPoint();
+            virtual RectCollider2D* toRect();
 
             Vec2 position;
             Collider2D(Vec2 position):position(position){}
@@ -82,17 +82,16 @@ namespace KLSE{
         public:
             Dimention radius;
 
-            bool collidingWith(Collider2D* other);
-            OverlapCollision2D overlapCollision(Collider2D* other);
-            bool pointInside(Vec2 point);
-            Vec2 center();
-            void scale(Dimention scale);
-            Vec2 randomPoint();
-            RectCollider2D* toRect();
+            bool collidingWith(Collider2D* other)override;
+            OverlapCollision2D overlapCollision(Collider2D* other)override;
+            bool pointInside(Vec2 point)override;
+            Vec2 center()override;
+            void scale(Dimention scale)override;
+            Vec2 randomPoint()override;
+            RectCollider2D* toRect()override;
 
             CircleCollider2D(Vec2 position,Dimention radius):Collider2D(position),radius(radius){
-                type = HitboxType2D::circle;
-
+                type = ColliderType2D::circle;
             }
             ~CircleCollider2D()=default;
     };
@@ -101,16 +100,16 @@ namespace KLSE{
         public:
             Vec2 size;
 
-            bool collidingWith(Collider2D* other);
-            OverlapCollision2D overlapCollision(Collider2D* other);
-            bool pointInside(Vec2 point);
-            Vec2 center();
-            void scale(Dimention scale);
-            Vec2 randomPoint();
-            RectCollider2D* toRect();
+            bool collidingWith(Collider2D* other)override;
+            OverlapCollision2D overlapCollision(Collider2D* other)override;
+            bool pointInside(Vec2 point)override;
+            Vec2 center()override;
+            void scale(Dimention scale)override;
+            Vec2 randomPoint()override;
+            RectCollider2D* toRect()override;
 
             RectCollider2D(Vec2 position,Vec2 size):Collider2D(position),size(size){
-                type = HitboxType2D::rect;
+                type = ColliderType2D::rect;
             }
             ~RectCollider2D()=default;
     };
@@ -122,50 +121,47 @@ namespace KLSE{
 
     class Collider3D{
         public:
-            HitboxType3D type=HitboxType3D::null;
+            ColliderType3D type=ColliderType3D::null;
             Transform3D transform;
             Collider3D(Vec3 position, Vec3 scale, Vec3 rotation):transform(Transform3D(position,scale,rotation)){
 
             }
             ~Collider3D()=default;
 
-            bool collidingWith(Collider3D* other);
-            OverlapCollision3D overlapCollision(Collider3D* other);
-            bool pointInside(Vec3 point);
-            Vec3 center();
-            void scale(Dimention scale);
-            Vec3 randomPoint();
-            BoxCollider3D* toBox();
+            virtual bool collidingWith(Collider3D* other);
+            virtual OverlapCollision3D overlapCollision(Collider3D* other);
+            virtual bool pointInside(Vec3 point);
+            virtual Vec3 center();
+            virtual Vec3 randomPoint();
+            virtual BoxCollider3D* toBox();
     };
 
     class BoxCollider3D:public Collider3D{
         public:
             BoxCollider3D(Vec3 position, Vec3 scale, Vec3 rotation):Collider3D(position,scale,rotation){
-                type = HitboxType3D::box;
+                type = ColliderType3D::box;
             }
             ~BoxCollider3D()=default;
 
-            bool collidingWith(Collider3D* other);
-            OverlapCollision3D overlapCollision(Collider3D* other);
-            bool pointInside(Vec3 point);
-            Vec3 center();
-            void scale(Dimention scale);
-            Vec3 randomPoint();
-            BoxCollider3D* toBox();
+            bool collidingWith(Collider3D* other)override;
+            OverlapCollision3D overlapCollision(Collider3D* other)override;
+            bool pointInside(Vec3 point)override;
+            Vec3 center()override;
+            Vec3 randomPoint()override;
+            BoxCollider3D* toBox()override;
     };
     class SphereCollider3D:public Collider3D{
         SphereCollider3D(Vec3 position,Vec3, Vec3 scale, Vec3 rotation):Collider3D(position,scale,rotation){
-            type = HitboxType3D::sphere;
+            type = ColliderType3D::sphere;
         }
         ~SphereCollider3D()=default;
 
-        bool collidingWith(Collider3D* other);
-        OverlapCollision3D overlapCollision(Collider3D* other);
-        bool pointInside(Vec3 point);
-        Vec3 center();
-        void scale(Dimention scale);
-        Vec3 randomPoint();
-        BoxCollider3D* toBox();
+        bool collidingWith(Collider3D* other)override;
+        OverlapCollision3D overlapCollision(Collider3D* other)override;
+        bool pointInside(Vec3 point)override;
+        Vec3 center()override;
+        Vec3 randomPoint()override;
+        BoxCollider3D* toBox()override;
     };
 
     #pragma endregion

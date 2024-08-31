@@ -14,14 +14,20 @@
                 "childs":{
                     "window":{
                         "task":"g++ src/tests/window.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/window.exe"
+                    },
+                    "collision2D":{
+                        "task":"g++ src/tests/collision2D.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/collision2D.exe"
                     }
                 },
-                "task":"klse build-dir dist/windows/bin/tests && klse task windows test-compile window"
+                "task":"klse build-dir dist/windows/bin/tests && klse task windows test-compile window && klse task windows test-compile collision2D"
             },
             "test":{
                 "childs":{
                     "window":{
                         "task":"klse task windows lib && klse task windows gl && klse task windows test-compile && \"dist/windows/bin/tests/window.exe\""
+                    },
+                    "collision2D":{
+                        "task":"klse task windows lib && klse task windows gl && klse task windows test-compile && \"dist/windows/bin/tests/collision2D.exe\""
                     }
                 },
                 "task":""

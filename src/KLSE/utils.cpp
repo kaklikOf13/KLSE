@@ -50,21 +50,21 @@ namespace KLSE{
         return false;
     }
 
-    void Clock::tick(std::function<void()> callback) {
+    bool Clock::tick() {
         auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double, std::milli> elapsed = currentTime - lastFrameTime;
         double elapsedTime = elapsed.count();
-        double nextFrame = frameDuration - elapsedTime;
-
-        if (nextFrame > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(nextFrame)));
+        if(elapsedTime>=frameDuration*timeScale){
+            lastFrameTime=std::chrono::steady_clock::now();
+            return true;
         }
-
-        lastFrameTime = std::chrono::steady_clock::now();
-        callback();
+        return false;
     }
 
     Clock::Clock(int targetFPS, double timeScale): frameDuration(1000.0 / targetFPS), timeScale(timeScale) {
+        lastFrameTime = std::chrono::steady_clock::now();
+    }
+    Clock::Clock(int targetFPS): frameDuration(1000.0 / targetFPS), timeScale(1) {
         lastFrameTime = std::chrono::steady_clock::now();
     }
 

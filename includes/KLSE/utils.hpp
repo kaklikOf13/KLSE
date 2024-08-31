@@ -33,7 +33,8 @@ namespace KLSE{
 
     public:
         Clock(int targetFPS, double timeScale);
-        void tick(std::function<void()> callback);
+        Clock(int targetFPS);
+        bool tick();
         double timeScale;
     };
 

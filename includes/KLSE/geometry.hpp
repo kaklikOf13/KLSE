@@ -94,6 +94,8 @@ namespace KLSE{
         static RadAngle lookAt(Vec2 a,Vec2 b);
 
         static Dimention length(Vec2 vec);
+
+        static std::string toString(Vec2 vec);
     };
 
     struct IVec2{
@@ -180,6 +182,8 @@ namespace KLSE{
         static RadAngle lookAt(IVec2 a,IVec2 b);
 
         static IDimention length(IVec2 vec);
+
+        static std::string toString(IVec2 vec);
     };
     
     #pragma endregion
@@ -268,7 +272,8 @@ namespace KLSE{
         static Vec3 ceil(Vec3 vec);
 
         static Dimention length(Vec3 vec);
-        
+
+        static std::string toString(Vec3 vec);
     };
 
     #pragma endregion

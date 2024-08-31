@@ -175,10 +175,10 @@ namespace KLSE
     void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth){
         switch (hitbox->type)
         {
-        case HitboxType2D::circle:
+        case ColliderType2D::circle:
             draw_circle2D(reinterpret_cast<CircleCollider2D*>(hitbox),color,offset,smooth);
             break;
-        case HitboxType2D::rect:
+        case ColliderType2D::rect:
             draw_rect2D(reinterpret_cast<RectCollider2D*>(hitbox),color,offset);
             break;
         

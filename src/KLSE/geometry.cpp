@@ -160,6 +160,10 @@ namespace KLSE{
         return std::atan2(b.y-a.y,a.x-b.x);
     }
 
+    std::string Vec2::toString(Vec2 vec){
+        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
+    }
+
     //#DefIVec2
 
     IVec2 IVec2::random(IDimention min, IDimention max) {
@@ -320,6 +324,10 @@ namespace KLSE{
         return std::atan2(b.y-a.y,a.x-b.x);
     }
 
+    std::string IVec2::toString(IVec2 vec){
+        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
+    }
+
     #pragma endregion
 
     #pragma region Vec3
@@ -476,6 +484,10 @@ namespace KLSE{
 
     Vec3 Vec3::duplicate(Vec3 vec) {
         return Vec3(vec.x,vec.y,vec.z);
+    }
+
+    std::string Vec3::toString(Vec3 vec){
+        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
     }
     #pragma endregion
 }
