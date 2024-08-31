@@ -2,7 +2,7 @@
 #define KLSE_HPP
 #include "geometry.hpp"
 #include "utils.hpp"
-#include "hitbox.hpp"
+#include "colliders.hpp"
 #include "models.hpp"
 #include "renderer.hpp"
 #endif

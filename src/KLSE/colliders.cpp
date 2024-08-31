@@ -1,12 +1,12 @@
-#include <KLSE/hitbox.hpp>
+#include <KLSE/colliders.hpp>
 #include <iostream>
 #include <math.h>
 namespace KLSE
 {
-    bool Hitbox2D::collidingWith(Hitbox2D* other) {
+    bool Collider2D::collidingWith(Collider2D* other) {
         return false;
     }
-    bool CircleCollider2D::collidingWith(Hitbox2D* other) {
+    bool CircleCollider2D::collidingWith(Collider2D* other) {
         switch(other->type){
             case HitboxType2D::circle:
                 return Vec2::distance(position,other->position)<radius+(static_cast<CircleCollider2D*>(other)->radius);
@@ -17,7 +17,7 @@ namespace KLSE
         };
         return false;
     }
-    bool RectCollider2D::collidingWith(Hitbox2D* other) {
+    bool RectCollider2D::collidingWith(Collider2D* other) {
         switch(other->type){
             case HitboxType2D::circle:
                 return (position.x+size.x>other->position.x&&position.x<other->position.x+static_cast<RectCollider2D*>(other)->size.x) && (position.y+size.y>other->position.y&&position.y<other->position.y+static_cast<RectCollider2D*>(other)->size.y);
@@ -28,7 +28,7 @@ namespace KLSE
         };
         return false;
     }
-    bool BoxCollider3D::collidingWith(Hitbox3D* other) {
+    bool BoxCollider3D::collidingWith(Collider3D* other) {
         switch(other->type){
             case HitboxType3D::box:
                 return (transform.position.x+transform.scale.x>other->transform.position.x&&transform.position.x<other->transform.position.x+transform.scale.x) && 
@@ -40,10 +40,10 @@ namespace KLSE
         return false;
     }
 
-    OverlapCollision2D Hitbox2D::overlapCollision(Hitbox2D* other) {
+    OverlapCollision2D Collider2D::overlapCollision(Collider2D* other) {
         return OverlapCollision2D(false,Vec2());
     }
-    OverlapCollision2D CircleCollider2D::overlapCollision(Hitbox2D* other) {
+    OverlapCollision2D CircleCollider2D::overlapCollision(Collider2D* other) {
         switch(other->type){
             case HitboxType2D::circle:
                 return _Collision::circle_with_circle_ov(this,static_cast<CircleCollider2D*>(other));
@@ -54,7 +54,7 @@ namespace KLSE
         };
         return OverlapCollision2D();
     }
-    OverlapCollision2D RectCollider2D::overlapCollision(Hitbox2D* other) {
+    OverlapCollision2D RectCollider2D::overlapCollision(Collider2D* other) {
         switch(other->type){
             case HitboxType2D::circle:
                 return _Collision::circle_with_rect_ov(static_cast<CircleCollider2D*>(other),this,-2);
@@ -66,7 +66,7 @@ namespace KLSE
         return OverlapCollision2D();
     }
 
-    OverlapCollision3D BoxCollider3D::overlapCollision(Hitbox3D* other) {
+    OverlapCollision3D BoxCollider3D::overlapCollision(Collider3D* other) {
         switch(other->type){
             case HitboxType3D::sphere:
                 break;
@@ -78,7 +78,7 @@ namespace KLSE
         return OverlapCollision3D();
     }
 
-    OverlapCollision3D SphereCollider3D::overlapCollision(Hitbox3D* other) {
+    OverlapCollision3D SphereCollider3D::overlapCollision(Collider3D* other) {
         switch(other->type){
             case HitboxType3D::sphere:
                 break;
@@ -90,7 +90,7 @@ namespace KLSE
         return OverlapCollision3D();
     }
 
-    bool Hitbox2D::pointInside(Vec2 point) {
+    bool Collider2D::pointInside(Vec2 point) {
         return false;
     }
     bool CircleCollider2D::pointInside(Vec2 point) {
@@ -101,7 +101,7 @@ namespace KLSE
     }
 
 
-    void Hitbox2D::scale(Dimention scale){}
+    void Collider2D::scale(Dimention scale){}
     void CircleCollider2D::scale(Dimention scale){
         this->radius*=scale;
     }
@@ -109,7 +109,7 @@ namespace KLSE
         this->size=Vec2::scale(size,scale);
     }
 
-    Vec2 Hitbox2D::center() {
+    Vec2 Collider2D::center() {
         return Vec2();
     }
     Vec2 CircleCollider2D::center() {
@@ -132,7 +132,7 @@ namespace KLSE
         return Vec3(transform.position.x + ((radius * std::sin(angle2) * std::cos(angle1))*transform.scale.x),transform.position.y + ((radius * std::sin(angle2) * std::sin(angle1))*transform.scale.y),transform.position.z + ((radius*std::cos(angle1))*transform.scale.z));
     }
 
-    Vec2 Hitbox2D::randomPoint() {
+    Vec2 Collider2D::randomPoint() {
         return Vec2();
     }
     Vec2 RectCollider2D::randomPoint() {
@@ -147,7 +147,7 @@ namespace KLSE
         return Vec3::add(transform.position,Vec3::random3(Vec3(),transform.scale));
     }
 
-    RectCollider2D* Hitbox2D::toRect(){
+    RectCollider2D* Collider2D::toRect(){
         return new RectCollider2D(Vec2(),Vec2());
     }
     RectCollider2D* RectCollider2D::toRect(){

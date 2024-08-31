@@ -6,16 +6,18 @@ int main(int argc, char const *argv[])
 {
     //VulkanInit();
     //VulkanWindow* window=new VulkanWindow();
-    GLInit();
+    GLInit(GLAntialias::MSAA4X);
     GLWindow* window=new GLWindow();
     
-    RectCollider2D* rect=new RectCollider2D(Vec2(1,0),Vec2(5,5));
+    RectCollider2D* rect=new RectCollider2D(Vec2(1,1),Vec2(1,1));
+    Collider2D* circle = new CircleCollider2D(Vec2(3,2),1);
 
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
     while (!window->closed()) {
         window->renderer->clear();
         window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
+        window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
         window->update();
     }
     window->close();

@@ -58,16 +58,16 @@ namespace KLSE{
         OverlapCollision3D():colliding(false),overlap(Vec3()),overlapP(Vec3(0,0,0)),dire(Vec3()){};
     };
 
-    #pragma region Hitbox2D
+    #pragma region Collider2D
 
     class RectCollider2D;
 
-    class Hitbox2D{
+    class Collider2D{
         public:
             HitboxType2D type=HitboxType2D::null;
     
-            bool collidingWith(Hitbox2D* other);
-            OverlapCollision2D overlapCollision(Hitbox2D* other);
+            bool collidingWith(Collider2D* other);
+            OverlapCollision2D overlapCollision(Collider2D* other);
             bool pointInside(Vec2 point);
             Vec2 center();
             void scale(Dimention scale);
@@ -75,62 +75,62 @@ namespace KLSE{
             RectCollider2D* toRect();
 
             Vec2 position;
-            Hitbox2D(Vec2 position):position(position){}
-            ~Hitbox2D()=default;
+            Collider2D(Vec2 position):position(position){}
+            ~Collider2D()=default;
     };
-    class CircleCollider2D:public Hitbox2D{
+    class CircleCollider2D:public Collider2D{
         public:
             Dimention radius;
 
-            bool collidingWith(Hitbox2D* other);
-            OverlapCollision2D overlapCollision(Hitbox2D* other);
+            bool collidingWith(Collider2D* other);
+            OverlapCollision2D overlapCollision(Collider2D* other);
             bool pointInside(Vec2 point);
             Vec2 center();
             void scale(Dimention scale);
             Vec2 randomPoint();
             RectCollider2D* toRect();
 
-            CircleCollider2D(Vec2 position,Dimention radius):Hitbox2D(position),radius(radius){
+            CircleCollider2D(Vec2 position,Dimention radius):Collider2D(position),radius(radius){
                 type = HitboxType2D::circle;
 
             }
             ~CircleCollider2D()=default;
     };
 
-    class RectCollider2D:public Hitbox2D{
+    class RectCollider2D:public Collider2D{
         public:
             Vec2 size;
 
-            bool collidingWith(Hitbox2D* other);
-            OverlapCollision2D overlapCollision(Hitbox2D* other);
+            bool collidingWith(Collider2D* other);
+            OverlapCollision2D overlapCollision(Collider2D* other);
             bool pointInside(Vec2 point);
             Vec2 center();
             void scale(Dimention scale);
             Vec2 randomPoint();
             RectCollider2D* toRect();
 
-            RectCollider2D(Vec2 position,Vec2 size):Hitbox2D(position),size(size){
+            RectCollider2D(Vec2 position,Vec2 size):Collider2D(position),size(size){
                 type = HitboxType2D::rect;
             }
             ~RectCollider2D()=default;
     };
     #pragma endregion
 
-    #pragma region Hitbox3D
+    #pragma region Collider3D
 
     class BoxCollider3D;
 
-    class Hitbox3D{
+    class Collider3D{
         public:
             HitboxType3D type=HitboxType3D::null;
             Transform3D transform;
-            Hitbox3D(Vec3 position, Vec3 scale, Vec3 rotation):transform(Transform3D(position,scale,rotation)){
+            Collider3D(Vec3 position, Vec3 scale, Vec3 rotation):transform(Transform3D(position,scale,rotation)){
 
             }
-            ~Hitbox3D()=default;
+            ~Collider3D()=default;
 
-            bool collidingWith(Hitbox3D* other);
-            OverlapCollision3D overlapCollision(Hitbox3D* other);
+            bool collidingWith(Collider3D* other);
+            OverlapCollision3D overlapCollision(Collider3D* other);
             bool pointInside(Vec3 point);
             Vec3 center();
             void scale(Dimention scale);
@@ -138,29 +138,29 @@ namespace KLSE{
             BoxCollider3D* toBox();
     };
 
-    class BoxCollider3D:public Hitbox3D{
+    class BoxCollider3D:public Collider3D{
         public:
-            BoxCollider3D(Vec3 position, Vec3 scale, Vec3 rotation):Hitbox3D(position,scale,rotation){
+            BoxCollider3D(Vec3 position, Vec3 scale, Vec3 rotation):Collider3D(position,scale,rotation){
                 type = HitboxType3D::box;
             }
             ~BoxCollider3D()=default;
 
-            bool collidingWith(Hitbox3D* other);
-            OverlapCollision3D overlapCollision(Hitbox3D* other);
+            bool collidingWith(Collider3D* other);
+            OverlapCollision3D overlapCollision(Collider3D* other);
             bool pointInside(Vec3 point);
             Vec3 center();
             void scale(Dimention scale);
             Vec3 randomPoint();
             BoxCollider3D* toBox();
     };
-    class SphereCollider3D:public Hitbox3D{
-        SphereCollider3D(Vec3 position,Vec3, Vec3 scale, Vec3 rotation):Hitbox3D(position,scale,rotation){
+    class SphereCollider3D:public Collider3D{
+        SphereCollider3D(Vec3 position,Vec3, Vec3 scale, Vec3 rotation):Collider3D(position,scale,rotation){
             type = HitboxType3D::sphere;
         }
         ~SphereCollider3D()=default;
 
-        bool collidingWith(Hitbox3D* other);
-        OverlapCollision3D overlapCollision(Hitbox3D* other);
+        bool collidingWith(Collider3D* other);
+        OverlapCollision3D overlapCollision(Collider3D* other);
         bool pointInside(Vec3 point);
         Vec3 center();
         void scale(Dimention scale);

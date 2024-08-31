@@ -7,7 +7,14 @@
 namespace KLSE
 {
 
-    void GLInit();
+    enum class GLAntialias:uint8_t{
+        none,
+        MSAA1X,
+        MSAA2X,
+        MSAA4X,
+    };
+
+    void GLInit(GLAntialias antialias);
 
     class GLWindow;
     class GLRenderer;
@@ -19,9 +26,9 @@ namespace KLSE
 
             unsigned int simple_program;
 
-            void draw_rect2D(RectCollider2D* rect, Color normal,Vec2 offset) override;
-            void draw_circle2D(CircleCollider2D circle,Color normal,Vec2 offset) override{};
-            void draw_hitbox2D(Hitbox2D hitbox,Color normal,Vec2 offset) override{};
+            void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset) override;
+            void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30) override;
+            void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30) override;
             void clear() override;
 
             void set_viewport(IVec2 size) override;

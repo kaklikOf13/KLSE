@@ -26,7 +26,7 @@ namespace KLSE
 
     #define DEFAULT_WINDOWS_SIZE_X 800
     #define DEFAULT_WINDOWS_SIZE_Y 600
-    void GLInit(){
+    void GLInit(GLAntialias antialias){
         // Inicializar GLFW
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -35,6 +35,19 @@ namespace KLSE
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        switch (antialias)
+        {
+        case GLAntialias::MSAA1X:
+            glfwWindowHint(GLFW_SAMPLES, 1);
+        case GLAntialias::MSAA2X:
+            glfwWindowHint(GLFW_SAMPLES, 2);
+        case GLAntialias::MSAA4X:
+            glfwWindowHint(GLFW_SAMPLES, 4);
+            break;
+        default:
+            break;
+        }
     }
     void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
         GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
@@ -65,8 +78,9 @@ namespace KLSE
         renderer->init(this);
         renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
 
-        //glEnable(GL_DEPTH_TEST);
-        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        //glDisable(GL_DEPTH_TEST);
     }
     IVec2 GLWindow::get_size(){
         IVec2 ret;
@@ -125,6 +139,54 @@ namespace KLSE
         // 2. Call _draw_simple_vertex with the vertices and indices
         _draw_simple_vertex(vertices, indices, color, GL_TRIANGLES);
     }
+
+    void GLRenderer::draw_circle2D(CircleCollider2D* circle, Color color, Vec2 offset, unsigned int smooth) {
+        // 1. Calculate the circle's center position
+        float cx = circle->position.x - offset.x;
+        float cy = circle->position.y - offset.y;
+        float radius = circle->radius;
+
+        // 2. Prepare the vertices
+        std::vector<float> vertices;
+        vertices.push_back(cx);  // Center vertex (x)
+        vertices.push_back(cy);  // Center vertex (y)
+
+        // Calculate the vertices around the circumference
+        for (unsigned int i = 0; i <= smooth; ++i) {
+            float angle = 2.0f * Math::PI * i / smooth;
+            float x = cx + radius * cos(angle);
+            float y = cy + radius * sin(angle);
+            vertices.push_back(x);
+            vertices.push_back(y);
+        }
+
+        // 3. Prepare the indices
+        std::vector<unsigned int> indices;
+        for (unsigned int i = 1; i <= smooth; ++i) {
+            indices.push_back(0);  // Center vertex
+            indices.push_back(i);
+            indices.push_back(i + 1);
+        }
+
+        // 4. Call _draw_simple_vertex with the vertices and indices
+        _draw_simple_vertex(vertices, indices, color, GL_TRIANGLES);
+    }
+
+    void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth){
+        switch (hitbox->type)
+        {
+        case HitboxType2D::circle:
+            draw_circle2D(reinterpret_cast<CircleCollider2D*>(hitbox),color,offset,smooth);
+            break;
+        case HitboxType2D::rect:
+            draw_rect2D(reinterpret_cast<RectCollider2D*>(hitbox),color,offset);
+            break;
+        
+        default:
+            break;
+        }
+    }
+
     void checkOpenGLError(const std::string& context) {
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {

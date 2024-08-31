@@ -1,7 +1,7 @@
 #ifndef KLSE_RENDERER_HPP
 #define KLSE_RENDERER_HPP
 #include "geometry.hpp"
-#include "hitbox.hpp"
+#include "colliders.hpp"
 namespace KLSE
 {
     struct Color {
@@ -33,9 +33,9 @@ namespace KLSE
         Dimention meter_size;
         Color backgroundColor;
         Window* window;
-        virtual void draw_rect2D(RectCollider2D* rect, Color normal,Vec2 offset)=0;
-        virtual void draw_circle2D(CircleCollider2D circle,Color normal,Vec2 offset)=0;
-        virtual void draw_hitbox2D(Hitbox2D hitbox,Color normal,Vec2 offset)=0;
+        virtual void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset)=0;
+        virtual void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30)=0;
+        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30)=0;
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
         //virtual void draw_cube(rect: BoxHitbox3D, camera:Camera3D, material:GLMaterial){};
