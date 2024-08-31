@@ -4,7 +4,7 @@
 #include <cmath>
 namespace KLSE{
     typedef double Dimention;
-    typedef long int IDimention;
+    typedef int IDimention;
     #pragma region Vec2
 
     typedef float RadAngle;

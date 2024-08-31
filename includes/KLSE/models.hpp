@@ -27,7 +27,7 @@ namespace KLSE {
         static Model3D parseObj(const std::string& objText);
     };
 
-    using Matrix4 = Dimention*;
+    using Matrix4 = float*;
     
     namespace matrix4 {
         Matrix4 identity();

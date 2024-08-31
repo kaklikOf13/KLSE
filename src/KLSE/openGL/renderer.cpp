@@ -1,6 +1,7 @@
 #include <KLSE/openGL/renderer.hpp>
 #include <GLFW/glfw3.h>
 #include <KLSE/openGL/utils.hpp>
+#include <iostream>
 namespace KLSE
 {
     const char* simpleVertexShaderSource = R"(
@@ -9,7 +10,7 @@ namespace KLSE
         uniform mat4 u_ProjectionMatrix;
 
         void main() {
-            gl_Position = u_ProjectionMatrix * vec4(a_Position, 0, 1.0);
+            gl_Position = u_ProjectionMatrix * vec4(a_Position, 0.0, 1.0);
         }
     )";
 
@@ -22,8 +23,6 @@ namespace KLSE
             FragColor = u_Color;
         }
     )";
-
-
 
     #define DEFAULT_WINDOWS_SIZE_X 800
     #define DEFAULT_WINDOWS_SIZE_Y 600
@@ -44,7 +43,7 @@ namespace KLSE
         }
     }
     GLWindow::GLWindow():Window(){
-        window=glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
+        window = glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
         if (!window) {
             std::cerr << "Failed to create GLFW window " << window << std::endl;
             glfwTerminate();
@@ -56,7 +55,7 @@ namespace KLSE
             exit(-1);
         }
 
-        renderer=new GLRenderer();
+        renderer = new GLRenderer();
 
         // Set the user pointer to this instance
         glfwSetWindowUserPointer(window, this);
@@ -66,7 +65,8 @@ namespace KLSE
         renderer->init(this);
         renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
 
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
     }
     IVec2 GLWindow::get_size(){
         IVec2 ret;
@@ -103,7 +103,7 @@ namespace KLSE
         glClear(GL_COLOR_BUFFER_BIT);
     }
     
-    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color normal,Vec2 offset){
+    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset){
         // 1. Calculate the rectangle vertices
         float x1 = rect->position.x - offset.x;
         float y1 = rect->position.y - offset.y;
@@ -117,15 +117,21 @@ namespace KLSE
             x1, y2   // Top-left
         };
 
-        std::vector<int> indices = {
+        std::vector<unsigned int> indices = {
             0, 1, 2,  // First triangle
             2, 3, 0   // Second triangle
         };
 
         // 2. Call _draw_simple_vertex with the vertices and indices
-        _draw_simple_vertex(vertices, indices, normal, GL_TRIANGLES);
+        _draw_simple_vertex(vertices, indices, color, GL_TRIANGLES);
     }
-    void GLRenderer::_draw_simple_vertex(const std::vector<float>& vertex, const std::vector<int>& index, Color color, GLenum mode) {
+    void checkOpenGLError(const std::string& context) {
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR) {
+            std::cerr << "OpenGL error in " << context << ": " << err << std::endl;
+        }
+    }
+    void GLRenderer::_draw_simple_vertex(const std::vector<float>& vertex, const std::vector<unsigned int>& index, Color color, GLenum mode) {
         // 1. Generate and bind VAO
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
@@ -149,14 +155,25 @@ namespace KLSE
         // 5. Use the shader program and set the uniform values
         glUseProgram(simple_program);
 
-        // Correct uniform locations
+        // Retrieve uniform locations
         int projLoc = glGetUniformLocation(simple_program, "u_ProjectionMatrix");
+        if (projLoc == -1) {
+            std::cerr << "Uniform 'u_ProjectionMatrix' not found! " << std::endl;
+        }
+
         int colorLoc = glGetUniformLocation(simple_program, "u_Color");
+        if (colorLoc == -1) {
+            std::cerr << "Uniform 'u_Color' not found!" << std::endl;
+        }
 
         // Set the projection matrix uniform
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix);
+        if (projectionMatrix) {
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix);
+        } else {
+            std::cerr << "Projection matrix is null!" << std::endl;
+        }
 
-        // Set the color uniform
+        // Set the color uniform (ensure color components are in [0,1])
         glUniform4f(colorLoc, color.r, color.g, color.b, color.a);
 
         // 6. Draw the vertices using the index buffer
@@ -169,12 +186,14 @@ namespace KLSE
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
+
+        checkOpenGLError("_draw_simple_vertex");
     }
     void GLRenderer::set_viewport(IVec2 size){
         if(projectionMatrix){
             delete projectionMatrix;
         }
-        projectionMatrix=matrix4::projection(Vec3(size.x/this->meter_size,size.y/this->meter_size,500/this->meter_size));
+        projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));
         glViewport(0,0,size.x, size.y);
     }
 }

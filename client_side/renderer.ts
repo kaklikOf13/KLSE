@@ -550,7 +550,7 @@ void main() {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
         this.gl.clearColor(this.background.r, this.background.g, this.background.b, this.background.a)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
-        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.enable(this.gl.DEPTH_TEST)
         //this.gl.enable(this.gl.CULL_FACE)
         //this.gl.cullFace(this.gl.BACK)
         //this.gl.depthFunc(this.gl.LEQUAL);

@@ -169,7 +169,7 @@ namespace KLSE {
     namespace matrix4 {
 
         Matrix4 identity() {
-            Matrix4 m = new Dimention[16] {
+            Matrix4 m = new float[16] {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
@@ -179,27 +179,27 @@ namespace KLSE {
         }
 
         Matrix4 projection(Vec3 size) {
-            Matrix4 m = new Dimention[16] {
-                2.0f / size.x, 0, 0.0f, 0.0f,
-                0, -2.0f / size.y, 0.0f, 0.0f,
-                0, 0, -2.0f / size.z, 0.0f,
+            Matrix4 m = new float[16] {
+                2.0f / static_cast<float>(size.x), 0, 0.0f, 0.0f,
+                0, -2.0f / static_cast<float>(size.y), 0.0f, 0.0f,
+                0, 0, -2.0f / static_cast<float>(size.z), 0.0f,
                 -1.0f, 1.0f, -1.0f, 1.0f
             };
             return m;
         }
 
         Matrix4 zToMatrix(Dimention fov) {
-            Matrix4 m = new Dimention[16] {
+            Matrix4 m = new float[16] {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
-                0, 0, 1, fov,
+                0, 0, 1, static_cast<float>(fov),
                 0, 0, 0, 1
             };
             return m;
         }
 
         Matrix4 transpose(const Matrix4& m) {
-            Matrix4 result = new Dimention[16];
+            Matrix4 result = new float[16];
             for (int i = 0; i < 4; ++i) {
                 for (int j = 0; j < 4; ++j) {
                     result[i * 4 + j] = m[j * 4 + i];
@@ -209,7 +209,7 @@ namespace KLSE {
         }
 
         Matrix4 perspective(Dimention fov, Dimention aspect, Dimention near, Dimention far) {
-            Matrix4 dst = new Dimention[16];
+            Matrix4 dst = new float[16];
             Dimention f = 1.0f / std::tan(fov * 0.5f);
             Dimention rangeInv = 1.0f / (near - far);
 
@@ -234,17 +234,17 @@ namespace KLSE {
         }
 
         Matrix4 translation(Vec3 pos) {
-            Matrix4 m = new Dimention[16] {
+            Matrix4 m = new float[16] {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
-                pos.x, pos.y, pos.z, 1
+                static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z), 1
             };
             return m;
         }
 
         Matrix4 mult(const Matrix4& a, const Matrix4& b) {
-            Matrix4 result = new Dimention[16];
+            Matrix4 result = new float[16];
             for (int i = 0; i < 4; ++i) {
                 for (int j = 0; j < 4; ++j) {
                     result[i * 4 + j] = a[i * 4 + 0] * b[0 * 4 + j] +
@@ -257,7 +257,7 @@ namespace KLSE {
         }
 
         Matrix4 div(const Matrix4& a, const Matrix4& b) {
-            Matrix4 result = new Dimention[16];
+            Matrix4 result = new float[16];
             for (int i = 0; i < 16; ++i) {
                 result[i] = b[i] / a[i];
             }
@@ -268,10 +268,10 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new Dimention[16] {
+            Matrix4 m = new float[16] {
                 1, 0, 0, 0,
-                0, c, s, 0,
-                0, -s, c, 0,
+                0, static_cast<float>(c), static_cast<float>(s), 0,
+                0, static_cast<float>(-s), static_cast<float>(c), 0,
                 0, 0, 0, 1
             };
             return m;
@@ -281,10 +281,10 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new Dimention[16] {
-                c, 0, -s, 0,
+            Matrix4 m = new float[16] {
+                static_cast<float>(c), 0, static_cast<float>(-s), 0,
                 0, 1, 0, 0,
-                s, 0, c, 0,
+                static_cast<float>(s), 0, static_cast<float>(c), 0,
                 0, 0, 0, 1
             };
             return m;
@@ -294,9 +294,9 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new Dimention[16] {
-                c, s, 0, 0,
-                -s, c, 0, 0,
+            Matrix4 m = new float[16] {
+                static_cast<float>(c), static_cast<float>(s), 0, 0,
+                static_cast<float>(-s), static_cast<float>(c), 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1
             };
@@ -327,7 +327,7 @@ namespace KLSE {
         Matrix4 inverse(const Matrix4& m) {
             // Calculate the inverse of the matrix using standard methods
             // This is a placeholder. Implement as needed based on your specific requirements.
-            Matrix4 result = new Dimention[16];
+            Matrix4 result = new float[16];
             // Your matrix inversion implementation here.
             return result;
         }

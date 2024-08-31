@@ -26,7 +26,7 @@ namespace KLSE
 
             void set_viewport(IVec2 size) override;
 
-            void _draw_simple_vertex(const std::vector<float>& vertex,const std::vector<int>& index, Color color, GLenum mode = GL_TRIANGLES);
+            void _draw_simple_vertex(const std::vector<float>& vertex,const std::vector<unsigned int>& index, Color color, GLenum mode = GL_TRIANGLES);
 
             GLRenderer():Renderer(100,RGBA::create(0,0,0)){};
             GLRenderer(Dimention meter_size,Color backgroundColor):KLSE::Renderer(meter_size,backgroundColor){};
