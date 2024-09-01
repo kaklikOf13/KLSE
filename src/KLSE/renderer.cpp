@@ -13,9 +13,9 @@ namespace KLSE
             return Color(json.r / 255.0f, json.g / 255.0f, json.b / 255.0f, json.a / 255.0f);
         } 
     
-    namespace HEX
+    namespace HEXCOLOR
     {
-        static Color create(std::string hex) {
+        Color create(std::string hex) {
             std::smatch result;
             switch (hex.length()) {
                 case 4: // #RGB

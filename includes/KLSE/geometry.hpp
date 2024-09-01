@@ -10,13 +10,15 @@ namespace KLSE{
     typedef float RadAngle;
     typedef int DegAngle;
 
+    struct IVec2;
+
     struct Vec2{
         Dimention x;
         Dimention y;
 
         Vec2() : x(0), y(0) {};
         Vec2(Dimention x, Dimention y) : x(x), y(y) {};
-        //Vec2(IVec2 t) : x(static_cast<Dimention>(t.x)), y(static_cast<Dimention>(t.y)) {};
+        Vec2(IVec2 t);
         ~Vec2()=default;
     
         static Vec2 random(Dimention min, Dimention max);
@@ -104,7 +106,7 @@ namespace KLSE{
 
         IVec2() : x(0), y(0) {}
         IVec2(IDimention x, IDimention y) : x(x), y(y) {}
-        //IVec2(Vec2 t) : x(static_cast<IDimention>(t.x)), y(static_cast<IDimention>(t.y)) {}
+        IVec2(Vec2 t) : x(static_cast<IDimention>(t.x)), y(static_cast<IDimention>(t.y)) {}
         ~IVec2()=default;
 
         static IVec2 random(IDimention min, IDimention max);

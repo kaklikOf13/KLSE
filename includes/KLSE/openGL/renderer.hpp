@@ -4,16 +4,10 @@
 #include <GLFW/glfw3.h>
 #include "../models.hpp"
 #include "../renderer.hpp"
+#include "../input.hpp"
+#include "utils.hpp"
 namespace KLSE
 {
-
-    enum class GLAntialias:uint8_t{
-        none,
-        MSAA1X,
-        MSAA2X,
-        MSAA4X,
-    };
-
     void GLInit(GLAntialias antialias);
 
     class GLWindow;
@@ -44,6 +38,8 @@ namespace KLSE
     class GLWindow:public Window{
         public:
             GLRenderer* renderer;
+
+            PCInputListener* input;
 
             IVec2 get_size()override;
             void set_size(IVec2 size)override;

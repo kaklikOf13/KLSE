@@ -23,9 +23,9 @@ namespace KLSE
         static Color from(RGBA json);
     };
 
-    namespace HEX
+    namespace HEXCOLOR
     {
-        static Color create(std::string hex);
+        Color create(std::string hex);
     }; // namespace HEX
     class Window;
     class Renderer {

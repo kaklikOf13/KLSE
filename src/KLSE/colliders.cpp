@@ -31,9 +31,9 @@ namespace KLSE
     }
     bool RectCollider2D::collidingWith(Collider2D* other) {
         switch(other->type){
-            case ColliderType2D::circle:
-                return (position.x+size.x>other->position.x&&position.x<other->position.x+static_cast<RectCollider2D*>(other)->size.x) && (position.y+size.y>other->position.y&&position.y<other->position.y+static_cast<RectCollider2D*>(other)->size.y);
             case ColliderType2D::rect:
+                return (position.x+size.x>other->position.x&&position.x<other->position.x+static_cast<RectCollider2D*>(other)->size.x) && (position.y+size.y>other->position.y&&position.y<other->position.y+static_cast<RectCollider2D*>(other)->size.y);
+            case ColliderType2D::circle:
                 return _Collision::circle_with_rect(static_cast<CircleCollider2D*>(other),this);
             default:
                 break;

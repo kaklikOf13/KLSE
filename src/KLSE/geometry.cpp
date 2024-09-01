@@ -2,6 +2,8 @@
 #include <KLSE/utils.hpp>
 namespace KLSE{
     #pragma region Vec2
+    Vec2::Vec2(IVec2 t) : x(static_cast<Dimention>(t.x)), y(static_cast<Dimention>(t.y)) {}
+
     Vec2 Vec2::random(Dimention min, Dimention max) {
         return Vec2(random::dimention(min, max), random::dimention(min, max));
     }

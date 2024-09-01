@@ -28,7 +28,6 @@ int main(int argc, char const *argv[])
 
     Clock* clock=new Clock(60);
 
-    clock->tick();
     while (!window->closed()) {
         if(clock->tick()){
             window->renderer->clear();
