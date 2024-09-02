@@ -17,6 +17,9 @@ unsigned int score=0;
 Vec2 screenSize;
 
 std::vector<Collider2D*> pipes;
+std::vector<RectCollider2D*> mountains;
+std::vector<Color> mountainsColor;
+std::vector<Dimention> mountainsSpeed;
 
 void generatePipe(){
     Vec2 size=Vec2(.5,screenSize.y);
@@ -24,6 +27,27 @@ void generatePipe(){
 
     pipes.push_back(new RectCollider2D(Vec2::add(pos,Vec2(0,size.y+1.5)),size));
     pipes.push_back(new RectCollider2D(pos,size));
+}
+void initMountains(){
+    mountainsColor.clear();
+    for(int i=0;i<mountains.size();i++){
+        delete mountains[i];
+    }
+    mountains.clear();
+
+    //Big Mountain
+    mountains.push_back(new RectCollider2D(Vec2(4,2),Vec2(4,4)));
+    mountainsColor.push_back(HEXCOLOR::create("#eef"));
+    mountainsSpeed.push_back(.03);
+
+    //Green
+    mountains.push_back(new RectCollider2D(Vec2(0,4),Vec2(2,4)));
+    mountainsColor.push_back(HEXCOLOR::create("#10780b"));
+    mountainsSpeed.push_back(.05);
+    
+    mountains.push_back(new RectCollider2D(Vec2(7,4.5),Vec2(2,4)));
+    mountainsColor.push_back(HEXCOLOR::create("#10780b"));
+    mountainsSpeed.push_back(.056);
 }
 
 int main(int argc, char const *argv[])
@@ -33,6 +57,8 @@ int main(int argc, char const *argv[])
     GLInit(GLAntialias::MSAA4X);
     GLWindow* window=new GLWindow();
     window->renderer->backgroundColor=HEXCOLOR::create("#2a8ce8");
+
+    initMountains();
 
     Clock clock=Clock(60);
     window->setResizable(false);
@@ -62,6 +88,14 @@ int main(int argc, char const *argv[])
             generatePipe();
         }
 
+        for(unsigned int i=0;i<mountains.size();i++){
+            mountains[i]->position.x-=mountainsSpeed[i];
+            if(mountains[i]->position.x<=-mountains[i]->size.x){
+                mountains[i]->position.x=screenSize.x;
+            }
+            window->renderer->draw_collider2D(mountains[i],mountainsColor[i],Vec2());
+        }
+
         for(unsigned int i=0;i<pipes.size();i++){
             pipes[i]->position.x-=PipeSpeed;
             if(pipes[i]->position.x<-reinterpret_cast<RectCollider2D*>(pipes[i])->size.x){
@@ -78,6 +112,7 @@ int main(int argc, char const *argv[])
                 for(unsigned int j=0;j<pipes.size();j++){
                     delete pipes[j];
                 }
+                initMountains();
                 pipes.clear();
             }
 
@@ -86,6 +121,7 @@ int main(int argc, char const *argv[])
 
         window->renderer->draw_collider2D(player,playerColor,Vec2());
         window->update();
+
 
         clock.tick();
     }
