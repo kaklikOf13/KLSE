@@ -23,6 +23,9 @@
                         "childs":{
                             "flappybird":{
                                 "task":"g++ src/tests/minigames/flappybird.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/flappybird.exe"
+                            },
+                            "space":{
+                                "task":"g++ src/tests/minigames/space.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/space.exe"
                             }
                         }
                     }
@@ -42,6 +45,9 @@
                         "childs":{
                             "flappybird":{
                                 "task":"klse task windows lib && klse task windows gl && klse task windows test-compile minigames && klse task windows test-compile minigames flappybird && \"dist/windows/bin/tests/minigames/flappybird.exe\""
+                            },
+                            "space":{
+                                "task":"klse task windows lib && klse task windows gl && klse task windows test-compile minigames && klse task windows test-compile minigames space && \"dist/windows/bin/tests/minigames/space.exe\""
                             }
                         }
                     }

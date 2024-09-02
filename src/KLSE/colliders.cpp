@@ -202,8 +202,8 @@ namespace KLSE
     {
         static bool circle_with_rect(CircleCollider2D* hb1,RectCollider2D* hb2){
             Vec2 cp=Vec2::clamp2(hb1->position,hb2->position,Vec2::add(hb2->position,hb2->size));
-            Dimention dist=Vec2::distance(hb1->position,cp);
-            return (dist<hb1->radius*hb1->radius)||((hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x)&&(hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x));
+            Dimention dist=Vec2::distanceSquared(hb1->position,cp);
+            return (dist<hb1->radius*hb1->radius)||((hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x)&&(hb1->position.y>=hb2->position.y&&hb1->position.y<=hb2->position.y+hb2->size.y));
         };
         static OverlapCollision2D circle_with_circle_ov(CircleCollider2D* hb1,CircleCollider2D* hb2){
             Dimention dists = Vec2::distance(hb1->position,hb2->position);

@@ -24,6 +24,7 @@ namespace KLSE
             void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30) override;
             void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30) override;
             void clear() override;
+            
 
             void set_viewport(IVec2 size) override;
 
@@ -46,6 +47,9 @@ namespace KLSE
 
             std::string get_title()override;
             void set_title(std::string title)override;
+
+            void setResizable(bool resizable)override;
+
             void update()override;
             void close()override;
             bool closed()override;

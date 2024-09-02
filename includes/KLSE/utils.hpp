@@ -34,7 +34,7 @@ namespace KLSE{
     public:
         Clock(int targetFPS, double timeScale);
         Clock(int targetFPS);
-        bool tick();
+        void tick();
         double timeScale;
     };
 

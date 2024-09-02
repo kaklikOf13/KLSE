@@ -8,9 +8,9 @@ Vec2 playerVelocity=Vec2();
 Color playerColor=HEXCOLOR::create("#d4ba11");
 const Color pipesColor=HEXCOLOR::create("#13b50b");
 
-const Dimention gravity=0.005;
-const Dimention jumpForce=.1;
-Dimention PipeSpeed=.05;
+const Dimention gravity=0.008;
+const Dimention jumpForce=.13;
+Dimention PipeSpeed=.1;
 
 unsigned int score=0;
 
@@ -34,56 +34,60 @@ int main(int argc, char const *argv[])
     GLWindow* window=new GLWindow();
     window->renderer->backgroundColor=HEXCOLOR::create("#2a8ce8");
 
-    Clock* clock=new Clock(60);
+    Clock clock=Clock(60);
+    window->setResizable(false);
 
     while (!window->closed()) {
-        if(clock->tick()){
-            screenSize=Vec2::dscale(window->get_size(),window->renderer->meter_size);
+        screenSize=Vec2::dscale(window->get_size(),window->renderer->meter_size);
 
-            window->renderer->clear();
+        window->renderer->clear();
 
-            playerVelocity.y+=gravity;
-            
-            if(player->position.y<0){
-                player->position.y=0;
-                playerVelocity.y=0;
-            }else if(player->position.y>screenSize.y-player->size.y){
-                player->position.y=screenSize.y-player->size.y;
-                playerVelocity.y=0;
-            }
-            
-            if(window->input->keyDown(Key::Space)){
-                playerVelocity.y=-jumpForce;
-            }
-
-            player->position=Vec2::add(player->position,playerVelocity);
-
-            if(pipes.size()<2){
-                generatePipe();
-            }
-
-            for(unsigned int i=0;i<pipes.size();i++){
-                pipes[i]->position.x-=PipeSpeed;
-
-                if(pipes[i]->position.x<-pipes[i]->toRect()->size.x){
-                    pipes.erase(pipes.begin()+i);
-                    score++;
-                    std::cout<<"SCORE: "<<score<<"\n";
-                    continue;
-                }
-
-                if(player->collidingWith(pipes[i])){
-                    std::cout<<"YOU LOSE!\n";
-                    score=0;
-                    pipes.clear();
-                }
-
-                window->renderer->draw_collider2D(pipes[i],pipesColor,Vec2());
-            }
-
-            window->renderer->draw_collider2D(player,playerColor,Vec2());
-            window->update();
+        playerVelocity.y+=gravity;
+        
+        if(player->position.y<0){
+            player->position.y=0;
+            playerVelocity.y=0;
+        }else if(player->position.y>screenSize.y-player->size.y){
+            player->position.y=screenSize.y-player->size.y;
+            playerVelocity.y=0;
         }
+        
+        if(window->input->keyDown(Key::Space)){
+            playerVelocity.y=-jumpForce;
+        }
+
+        player->position=Vec2::add(player->position,playerVelocity);
+
+        if(pipes.size()<2){
+            generatePipe();
+        }
+
+        for(unsigned int i=0;i<pipes.size();i++){
+            pipes[i]->position.x-=PipeSpeed;
+            if(pipes[i]->position.x<-reinterpret_cast<RectCollider2D*>(pipes[i])->size.x){
+                delete pipes[i];
+                pipes.erase(pipes.begin()+i);
+                score++;
+                std::cout<<"SCORE: "<<score<<"\n";
+                continue;
+            }
+
+            if(player->collidingWith(pipes[i])){
+                std::cout<<"YOU LOSE!\n";
+                score=0;
+                for(unsigned int j=0;j<pipes.size();j++){
+                    delete pipes[j];
+                }
+                pipes.clear();
+            }
+
+            window->renderer->draw_collider2D(pipes[i],pipesColor,Vec2());
+        }
+
+        window->renderer->draw_collider2D(player,playerColor,Vec2());
+        window->update();
+
+        clock.tick();
     }
     window->close();
     return 0;

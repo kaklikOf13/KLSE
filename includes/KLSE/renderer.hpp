@@ -53,9 +53,14 @@ namespace KLSE
         Renderer* renderer;
         virtual void set_size(IVec2 size)=0;
         virtual IVec2 get_size()=0;
+
+        virtual void setResizable(bool resizable)=0;
+
         virtual void set_title(std::string title)=0;
         virtual std::string get_title()=0;
+
         virtual void update()=0;
+
         virtual void close()=0;
         virtual bool closed()=0;
         Window():renderer(nullptr){};

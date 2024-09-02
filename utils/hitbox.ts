@@ -4,7 +4,7 @@ import { random } from "./random.ts";
 export const Collision=Object.freeze({
     circle_with_rect(hb1:CircleHitbox2D,hb2:RectHitbox2D):boolean{
         const cp=v2.clamp2(hb1.position,hb2.position,v2.add(hb2.position,hb2.size))
-        const dist=v2.distance(hb1.position,cp)
+        const dist=v2.distanceSquared(hb1.position,cp)
         return (dist<hb1.radius*hb1.radius)||((hb1.position.x>=hb2.position.x&&hb1.position.x<=hb2.position.x+hb2.size.x)&&(hb1.position.x>=hb2.position.x&&hb1.position.x<=hb2.position.x+hb2.size.x))
     },
     circle_with_rect_ov(hb1:CircleHitbox2D,hb2:RectHitbox2D){

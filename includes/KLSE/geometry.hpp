@@ -19,7 +19,6 @@ namespace KLSE{
         Vec2() : x(0), y(0) {};
         Vec2(Dimention x, Dimention y) : x(x), y(y) {};
         Vec2(IVec2 t);
-        ~Vec2()=default;
     
         static Vec2 random(Dimention min, Dimention max);
 
@@ -107,7 +106,6 @@ namespace KLSE{
         IVec2() : x(0), y(0) {}
         IVec2(IDimention x, IDimention y) : x(x), y(y) {}
         IVec2(Vec2 t) : x(static_cast<IDimention>(t.x)), y(static_cast<IDimention>(t.y)) {}
-        ~IVec2()=default;
 
         static IVec2 random(IDimention min, IDimention max);
 
@@ -199,7 +197,6 @@ namespace KLSE{
 
         Vec3() : x(0), y(0), z(0) {}
         Vec3(Dimention x, Dimention y, Dimention z) : x(x), y(y), z(z) {}
-        ~Vec3()=default;
 
         static Vec3 random(Dimention min, Dimention max);
 

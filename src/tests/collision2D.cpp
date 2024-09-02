@@ -29,23 +29,22 @@ int main(int argc, char const *argv[])
     Clock* clock=new Clock(60);
 
     while (!window->closed()) {
-        if(clock->tick()){
-            window->renderer->clear();
-            for(unsigned int i=0;i<colliders.size();i++){
-                for(unsigned int j=0;j<colliders.size();j++){
-                    if(i==j){
-                        continue;
-                    }
-                    auto col=colliders[i]->overlapCollision(colliders[j]);
-                    if(col.colliding){
-                        colliders[i]->position=Vec2::sub(colliders[i]->position,Vec2::scale(col.overlap,.01));
-                        colliders[j]->position=Vec2::add(colliders[j]->position,Vec2::scale(col.overlap,.01));
-                    }
+        window->renderer->clear();
+        for(unsigned int i=0;i<colliders.size();i++){
+            for(unsigned int j=0;j<colliders.size();j++){
+                if(i==j){
+                    continue;
                 }
-                window->renderer->draw_collider2D(colliders[i],RGBA::create(0,0,0),Vec2());
+                auto col=colliders[i]->overlapCollision(colliders[j]);
+                if(col.colliding){
+                    colliders[i]->position=Vec2::sub(colliders[i]->position,Vec2::scale(col.overlap,.01));
+                    colliders[j]->position=Vec2::add(colliders[j]->position,Vec2::scale(col.overlap,.01));
+                }
             }
-            window->update();
+            window->renderer->draw_collider2D(colliders[i],RGBA::create(0,0,0),Vec2());
         }
+        window->update();
+        clock->tick();
     }
     window->close();
     return 0;

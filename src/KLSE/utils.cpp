@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <KLSE/utils.hpp>
 #include <iostream>
+#include <thread>
 #include <sstream>
 namespace KLSE{
     namespace random
@@ -50,15 +51,20 @@ namespace KLSE{
         return false;
     }
 
-    bool Clock::tick() {
+    void Clock::tick() {
         auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double, std::milli> elapsed = currentTime - lastFrameTime;
         double elapsedTime = elapsed.count();
-        if(elapsedTime>=frameDuration*timeScale){
-            lastFrameTime=std::chrono::steady_clock::now();
-            return true;
+
+        // Calculate the remaining time to sleep
+        double sleepTime = (frameDuration * timeScale) - elapsedTime;
+
+        if (sleepTime > 0) {
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(sleepTime));
         }
-        return false;
+
+        // Update the last frame time
+        lastFrameTime = std::chrono::steady_clock::now();
     }
 
     Clock::Clock(int targetFPS, double timeScale): frameDuration(1000.0 / targetFPS), timeScale(timeScale) {

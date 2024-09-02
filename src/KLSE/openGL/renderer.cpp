@@ -155,8 +155,6 @@ namespace KLSE
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
-
-        //glDisable(GL_DEPTH_TEST);
     }
     IVec2 GLWindow::get_size(){
         IVec2 ret;
@@ -166,6 +164,11 @@ namespace KLSE
     void GLWindow::set_size(IVec2 size){
         glfwSetWindowSize(window,size.x,size.y);
     }
+
+    void GLWindow::setResizable(bool resizable){
+        glfwSetWindowAttrib(window, GLFW_RESIZABLE, resizable);
+    }
+
     std::string GLWindow::get_title(){
         return glfwGetWindowTitle(window);
     }
@@ -330,7 +333,7 @@ namespace KLSE
     }
     void GLRenderer::set_viewport(IVec2 size){
         if(projectionMatrix){
-            delete projectionMatrix;
+            delete[] projectionMatrix;
         }
         projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));
         glViewport(0,0,size.x, size.y);
