@@ -14,10 +14,40 @@
 #include <nlohmann/json.hpp>
 
 namespace KLSE{
-    namespace random
+    const unsigned long long a = 1664525; // Multiplier
+    const unsigned long long c = 1013904223; // Increment
+
+    namespace Math
     {
-        Dimention dimention(Dimention min, Dimention max);
-    }
+        class Random{
+            public:
+                //INFO
+                unsigned long long seed;
+                unsigned long long current;
+
+                //GENERATORS
+                unsigned long long next();
+                Dimention dimention();
+                Dimention dimention(Dimention min, Dimention max);
+                IDimention idimention();
+                IDimention idimention(IDimention min, IDimention max);
+
+                //CONSTRUCTORS
+                Random();
+                Random(unsigned long long seed):seed(seed){};
+                Random(const std::string& seed){
+                    std::hash<std::string> hasher;
+                    this->seed = static_cast<unsigned long long>(hasher(seed));
+                };
+        };
+
+        namespace random
+        {
+            Dimention dimention(Dimention min, Dimention max);
+        }
+    } // namespace Math
+    
+
     std::vector<std::string> splitPath(std::string path);
 
     using Tags = std::vector<std::string>;

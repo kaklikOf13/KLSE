@@ -5,4 +5,8 @@
 #include "colliders.hpp"
 #include "models.hpp"
 #include "renderer.hpp"
+namespace KLSE
+{
+    void Init();
+} // namespace KLSE
 #endif

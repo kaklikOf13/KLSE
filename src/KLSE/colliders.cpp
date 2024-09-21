@@ -154,9 +154,9 @@ namespace KLSE
         return transform.position;
     }
     Vec3 SphereCollider3D::randomPoint() {
-        Dimention angle1 = random::dimention(0, Math::PI * 2);
-        Dimention angle2 = random::dimention(0, Math::PI);
-        Dimention radius = random::dimention(0, 1);
+        Dimention angle1 = Math::random::dimention(0, Math::PI * 2);
+        Dimention angle2 = Math::random::dimention(0, Math::PI);
+        Dimention radius = Math::random::dimention(0, 1);
 
         return Vec3(transform.position.x + ((radius * std::sin(angle2) * std::cos(angle1))*transform.scale.x),transform.position.y + ((radius * std::sin(angle2) * std::sin(angle1))*transform.scale.y),transform.position.z + ((radius*std::cos(angle1))*transform.scale.z));
     }
@@ -171,8 +171,8 @@ namespace KLSE
         return Vec2::add(position,Vec2::random2(Vec2(),size));
     }
     Vec2 CircleCollider2D::randomPoint() {
-        Dimention angle = random::dimention(0,Math::PI*2);
-        Dimention length = random::dimention(0,radius);
+        Dimention angle = Math::random::dimention(0,Math::PI*2);
+        Dimention length = Math::random::dimention(0,radius);
         return Vec2(position.x+(std::cos(angle)*length),position.y+(std::sin(angle)*length));
     }
     Vec3 BoxCollider3D::randomPoint() {

@@ -1,15 +1,16 @@
 #include <KLSE/geometry.hpp>
 #include <KLSE/utils.hpp>
 namespace KLSE{
+
     #pragma region Vec2
     Vec2::Vec2(IVec2 t) : x(static_cast<Dimention>(t.x)), y(static_cast<Dimention>(t.y)) {}
 
     Vec2 Vec2::random(Dimention min, Dimention max) {
-        return Vec2(random::dimention(min, max), random::dimention(min, max));
+        return Vec2(Math::random::dimention(min, max), Math::random::dimention(min, max));
     }
 
     Vec2 Vec2::random2(Vec2 min, Vec2 max) {
-        return Vec2(random::dimention(min.x, max.x), random::dimention(min.y, max.y));
+        return Vec2(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y));
     }
 
     Vec2 Vec2::add(Vec2 a, Vec2 b) {
@@ -169,11 +170,11 @@ namespace KLSE{
     //#DefIVec2
 
     IVec2 IVec2::random(IDimention min, IDimention max) {
-        return IVec2(random::dimention(min, max), random::dimention(min, max));
+        return IVec2(Math::random::dimention(min, max), Math::random::dimention(min, max));
     }
 
     IVec2 IVec2::random2(IVec2 min, IVec2 max) {
-        return IVec2(random::dimention(min.x, max.x), random::dimention(min.y, max.y));
+        return IVec2(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y));
     }
 
     IVec2 IVec2::add(IVec2 a, IVec2 b) {
@@ -330,16 +331,20 @@ namespace KLSE{
         return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
     }
 
+    HashIVec2 IVec2::hash(IVec2 vec){
+        return (vec.x*prime1)^(vec.y * prime2);
+    }
+
     #pragma endregion
 
     #pragma region Vec3
 
     Vec3 Vec3::random(Dimention min, Dimention max) {
-        return Vec3(random::dimention(min, max), random::dimention(min, max), random::dimention(min, max));
+        return Vec3(Math::random::dimention(min, max), Math::random::dimention(min, max), Math::random::dimention(min, max));
     }
 
     Vec3 Vec3::random3(Vec3 min, Vec3 max) {
-        return Vec3(random::dimention(min.x, max.x), random::dimention(min.y, max.y), random::dimention(min.z, max.z));
+        return Vec3(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y), Math::random::dimention(min.z, max.z));
     }
 
     Vec3 Vec3::add(Vec3 a, Vec3 b) {
@@ -491,5 +496,169 @@ namespace KLSE{
     std::string Vec3::toString(Vec3 vec){
         return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
     }
+
+    IVec3 IVec3::random(Dimention min, Dimention max) {
+        return IVec3(Math::random::dimention(min, max), Math::random::dimention(min, max), Math::random::dimention(min, max));
+    }
+
+    IVec3 IVec3::random3(IVec3 min, IVec3 max) {
+        return IVec3(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y), Math::random::dimention(min.z, max.z));
+    }
+
+    IVec3 IVec3::add(IVec3 a, IVec3 b) {
+        return IVec3(a.x + b.x, a.y + b.y, a.z + b.z);
+    }
+
+    IVec3 IVec3::sub(IVec3 a, IVec3 b) {
+        return IVec3(a.x - b.x, a.y - b.y, a.z - b.z);
+    }
+
+    IVec3 IVec3::mult(IVec3 a, IVec3 b) {
+        return IVec3(a.x * b.x, a.y * b.y, a.z * b.z);
+    }
+
+    IVec3 IVec3::div(IVec3 a, IVec3 b) {
+        return IVec3(a.x / b.x, a.y / b.y, a.z / b.z);
+    }
+
+    IVec3 IVec3::scale(IVec3 a, Dimention scalar) {
+        return IVec3(a.x * scalar, a.y * scalar, a.z * scalar);
+    }
+
+    IVec3 IVec3::dscale(IVec3 a, Dimention scalar) {
+        return IVec3(a.x / scalar, a.y / scalar, a.z / scalar);
+    }
+
+    bool IVec3::is(IVec3 a, IVec3 b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    }
+
+    bool IVec3::greater(IVec3 a, IVec3 b) {
+        return a.x > b.x && a.y > b.y && a.z > b.z;
+    }
+
+    bool IVec3::less(IVec3 a, IVec3 b) {
+        return a.x < b.x && a.y < b.y && a.z < b.z;
+    }
+
+    bool IVec3::isEqual(IVec3 a, IVec3 b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    }
+
+    bool IVec3::greaterOr(IVec3 a, IVec3 b) {
+        return a.x > b.x || a.y > b.y || a.z > b.z;
+    }
+
+    bool IVec3::lessOr(IVec3 a, IVec3 b) {
+        return a.x < b.x || a.y < b.y || a.z < b.z;
+    }
+
+    bool IVec3::isOr(IVec3 a, IVec3 b) {
+        return a.x == b.x || a.y == b.y || a.z == b.z;
+    }
+
+    IVec3 IVec3::absolute(IVec3 a) {
+        return IVec3(std::abs(a.x), std::abs(a.y), std::abs(a.z));
+    }
+
+    IVec3 IVec3::maxDecimal(IVec3 vec, int decimalPlaces) {
+        Dimention factor = std::pow(10.0f, decimalPlaces);
+        return IVec3(std::round(vec.x * factor) / factor, std::round(vec.y * factor) / factor, std::round(vec.z * factor) / factor);
+    }
+
+    IVec3 IVec3::round(IVec3 vec) {
+        return IVec3(std::round(vec.x), std::round(vec.y), std::round(vec.z));
+    }
+
+    IVec3 IVec3::min1(IVec3 vec, Dimention min) {
+        return IVec3(std::max<IDimention>(vec.x, min), std::max<IDimention>(vec.y, min), std::max<IDimention>(vec.z, min));
+    }
+
+    IVec3 IVec3::min3(IVec3 a, IVec3 b) {
+        return IVec3(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
+    }
+
+    IVec3 IVec3::max1(IVec3 vec, Dimention max) {
+        return IVec3(std::min<IDimention>(vec.x, max), std::min<IDimention>(vec.y, max), std::min<IDimention>(vec.z, max));
+    }
+
+    IVec3 IVec3::max3(IVec3 a, IVec3 b) {
+        return IVec3(std::min<IDimention>(a.x, b.x), std::min<IDimention>(a.y, b.y), std::min<IDimention>(a.z, b.z));
+    }
+
+    IVec3 IVec3::clamp1(IVec3 vec, Dimention min, Dimention max) {
+        return IVec3(std::max<IDimention>(std::min<IDimention>(vec.x, max), min), std::max<IDimention>(std::min<IDimention>(vec.y, max), min), std::max<IDimention>(std::min<IDimention>(vec.z, max), min));
+    }
+
+    IVec3 IVec3::clamp3(IVec3 vec, IVec3 min, IVec3 max) {
+        return IVec3(std::max<IDimention>(std::min<IDimention>(vec.x, max.x), min.x), std::max<IDimention>(std::min<IDimention>(vec.y, max.y), min.y), std::max<IDimention>(std::min<IDimention>(vec.z, max.z), min.z));
+    }
+
+    IVec3 IVec3::lerp(IVec3 current, IVec3 end, Dimention interpolation) {
+        return add(scale(current, 1 - interpolation), scale(end, interpolation));
+    }
+
+    IVec3 IVec3::normalizeSafe(IVec3 vec, IVec3 fallback) {
+        Dimention len = length(vec);
+        return len > 0.000001f ? IVec3(vec.x / len, vec.y / len, vec.z / len) : fallback;
+    }
+
+    IVec3 IVec3::normalize(IVec3 vec) {
+        Dimention len = length(vec);
+        return len > 0.000001f ? IVec3(vec.x / len, vec.y / len, vec.z / len) : vec;
+    }
+
+    IVec3 IVec3::neg(IVec3 vec) {
+        return IVec3(-vec.x, -vec.y, -vec.z);
+    }
+
+    Dimention IVec3::squared(IVec3 vec) {
+        return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+    }
+
+    Dimention IVec3::dot(IVec3 a, IVec3 b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    Dimention IVec3::cross(IVec3 a, IVec3 b) {
+        return a.x * b.x - a.y * b.y - a.z * b.z;
+    }
+
+    Dimention IVec3::distanceSquared(IVec3 a, IVec3 b) {
+        Dimention dx = a.x - b.x;
+        Dimention dy = a.y - b.y;
+        Dimention dz = a.z - b.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    Dimention IVec3::distance(IVec3 a, IVec3 b) {
+        return sqrt(distanceSquared(a, b));
+    }
+
+    IVec3 IVec3::floor(IVec3 vec) {
+        return IVec3(std::floor(vec.x), std::floor(vec.y), std::floor(vec.z));
+    }
+
+    IVec3 IVec3::ceil(IVec3 vec) {
+        return IVec3(std::ceil(vec.x), std::ceil(vec.y), std::ceil(vec.z));
+    }
+
+    Dimention IVec3::length(IVec3 vec) {
+        return sqrt(squared(vec));
+    }
+
+    IVec3 IVec3::duplicate(IVec3 vec) {
+        return IVec3(vec.x,vec.y,vec.z);
+    }
+
+    std::string IVec3::toString(IVec3 vec){
+        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
+    }
+
+    HashIVec3 IVec3::hash(IVec3 vec){
+        return (vec.x*prime1)^(vec.y * prime2)^(vec.z * prime3);
+    }
+
     #pragma endregion
+    
 }

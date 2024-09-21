@@ -1,15 +1,58 @@
 #include <algorithm>
 #include <KLSE/utils.hpp>
+#include <KLSE/geometry.hpp>
 #include <iostream>
 #include <thread>
 #include <sstream>
 namespace KLSE{
-    namespace random
+
+    namespace Math
     {
-        Dimention dimention(Dimention min, Dimention max) {
-            return min + static_cast<Dimention>(rand()) / (static_cast<Dimention>(RAND_MAX / (max - min)));
-        }   
-    }
+        unsigned long long Random::next(){
+            // Update current using modulo
+            current = (current + 1) % (IDimentionLimit / 23);
+
+            // LCG calculation
+            uint64_t x = (seed + a * (current * 23) + c) % IDimentionLimit;
+
+            // XORShift
+            x ^= x >> 21;
+            x ^= x << 35;
+            x ^= x >> 4;
+
+            // Ensure x is within the desired limit
+            x %= IDimentionLimit;
+
+            // Return the result
+            return x;
+        }
+        Dimention Random::dimention(){
+            return static_cast<Dimention>(next()) / IDimentionLimit;
+        }
+        Dimention Random::dimention(Dimention min, Dimention max){
+            return min+(this->dimention()*(max-min));
+        }
+
+        IDimention Random::idimention(){
+            return next() / IDimentionLimit;
+        }
+        IDimention Random::idimention(IDimention min, IDimention max){
+            return static_cast<IDimention>(ceil(min+(this->dimention()*(max-min))))%max+1;
+        }
+        Random::Random(){
+            auto now = std::chrono::high_resolution_clock::now();
+            auto duration = now.time_since_epoch();
+            seed = static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count());
+        }
+
+        namespace random
+        {
+            Dimention dimention(Dimention min, Dimention max) {
+                return min + static_cast<Dimention>(rand()) / (static_cast<Dimention>(RAND_MAX / (max - min)));
+            }
+        }
+    } // namespace Math
+
     std::vector<std::string> splitPath(std::string path) {
         std::vector<std::string> result;
         std::string temp;
@@ -117,5 +160,8 @@ namespace KLSE{
         }
 
         return result;
+    }
+    void Init(){
+        
     }
 }

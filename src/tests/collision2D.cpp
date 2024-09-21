@@ -12,11 +12,12 @@ int main(int argc, char const *argv[])
 {
     //VulkanInit();
     //VulkanWindow* window=new VulkanWindow();
+    Init();
     GLInit(GLAntialias::MSAA4X);
     GLWindow* window=new GLWindow();
     
     for(unsigned int i=0;i<collidersN;i++){
-        if(random::dimention(0,1)<=.5){
+        if(Math::random::dimention(0,1)<=.5){
             colliders.push_back(new CircleCollider2D(Vec2::random2(spawnMin,spawnMax),.3));
         }else{
             colliders.push_back(new CircleCollider2D(Vec2::random2(spawnMin,spawnMax),.3));

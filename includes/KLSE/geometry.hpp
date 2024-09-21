@@ -11,6 +11,17 @@ namespace KLSE{
     typedef int DegAngle;
 
     struct IVec2;
+    
+    //HASH
+
+    typedef long long int HashIVec2;
+    typedef long long int HashIVec3;
+
+    const HashIVec2 prime1 = 51345689903;
+    const HashIVec2 prime2 = 102691380403;
+    const HashIVec2 prime3 = 154037072377;
+
+    const long long IDimentionLimit = std::numeric_limits<long>::max();
 
     struct Vec2{
         Dimention x;
@@ -184,6 +195,8 @@ namespace KLSE{
         static IDimention length(IVec2 vec);
 
         static std::string toString(IVec2 vec);
+
+        static HashIVec2 hash(IVec2 vec);
     };
     
     #pragma endregion
@@ -275,10 +288,94 @@ namespace KLSE{
         static std::string toString(Vec3 vec);
     };
 
-    #pragma endregion
+    struct IVec3{
+        IDimention x;
+        IDimention y;
+        IDimention z;
 
-    const Dimention prime1 = 2654435761;
-    const Dimention prime2 = 2246822519;
+        IVec3() : x(0), y(0), z(0) {}
+        IVec3(Dimention x, Dimention y, Dimention z) : x(x), y(y), z(z) {}
+
+        static IVec3 random(Dimention min, Dimention max);
+
+        static IVec3 random3(IVec3 min, IVec3 max);
+
+        static IVec3 add(IVec3 a, IVec3 b);
+
+        static IVec3 sub(IVec3 a, IVec3 b);
+
+        static IVec3 mult(IVec3 a, IVec3 b);
+
+        static IVec3 div(IVec3 a, IVec3 b);
+
+        static IVec3 scale(IVec3 a, Dimention scalar);
+
+        static IVec3 dscale(IVec3 a, Dimention scalar);
+
+        static bool is(IVec3 a, IVec3 b);
+
+        static bool greater(IVec3 a, IVec3 b);
+
+        static bool less(IVec3 a, IVec3 b);
+
+        static bool isEqual(IVec3 a, IVec3 b);
+
+        static bool greaterOr(IVec3 a, IVec3 b);
+
+        static bool lessOr(IVec3 a, IVec3 b);
+
+        static bool isOr(IVec3 a, IVec3 b);
+
+        static IVec3 absolute(IVec3 a);
+
+        static IVec3 maxDecimal(IVec3 vec, int decimalPlaces);
+
+        static IVec3 round(IVec3 vec);
+
+        static IVec3 min1(IVec3 vec, Dimention min);
+
+        static IVec3 min3(IVec3 a, IVec3 b);
+
+        static IVec3 max1(IVec3 vec, Dimention max);
+
+        static IVec3 max3(IVec3 a, IVec3 b);
+
+        static IVec3 clamp1(IVec3 vec, Dimention min, Dimention max);
+
+        static IVec3 clamp3(IVec3 vec, IVec3 min, IVec3 max);
+
+        static IVec3 lerp(IVec3 current, IVec3 end, Dimention interpolation);
+
+        static IVec3 normalizeSafe(IVec3 vec, IVec3 fallback);
+
+        static IVec3 normalize(IVec3 vec);
+
+        static IVec3 duplicate(IVec3 vec);
+
+        static IVec3 neg(IVec3 vec);
+
+        static Dimention squared(IVec3 vec);
+
+        static Dimention dot(IVec3 a, IVec3 b);
+
+        static Dimention cross(IVec3 a, IVec3 b);
+
+        static Dimention distanceSquared(IVec3 a, IVec3 b);
+
+        static Dimention distance(IVec3 a, IVec3 b);
+
+        static IVec3 floor(IVec3 vec);
+
+        static IVec3 ceil(IVec3 vec);
+
+        static Dimention length(IVec3 vec);
+
+        static std::string toString(IVec3 vec);
+
+        static HashIVec3 hash(IVec3 vec);
+    };
+
+    #pragma endregion
 
     namespace Math
     {
@@ -290,10 +387,6 @@ namespace KLSE{
             return ang * (180.0 / PI);
         }
     } // namespace math
-    
-
-    typedef Dimention HashVec2;
-    typedef Dimention HashVec3;
 
     struct Transform3D{
         Vec3 position;
