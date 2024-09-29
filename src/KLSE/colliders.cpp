@@ -186,7 +186,7 @@ namespace KLSE
         return this;
     }
     RectCollider2D* CircleCollider2D::toRect(){
-        return new RectCollider2D(position,Vec2(radius,radius));
+        return new RectCollider2D(Vec2::sub(position,Vec2(-radius,-radius)),Vec2(radius,radius));
     }
     BoxCollider3D* Collider3D::toBox(){
         return new BoxCollider3D(Vec3(),Vec3(),Vec3());
@@ -208,13 +208,14 @@ namespace KLSE
         static OverlapCollision2D circle_with_circle_ov(CircleCollider2D* hb1,CircleCollider2D* hb2){
             Dimention dists = Vec2::distance(hb1->position,hb2->position);
             Vec2 dis=Vec2::sub(hb1->position,hb2->position);
-            if(dists<0.0001){
+            if(dists<0.00001){
                 return OverlapCollision2D(true,Vec2(1,1));
             }
             if (dists < (hb1->radius + hb2->radius)){
                 Dimention overlap=(hb1->radius + hb2->radius)-dists;
                 Vec2 dire=Vec2::dscale(dis,dists);
-                return OverlapCollision2D(true,Vec2::neg(Vec2::scale(dire,overlap*.5)));
+                Vec2 ret=Vec2::neg(Vec2::scale(dire,overlap*2));
+                return OverlapCollision2D(true,ret);
             }
             return OverlapCollision2D();
         }

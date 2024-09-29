@@ -3,7 +3,6 @@
 #include <KLSE/geometry.hpp>
 #include <iostream>
 #include <thread>
-#include <sstream>
 namespace KLSE{
 
     namespace Math
@@ -49,6 +48,9 @@ namespace KLSE{
         {
             Dimention dimention(Dimention min, Dimention max) {
                 return min + static_cast<Dimention>(rand()) / (static_cast<Dimention>(RAND_MAX / (max - min)));
+            }
+            unsigned long int object_id() {
+                return static_cast<unsigned long int>(rand());
             }
         }
     } // namespace Math

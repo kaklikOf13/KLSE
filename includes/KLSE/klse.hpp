@@ -5,6 +5,7 @@
 #include "colliders.hpp"
 #include "models.hpp"
 #include "renderer.hpp"
+#include "objects2d.hpp"
 namespace KLSE
 {
     void Init();

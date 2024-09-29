@@ -11,7 +11,10 @@
 #include <functional>
 
 #include <map>
-#include <nlohmann/json.hpp>
+#include "json.hpp"
+
+#include <stdexcept>
+#include <sstream>
 
 namespace KLSE{
     const unsigned long long a = 1664525; // Multiplier
@@ -44,8 +47,38 @@ namespace KLSE{
         namespace random
         {
             Dimention dimention(Dimention min, Dimention max);
+            unsigned long int object_id();
         }
     } // namespace Math
+
+    class Formatter
+    {
+    public:
+        Formatter() {}
+        ~Formatter() {}
+
+        template <typename Type>
+        Formatter & operator << (const Type & value)
+        {
+            stream_ << value;
+            return *this;
+        }
+
+        std::string str() const         { return stream_.str(); }
+        operator std::string () const   { return stream_.str(); }
+
+        enum ConvertToString 
+        {
+            to_str
+        };
+        std::string operator >> (ConvertToString) { return stream_.str(); }
+
+    private:
+        std::stringstream stream_;
+
+        Formatter(const Formatter &);
+        Formatter & operator = (Formatter &);
+    };
     
 
     std::vector<std::string> splitPath(std::string path);
