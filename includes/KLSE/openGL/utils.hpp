@@ -1,6 +1,6 @@
 #ifndef KLSE_GL_UTILS_HPP
 #define KLSE_GL_UTILS_HPP
-#include <GLAD/glad.h>
+#include "glad.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>

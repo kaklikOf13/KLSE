@@ -13,6 +13,13 @@ namespace KLSE
             return Color(json.r / 255.0f, json.g / 255.0f, json.b / 255.0f, json.a / 255.0f);
         } 
     
+    void Camera3D::update(Vec2 size){
+        matrix=matrix4::mult(
+            matrix4::perspective(fov,size.x/size.y,near,far),
+            matrix4::translate(matrix4::rotate(matrix4::identity(),rotation),position)
+        );
+    }
+
     namespace HEXCOLOR
     {
         Color create(std::string hex) {

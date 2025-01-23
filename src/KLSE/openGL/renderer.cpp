@@ -65,14 +65,34 @@ namespace KLSE
     const char* simpleVertexShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec2 a_Position;
-        uniform mat4 u_ProjectionMatrix;
+        uniform mat4 u_MainMatrix;
 
         void main() {
-            gl_Position = u_ProjectionMatrix * vec4(a_Position, 0.0, 1.0);
+            gl_Position = u_MainMatrix * vec4(a_Position, 0.0, 1.0);
         }
     )";
 
     const char* simpleFragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+        uniform vec4 u_Color;
+
+        void main() {
+            FragColor = u_Color;
+        }
+    )";
+
+    const char* vertex3D = R"(
+        #version 330 core
+        layout (location = 0) in vec3 a_Position;
+        uniform mat4 u_MainMatrix;
+
+        void main() {
+            gl_Position = u_MainMatrix * vec4(a_Position, 1.0);
+        }
+    )";
+
+    const char* frag3D = R"(
         #version 330 core
         out vec4 FragColor;
         uniform vec4 u_Color;
@@ -155,6 +175,8 @@ namespace KLSE
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
+        /*glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);*/
     }
     IVec2 GLWindow::get_size(){
         IVec2 ret;
@@ -191,6 +213,7 @@ namespace KLSE
     void GLRenderer::init(Window* window){
         this->window=window;
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
+        simple_program_3d=createShaderProgram(vertex3D,frag3D);
     }
     void GLRenderer::clear(){
         glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
@@ -199,12 +222,12 @@ namespace KLSE
     
     void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset){
         // 1. Calculate the rectangle vertices
-        float x1 = rect->position.x - offset.x;
-        float y1 = rect->position.y - offset.y;
-        float x2 = x1 + rect->size.x;
-        float y2 = y1 + rect->size.y;
+        Dimention x1 = rect->position.x - offset.x;
+        Dimention y1 = rect->position.y - offset.y;
+        Dimention x2 = x1 + rect->size.x;
+        Dimention y2 = y1 + rect->size.y;
 
-        std::vector<float> vertices = {
+        std::vector<Dimention> vertices = {
             x1, y1,  // Bottom-left
             x2, y1,  // Bottom-right
             x2, y2,  // Top-right
@@ -227,7 +250,7 @@ namespace KLSE
         float radius = circle->radius;
 
         // 2. Prepare the vertices
-        std::vector<float> vertices;
+        std::vector<Dimention> vertices;
         vertices.push_back(cx);  // Center vertex (x)
         vertices.push_back(cy);  // Center vertex (y)
 
@@ -273,7 +296,7 @@ namespace KLSE
             std::cerr << "OpenGL error in " << context << ": " << err << std::endl;
         }
     }
-    void GLRenderer::_draw_simple_vertex(const std::vector<float>& vertex, const std::vector<unsigned int>& index, Color color, GLenum mode) {
+    void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color, GLenum mode) {
         // 1. Generate and bind VAO
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
@@ -284,23 +307,23 @@ namespace KLSE
 
         // 2. Bind and set vertex buffer data
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), vertex.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
 
         // 3. Bind and set element buffer data
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
 
         // 4. Define the vertex attribute pointers (assuming 2D position)
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 2 * sizeof(Dimention), (void*)0);
         glEnableVertexAttribArray(0);
 
         // 5. Use the shader program and set the uniform values
         glUseProgram(simple_program);
 
         // Retrieve uniform locations
-        int projLoc = glGetUniformLocation(simple_program, "u_ProjectionMatrix");
+        int projLoc = glGetUniformLocation(simple_program, "u_MainMatrix");
         if (projLoc == -1) {
-            std::cerr << "Uniform 'u_ProjectionMatrix' not found! " << std::endl;
+            std::cerr << "Uniform 'u_MainMatrix' not found! " << std::endl;
         }
 
         int colorLoc = glGetUniformLocation(simple_program, "u_Color");
@@ -309,8 +332,8 @@ namespace KLSE
         }
 
         // Set the projection matrix uniform
-        if (projectionMatrix) {
-            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix);
+        if (projectionMatrix.size()==16) {
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix.data());
         } else {
             std::cerr << "Projection matrix is null!" << std::endl;
         }
@@ -328,13 +351,69 @@ namespace KLSE
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
+    }
+    void GLRenderer::_draw_3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode){
+        // 1. Generate and bind VAO
+        unsigned int VAO, VBO, EBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        // 2. Bind and set vertex buffer data
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
+
+        // 3. Bind and set element buffer data
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
+
+        // 4. Define the vertex attribute pointers (assuming 3D position)
+        glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 3 * sizeof(Dimention), (void*)0);
+
+        glEnableVertexAttribArray(0);
+
+        // 5. Use the shader program and set the uniform values
+        glUseProgram(simple_program_3d);
+
+        // Retrieve uniform locations
+        int projLoc = glGetUniformLocation(simple_program, "u_MainMatrix");
+        if (projLoc == -1) {
+            std::cerr << "Uniform 'u_MainMatrix' not found! " << std::endl;
+        }
+
+        int colorLoc = glGetUniformLocation(simple_program, "u_Color");
+        if (colorLoc == -1) {
+            std::cerr << "Uniform 'u_Color' not found!" << std::endl;
+        }
+
+        if (camera->matrix.size()==16) {
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, camera->matrix.data());
+        } else {
+            std::cerr << "Projection matrix is null!" << std::endl;
+        }
+
+        // Set the color uniform (ensure color components are in [0,1])
+        glUniform4f(colorLoc, 1, 0, 0, 1);
+
+        // 6. Draw the vertices using the index buffer
+        glDrawElements(mode, index.size(), GL_UNSIGNED_INT, 0);
+
+        // 7. Unbind the VAO
+        glBindVertexArray(0);
+
+        // 8. Cleanup
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
 
         checkOpenGLError("_draw_simple_vertex");
     }
+    void GLRenderer::draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera){
+        _draw_3d_vertices(model->_vertex,model->_index,camera);
+    }
     void GLRenderer::set_viewport(IVec2 size){
-        if(projectionMatrix){
-            delete[] projectionMatrix;
-        }
         projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));
         glViewport(0,0,size.x, size.y);
     }

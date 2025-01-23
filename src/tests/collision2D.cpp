@@ -13,7 +13,7 @@ class OBJ:public Object2D{
     Color color;
     OBJ():color(RGBA::create(rando->idimention(0,255),rando->idimention(0,255),rando->idimention(0,255))){}
     void on_create(json args)override{
-        if(Math::random::dimention(0,1)>.5){
+        if(Math::random::dimention(0,1)>0){
             collider=new CircleCollider2D(Vec2::random2(spawnMin,spawnMax),.1);
         }else{
             //collider=new RectCollider2D(Vec2::random2(spawnMin,spawnMax),Vec2(.2,.2));
@@ -58,6 +58,7 @@ int main(int argc, char const *argv[])
         window->renderer->clear();
         manager->update();
         window->update();
+
         clock->tick();
     }
     window->close();

@@ -5,7 +5,10 @@
         "task":"klse task windows lib && klse task windows executable && klse task windows gl && klse task windows vulkan",
         "childs":{
             "lib":{
-                "task":"klse compile-static-lib KLSE dist/windows \"-fPIC -I./includes -L./libs\""
+                "task":"klse compile-static-lib KLSE dist/windows \"-fPIC -I./includes -I./includes-exe -L./libs\""
+            },
+            "lib-wasm":{
+                "task":"klse generate-wasm KLSE dist/wasm \"-fPIC -I./includes -L./libs\""
             },
             "executable":{
                 "task":"klse build-dir dist/windows/bin/main && g++ src/EXE/main.cpp -L./dist/windows/libs -lKLSE -I./includes -o dist/windows/bin/main/klse.exe"
@@ -13,19 +16,19 @@
             "test-compile":{
                 "childs":{
                     "window":{
-                        "task":"g++ src/tests/window.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/window.exe"
+                        "task":"g++ src/tests/window.cpp -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/window.exe"
                     },
                     "collision2D":{
-                        "task":"g++ src/tests/collision2D.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/collision2D.exe"
+                        "task":"g++ src/tests/collision2D.cpp -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/collision2D.exe"
                     },
                     "minigames":{
                         "task":"klse build-dir dist/windows/bin/tests/minigames",
                         "childs":{
                             "flappybird":{
-                                "task":"g++ src/tests/minigames/flappybird.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/flappybird.exe"
+                                "task":"g++ src/tests/minigames/flappybird.cpp -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/flappybird.exe"
                             },
                             "space":{
-                                "task":"g++ src/tests/minigames/space.cpp src/GLAD/glad.c -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/space.exe"
+                                "task":"g++ src/tests/minigames/space.cpp -L./dist/windows/libs -I./includes -lKLSE-openGL -lKLSE -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/windows/bin/tests/minigames/space.exe"
                             }
                         }
                     }

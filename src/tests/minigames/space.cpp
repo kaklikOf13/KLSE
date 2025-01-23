@@ -73,7 +73,7 @@ int main(int argc, char const *argv[])
 
         if(uSD==0){
             uSD=shootDelay;
-            projectiles.push_back(Projectile(new CircleCollider2D(Vec2::random2(Vec2(0,-7),Vec2(screenSize.x,-3)),random::dimention(.07,.3)),70u,Vec2(0,random::dimention(0.2,.3))));
+            projectiles.push_back(Projectile(new CircleCollider2D(Vec2::random2(Vec2(0,-7),Vec2(screenSize.x,-3)),KLSE::Math::random::dimention(.07,.3)),140u,Vec2(0,KLSE::Math::random::dimention(0.1,.2))));
         }else{
             uSD--;
         }

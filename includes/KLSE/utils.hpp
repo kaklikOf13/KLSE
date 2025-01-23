@@ -92,13 +92,13 @@ namespace KLSE{
     class Clock {
     private:
         double frameDuration;    // Frame duration in milliseconds
-        std::chrono::steady_clock::time_point lastFrameTime;
-
+        std::chrono::high_resolution_clock::time_point lastFrameTime;
     public:
         Clock(int targetFPS, double timeScale);
         Clock(int targetFPS);
         void tick();
         double timeScale;
+        double deltaTime;
     };
 
     class WebPath {

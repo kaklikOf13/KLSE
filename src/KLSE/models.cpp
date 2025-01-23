@@ -20,10 +20,10 @@ namespace KLSE {
         return new BoxCollider3D(Vec3(0, 0, 0), Vec3::sub(max, min), Vec3());
     }
 
-    Model3D Model3D::cube(float s) {
-        Model3D ret;
+    Model3D* Model3D::cube(Dimention s) {
+        Model3D* ret=new Model3D();
         
-        ret._vertex = {
+        ret->_vertex = {
             // Front face
             0, 0, s,
             -s, 0, s,
@@ -37,7 +37,7 @@ namespace KLSE {
             0, s, 0,
         };
 
-        ret._normals = {
+        ret->_normals = {
             // Normals for the front face
             0, 0, 1,
             0, 0, 1,
@@ -86,7 +86,7 @@ namespace KLSE {
             1, 0, 0
         };
 
-        ret._index = {
+        ret->_index = {
             // Front face
             0, 1, 2, 0, 2, 3,
             // Back face
@@ -104,8 +104,8 @@ namespace KLSE {
         return ret;
     }
 
-    Model3D Model3D::parseObj(const std::string& objText) {
-        Model3D ret;
+    Model3D* Model3D::parseObj(const std::string& objText) {
+        Model3D* ret;
         std::istringstream stream(objText);
         std::string line;
 
@@ -117,20 +117,20 @@ namespace KLSE {
             if (prefix == "v") {
                 float x, y, z;
                 lineStream >> x >> y >> z;
-                ret._vertex.push_back(-x); // Invert x coordinate
-                ret._vertex.push_back(y);
-                ret._vertex.push_back(z);
+                ret->_vertex.push_back(-x); // Invert x coordinate
+                ret->_vertex.push_back(y);
+                ret->_vertex.push_back(z);
             } else if (prefix == "vn") {
                 float x, y, z;
                 lineStream >> x >> y >> z;
-                ret._normals.push_back(x);
-                ret._normals.push_back(y);
-                ret._normals.push_back(z);
+                ret->_normals.push_back(x);
+                ret->_normals.push_back(y);
+                ret->_normals.push_back(z);
             } else if (prefix == "vt") {
                 float u, v;
                 lineStream >> u >> v;
-                ret._texCoords.push_back(u);
-                ret._texCoords.push_back(v);
+                ret->_texCoords.push_back(u);
+                ret->_texCoords.push_back(v);
             } else if (prefix == "f") {
                 std::vector<int> vertices, textures, normals;
                 std::string part;
@@ -158,9 +158,9 @@ namespace KLSE {
                     vertices.push_back(v);
                 }
 
-                ret._index.insert(ret._index.end(), vertices.begin(), vertices.end());
-                ret._normalsM.insert(ret._normalsM.end(), normals.begin(), normals.end());
-                ret._texCoordsM.insert(ret._texCoordsM.end(), textures.begin(), textures.end());
+                ret->_index.insert(ret->_index.end(), vertices.begin(), vertices.end());
+                ret->_normalsM.insert(ret->_normalsM.end(), normals.begin(), normals.end());
+                ret->_texCoordsM.insert(ret->_texCoordsM.end(), textures.begin(), textures.end());
             }
         }
         return ret;
@@ -169,7 +169,7 @@ namespace KLSE {
     namespace matrix4 {
 
         Matrix4 identity() {
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
@@ -179,7 +179,7 @@ namespace KLSE {
         }
 
         Matrix4 projection(Vec3 size) {
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 2.0f / static_cast<float>(size.x), 0, 0.0f, 0.0f,
                 0, -2.0f / static_cast<float>(size.y), 0.0f, 0.0f,
                 0, 0, -2.0f / static_cast<float>(size.z), 0.0f,
@@ -189,7 +189,7 @@ namespace KLSE {
         }
 
         Matrix4 zToMatrix(Dimention fov) {
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, static_cast<float>(fov),
@@ -199,7 +199,7 @@ namespace KLSE {
         }
 
         Matrix4 transpose(const Matrix4& m) {
-            Matrix4 result = new float[16];
+            Matrix4 result = Matrix4(16);
             for (int i = 0; i < 4; ++i) {
                 for (int j = 0; j < 4; ++j) {
                     result[i * 4 + j] = m[j * 4 + i];
@@ -209,7 +209,7 @@ namespace KLSE {
         }
 
         Matrix4 perspective(Dimention fov, Dimention aspect, Dimention near, Dimention far) {
-            Matrix4 dst = new float[16];
+            Matrix4 dst = Matrix4(16);
             Dimention f = 1.0f / std::tan(fov * 0.5f);
             Dimention rangeInv = 1.0f / (near - far);
 
@@ -234,7 +234,7 @@ namespace KLSE {
         }
 
         Matrix4 translation(Vec3 pos) {
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
@@ -244,7 +244,7 @@ namespace KLSE {
         }
 
         Matrix4 mult(const Matrix4& a, const Matrix4& b) {
-            Matrix4 result = new float[16];
+            Matrix4 result = Matrix4(16);
             for (int i = 0; i < 4; ++i) {
                 for (int j = 0; j < 4; ++j) {
                     result[i * 4 + j] = a[i * 4 + 0] * b[0 * 4 + j] +
@@ -257,7 +257,7 @@ namespace KLSE {
         }
 
         Matrix4 div(const Matrix4& a, const Matrix4& b) {
-            Matrix4 result = new float[16];
+            Matrix4 result = Matrix4(16);
             for (int i = 0; i < 16; ++i) {
                 result[i] = b[i] / a[i];
             }
@@ -268,7 +268,7 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 1, 0, 0, 0,
                 0, static_cast<float>(c), static_cast<float>(s), 0,
                 0, static_cast<float>(-s), static_cast<float>(c), 0,
@@ -281,7 +281,7 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 static_cast<float>(c), 0, static_cast<float>(-s), 0,
                 0, 1, 0, 0,
                 static_cast<float>(s), 0, static_cast<float>(c), 0,
@@ -294,7 +294,7 @@ namespace KLSE {
             Dimention c = std::cos(angle);
             Dimention s = std::sin(angle);
 
-            Matrix4 m = new float[16] {
+            Matrix4 m = {
                 static_cast<float>(c), static_cast<float>(s), 0, 0,
                 static_cast<float>(-s), static_cast<float>(c), 0, 0,
                 0, 0, 1, 0,
@@ -327,7 +327,7 @@ namespace KLSE {
         Matrix4 inverse(const Matrix4& m) {
             // Calculate the inverse of the matrix using standard methods
             // This is a placeholder. Implement as needed based on your specific requirements.
-            Matrix4 result = new float[16];
+            Matrix4 result = Matrix4(16);
             // Your matrix inversion implementation here.
             return result;
         }

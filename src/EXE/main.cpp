@@ -84,8 +84,8 @@ std::string compileWasmLib(std::string name,std::string dest,std::string argc){
         std::filesystem::remove_all(dest+"/libs/");
     }
     std::filesystem::create_directories(dest+"/libs/");
-    std::string file=dest+"/libs/"+KLSE::replaceAll(KLSE::replaceAll(name,"/","-"),"/","-")+".js";
-    std::string command=compilerWasm+" -o "+file;
+    std::string file=dest+"/libs/"+KLSE::replaceAll(KLSE::replaceAll(name,"/","-"),"/","-")+".wasm";
+    std::string command=compilerWasm+" -o "+file+" -s WASM=1 -s EXPORT_ALL=1 --no-entry";
     for (const auto& entry : std::filesystem::directory_iterator("src/"+name)) {
         if(!(entry.path().extension()==".cpp"||entry.path().extension()==".c")){
             continue;

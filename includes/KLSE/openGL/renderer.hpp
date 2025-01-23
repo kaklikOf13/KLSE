@@ -1,6 +1,6 @@
 #ifndef KLSE_GL_RENDERER_HPP
 #define KLSE_GL_RENDERER_HPP
-#include <GLAD/glad.h>
+#include "glad.h"
 #include <GLFW/glfw3.h>
 #include "../models.hpp"
 #include "../renderer.hpp"
@@ -16,19 +16,21 @@ namespace KLSE
         public:
             Window* window;
 
-            GLfloat* projectionMatrix;
+            Matrix4 projectionMatrix;
 
             unsigned int simple_program;
+            unsigned int simple_program_3d;
 
             void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset) override;
             void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30) override;
             void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30) override;
+            void draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera)override;
             void clear() override;
-            
 
             void set_viewport(IVec2 size) override;
 
-            void _draw_simple_vertex(const std::vector<float>& vertex,const std::vector<unsigned int>& index, Color color, GLenum mode = GL_TRIANGLES);
+            void _draw_simple_vertex(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index, Color color, GLenum mode = GL_TRIANGLES);
+            void _draw_3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode = GL_TRIANGLES);
 
             GLRenderer():Renderer(100,RGBA::create(0,0,0)){};
             GLRenderer(Dimention meter_size,Color backgroundColor):KLSE::Renderer(meter_size,backgroundColor){};

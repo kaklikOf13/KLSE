@@ -8,9 +8,9 @@ Vec2 playerVelocity=Vec2();
 Color playerColor=HEXCOLOR::create("#d4ba11");
 const Color pipesColor=HEXCOLOR::create("#13b50b");
 
-const Dimention gravity=0.008;
-const Dimention jumpForce=.13;
-Dimention PipeSpeed=.1;
+const Dimention gravity=0.007;
+const Dimention jumpForce=.09;
+Dimention PipeSpeed=.05;
 
 unsigned int score=0;
 
@@ -60,8 +60,10 @@ int main(int argc, char const *argv[])
 
     initMountains();
 
-    Clock clock=Clock(60);
+    Clock clock=Clock(60,1.0);
     window->setResizable(false);
+
+    uint8_t pp=0;
 
     while (!window->closed()) {
         screenSize=Vec2::dscale(window->get_size(),window->renderer->meter_size);
@@ -98,11 +100,17 @@ int main(int argc, char const *argv[])
 
         for(unsigned int i=0;i<pipes.size();i++){
             pipes[i]->position.x-=PipeSpeed;
+            window->renderer->draw_collider2D(pipes[i],pipesColor,Vec2());
             if(pipes[i]->position.x<-reinterpret_cast<RectCollider2D*>(pipes[i])->size.x){
                 delete pipes[i];
                 pipes.erase(pipes.begin()+i);
-                score++;
-                std::cout<<"SCORE: "<<score<<"\n";
+                if(pp>=1){
+                    score++;
+                    pp=0;
+                    std::cout<<"SCORE: "<<score<<"\n";
+                }else{
+                    pp++;
+                }
                 continue;
             }
 
@@ -115,13 +123,10 @@ int main(int argc, char const *argv[])
                 initMountains();
                 pipes.clear();
             }
-
-            window->renderer->draw_collider2D(pipes[i],pipesColor,Vec2());
         }
 
         window->renderer->draw_collider2D(player,playerColor,Vec2());
         window->update();
-
 
         clock.tick();
     }

@@ -97,26 +97,31 @@ namespace KLSE{
     }
 
     void Clock::tick() {
-        auto currentTime = std::chrono::steady_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = currentTime - lastFrameTime;
-        double elapsedTime = elapsed.count();
+        auto currentTime = std::chrono::high_resolution_clock::now();
 
-        // Calculate the remaining time to sleep
-        double sleepTime = (frameDuration * timeScale) - elapsedTime;
+        // Calculate the delta time between frames
+        deltaTime = std::chrono::duration<double>(currentTime - lastFrameTime).count();
 
+        // Sleep to maintain target frame duration (but without oversleeping)
+        double sleepTime = (frameDuration * timeScale) - deltaTime;
+
+        // Update last frame time
+        lastFrameTime = std::chrono::high_resolution_clock::now();
+
+        // Sleep only if we need to reduce time
         if (sleepTime > 0) {
-            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(sleepTime));
+            std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
         }
-
-        // Update the last frame time
-        lastFrameTime = std::chrono::steady_clock::now();
     }
 
-    Clock::Clock(int targetFPS, double timeScale): frameDuration(1000.0 / targetFPS), timeScale(timeScale) {
-        lastFrameTime = std::chrono::steady_clock::now();
+    Clock::Clock(int targetFPS, double timeScale)
+        : frameDuration(1.0 / targetFPS), timeScale(timeScale), deltaTime(0) {
+        lastFrameTime = std::chrono::high_resolution_clock::now();
     }
-    Clock::Clock(int targetFPS): frameDuration(1000.0 / targetFPS), timeScale(1) {
-        lastFrameTime = std::chrono::steady_clock::now();
+
+    Clock::Clock(int targetFPS)
+        : frameDuration(1.0 / targetFPS), timeScale(1.0), deltaTime(0) {
+        lastFrameTime = std::chrono::high_resolution_clock::now();
     }
 
     std::string WebPath::toString() {

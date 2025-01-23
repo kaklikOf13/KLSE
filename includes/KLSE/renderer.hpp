@@ -2,6 +2,7 @@
 #define KLSE_RENDERER_HPP
 #include "geometry.hpp"
 #include "colliders.hpp"
+#include "models.hpp"
 namespace KLSE
 {
     struct Color {
@@ -27,6 +28,25 @@ namespace KLSE
     {
         Color create(std::string hex);
     }; // namespace HEX
+
+    class Camera3D{
+        public:
+        Vec3 position;
+        Vec3 rotation;
+
+        Dimention fov;
+        Dimention near;
+        Dimention far;
+
+        Matrix4 matrix;
+
+        void update(Vec2 size);
+
+        Camera3D():position(Vec3()),rotation(Vec3()),fov(70),near(0.001),far(3000){};
+
+        private:
+    };
+
     class Window;
     class Renderer {
         public:
@@ -38,8 +58,7 @@ namespace KLSE
         virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30)=0;
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
-        //virtual void draw_cube(rect: BoxHitbox3D, camera:Camera3D, material:GLMaterial){};
-        //virtual void draw_model3D(m:Model3D,position:Vec3,scale:Vec3,rot:Vec3, camera:Camera3D, material:GLMaterial,wireframe?:boolean){};
+        virtual void draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera)=0;
         virtual void clear(){};
 
         virtual void set_viewport(IVec2 size)=0;

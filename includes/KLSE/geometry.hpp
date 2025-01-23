@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 namespace KLSE{
+    extern "C"{
     typedef double Dimention;
     typedef int IDimention;
     #pragma region Vec2
@@ -393,7 +394,9 @@ namespace KLSE{
         Vec3 scale;
         Vec3 rotation;
         ~Transform3D()=default;
+        Transform3D():position(Vec3()),scale(Vec3(1,1,1)),rotation(Vec3()){};
         Transform3D(Vec3 position, Vec3 scale, Vec3 rotation):position(position),scale(scale),rotation(rotation){}
     };
+    }
 }
 #endif
