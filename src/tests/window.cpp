@@ -23,7 +23,6 @@ int main(int argc, char const *argv[])
     std::cout<<"\n";
     Model3D* m=Model3D::cube(1);
     Transform3D t = Transform3D();
-    t.scale.y=2;
     Color color=HEXCOLOR::create("#000");
     for(uint16_t i=0;i<m->_vertex.size();i++){
 
@@ -61,7 +60,7 @@ int main(int argc, char const *argv[])
         }else if(window->input->keyPress(Key::E)){
             t.rotation.x+=1;
         }
-        //window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
+        window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
         //window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
         window->renderer->draw_model_iso3D(m,t,color,cam);
         window->update();

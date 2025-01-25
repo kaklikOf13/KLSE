@@ -63,6 +63,8 @@ namespace KLSE
         Vec3 position;
         Vec2 rotation;
 
+        Vec2 IsometricPosition(Vec3 pos);
+
         CameraIso3D():position(Vec3()),rotation(Vec2(1,1)){};
         CameraIso3D(Vec3 position,Vec2 rotation):position(position),rotation(rotation){};
         static CameraIso3D* TibiaStyle(){
