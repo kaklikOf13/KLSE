@@ -23,6 +23,7 @@ int main(int argc, char const *argv[])
     std::cout<<"\n";
     Model3D* m=Model3D::cube(1);
     Transform3D t = Transform3D();
+    t.scale.y=2;
     Color color=HEXCOLOR::create("#000");
     for(uint16_t i=0;i<m->_vertex.size();i++){
 
@@ -31,7 +32,7 @@ int main(int argc, char const *argv[])
     t.position.x=3;
     t.position.y=0;
     t.position.z=0;
-    CameraIso3D* cam=new CameraIso3D();
+    CameraIso3D* cam=CameraIso3D::TibiaStyle();
 
     Dimention speed=0.1;
 
@@ -56,9 +57,9 @@ int main(int argc, char const *argv[])
         }
 
         if(window->input->keyPress(Key::Q)){
-            t.rotation.y-=speed;
+            t.rotation.x-=1;
         }else if(window->input->keyPress(Key::E)){
-            t.rotation.y+=speed;
+            t.rotation.x+=1;
         }
         //window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
         //window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());

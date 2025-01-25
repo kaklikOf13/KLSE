@@ -50,6 +50,7 @@ namespace KLSE
         uniform vec3 u_Position;
         uniform vec3 u_Rotation;
         uniform vec3 u_Scale;
+        uniform vec2 u_CamRot;
 
         mat4 rotationMatrix(vec3 r) {
             vec3 radians = r * 3.14159265 / 180.0;
@@ -77,13 +78,10 @@ namespace KLSE
             return rotZ * rotY * rotX;
         }
 
-        const float camRot=1;
-        const float camRot2=1;
-
         void main() {
             vec3 scaledPosition = (rotationMatrix(u_Rotation) * vec4(a_Position, 1.0)).xyz * u_Scale;
             vec3 translatedPosition = scaledPosition + u_Position;
-            vec2 isoPosition = vec2((translatedPosition.z+translatedPosition.x), (translatedPosition.x+translatedPosition.y)-translatedPosition.z);
+            vec2 isoPosition = vec2((translatedPosition.z*u_CamRot.x+translatedPosition.x*u_CamRot.y), (translatedPosition.x*u_CamRot.x+translatedPosition.y)-translatedPosition.z);
 
             gl_Position = u_MainMatrix * vec4(isoPosition,0.0, 1.0);
         }
@@ -360,6 +358,13 @@ namespace KLSE
             glUniform3f(uLoc, scale.x, scale.y, scale.z);
         } else {
             std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(simple_program_iso3d, "u_CamRot");
+        if (uLoc != -1) {
+            glUniform2f(uLoc, camera->rotation.x, camera->rotation.y);
+        } else {
+            std::cerr << "Uniform 'u_CamRot' not founded!" << std::endl;
         }
         if(rmode==RenderMode3D::wireframe){
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

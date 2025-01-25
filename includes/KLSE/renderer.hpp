@@ -61,8 +61,13 @@ namespace KLSE
     class CameraIso3D{
         public:
         Vec3 position;
+        Vec2 rotation;
 
-        CameraIso3D():position(Vec3()){};
+        CameraIso3D():position(Vec3()),rotation(Vec2(1,1)){};
+        CameraIso3D(Vec3 position,Vec2 rotation):position(position),rotation(rotation){};
+        static CameraIso3D* TibiaStyle(){
+            return new CameraIso3D(Vec3(),Vec2(0.2,1.4));
+        }
     };
 
     class Window;
