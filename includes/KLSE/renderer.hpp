@@ -5,6 +5,11 @@
 #include "models.hpp"
 namespace KLSE
 {
+    enum RenderMode3D{
+        normal=0,
+        wireframe=1
+    };
+
     struct Color {
         float r; // Red component (0.0 to 1.0)
         float g; // Green component (0.0 to 1.0)
@@ -22,6 +27,13 @@ namespace KLSE
         static Color create(int r, int g, int b);
 
         static Color from(RGBA json);
+    };
+
+    class VoxelModel{
+        public:
+            std::vector<Color> colors;
+            std::vector<uint32_t> content;
+            Vec3 size; 
     };
 
     namespace HEXCOLOR
@@ -46,6 +58,12 @@ namespace KLSE
 
         private:
     };
+    class CameraIso3D{
+        public:
+        Vec3 position;
+
+        CameraIso3D():position(Vec3()){};
+    };
 
     class Window;
     class Renderer {
@@ -59,6 +77,7 @@ namespace KLSE
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
         virtual void draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera)=0;
+        virtual void draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void clear(){};
 
         virtual void set_viewport(IVec2 size)=0;

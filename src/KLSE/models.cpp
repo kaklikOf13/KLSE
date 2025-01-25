@@ -4,7 +4,7 @@
 
 namespace KLSE {
 
-    // Model3D methods
+    /*// Model3D methods
     BoxCollider3D* Model3D::toRect() const {
         Vec3 min(0, 0, 0), max(0, 0, 0);
 
@@ -18,23 +18,22 @@ namespace KLSE {
             if (p.z > max.z) max.z = p.z;
         }
         return new BoxCollider3D(Vec3(0, 0, 0), Vec3::sub(max, min), Vec3());
-    }
+    }*/
 
     Model3D* Model3D::cube(Dimention s) {
         Model3D* ret=new Model3D();
         
         ret->_vertex = {
-            // Front face
-            0, 0, s,
-            -s, 0, s,
-            -s, s, s,
-            0, s, s,
-
             // Back face
-            0, 0, 0,
-            -s, 0, 0,
-            -s, s, 0,
-            0, s, 0,
+            0, 0, s,//0
+            s, 0, s,//1
+            s, s, s,//2
+            0, s, s,//3
+            // Front face
+            0, 0, 0,//4
+            s, 0, 0,//5
+            s, s, 0,//6
+            0, s, 0,//7
         };
 
         ret->_normals = {
@@ -88,17 +87,19 @@ namespace KLSE {
 
         ret->_index = {
             // Front face
-            0, 1, 2, 0, 2, 3,
+            4, 5, 6, 4, 7, 6,
             // Back face
-            4, 5, 6, 4, 6, 7,
-            // Top face
-            3, 2, 6, 3, 6, 7,
-            // Bottom face
-            0, 1, 5, 0, 5, 4,
-            // Right face
-            1, 2, 6, 1, 6, 5,
+            0, 1, 2, 0, 3, 2,
             // Left face
-            0, 3, 7, 0, 7, 4
+            4, 0, 3, 4, 7, 3,
+            // Right face
+            5, 6, 2, 5, 2, 1,
+            // Top face
+            4, 0, 1, 4, 5, 1,
+            // Bottom face
+            7, 3, 2, 7, 6, 2,
+            
+            
         };
 
         return ret;
@@ -168,6 +169,15 @@ namespace KLSE {
 
     namespace matrix4 {
 
+        void print(Matrix4 m){
+            for(uint16_t i=0;i<m.size()/4;i++){
+                for(uint16_t j=0;j<4;j++){
+                    printf("%f ",m[i*4+j]);
+                }
+            }
+            printf("\n");
+        }
+
         Matrix4 identity() {
             Matrix4 m = {
                 1, 0, 0, 0,
@@ -211,7 +221,7 @@ namespace KLSE {
         Matrix4 perspective(Dimention fov, Dimention aspect, Dimention near, Dimention far) {
             Matrix4 dst = Matrix4(16);
             Dimention f = 1.0f / std::tan(fov * 0.5f);
-            Dimention rangeInv = 1.0f / (near - far);
+            Dimention rangeInv = 1.0f / (far - near); // Corrigido!
 
             dst[0] = f / aspect;
             dst[1] = 0;
@@ -223,11 +233,11 @@ namespace KLSE {
             dst[7] = 0;
             dst[8] = 0;
             dst[9] = 0;
-            dst[10] = (near + far) * rangeInv;
+            dst[10] = -(far + near) * rangeInv; // Corrigido!
             dst[11] = -1;
             dst[12] = 0;
             dst[13] = 0;
-            dst[14] = near * far * rangeInv * 2;
+            dst[14] = -2.0f * far * near * rangeInv; // Corrigido!
             dst[15] = 0;
 
             return dst;

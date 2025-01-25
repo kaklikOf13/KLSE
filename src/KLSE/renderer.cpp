@@ -14,10 +14,16 @@ namespace KLSE
         } 
     
     void Camera3D::update(Vec2 size){
-        matrix=matrix4::mult(
-            matrix4::perspective(fov,size.x/size.y,near,far),
-            matrix4::translate(matrix4::rotate(matrix4::identity(),rotation),position)
+        Matrix4 projection = matrix4::perspective(fov, size.x / size.y, near, far);
+
+        // A matriz de visão deve usar -position!
+        Matrix4 view = matrix4::translate(
+            matrix4::rotate(matrix4::identity(), rotation),
+            Vec3::neg(position)
         );
+
+        // Multiplicação Projeção * Visão
+        matrix = matrix4::mult(projection, view);
     }
 
     namespace HEXCOLOR

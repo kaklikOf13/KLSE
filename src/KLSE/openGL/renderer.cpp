@@ -3,65 +3,6 @@
 #include <iostream>
 namespace KLSE
 {
-    std::map<int, Key> GLKey2KKey = {
-        {GLFW_KEY_A, Key::A},
-        {GLFW_KEY_B, Key::B},
-        {GLFW_KEY_C, Key::C},
-        {GLFW_KEY_D, Key::D},
-        {GLFW_KEY_E, Key::E},
-        {GLFW_KEY_F, Key::F},
-        {GLFW_KEY_G, Key::G},
-        {GLFW_KEY_H, Key::H},
-        {GLFW_KEY_I, Key::I},
-        {GLFW_KEY_J, Key::J},
-        {GLFW_KEY_K, Key::K},
-        {GLFW_KEY_L, Key::L},
-        {GLFW_KEY_M, Key::M},
-        {GLFW_KEY_N, Key::N},
-        {GLFW_KEY_O, Key::O},
-        {GLFW_KEY_P, Key::P},
-        {GLFW_KEY_Q, Key::Q},
-        {GLFW_KEY_R, Key::R},
-        {GLFW_KEY_S, Key::S},
-        {GLFW_KEY_T, Key::T},
-        {GLFW_KEY_U, Key::U},
-        {GLFW_KEY_V, Key::V},
-        {GLFW_KEY_W, Key::W},
-        {GLFW_KEY_X, Key::X},
-        {GLFW_KEY_Y, Key::Y},
-        {GLFW_KEY_Z, Key::Z},
-        {GLFW_KEY_0, Key::Number_0},
-        {GLFW_KEY_1, Key::Number_1},
-        {GLFW_KEY_2, Key::Number_2},
-        {GLFW_KEY_3, Key::Number_3},
-        {GLFW_KEY_4, Key::Number_4},
-        {GLFW_KEY_5, Key::Number_5},
-        {GLFW_KEY_6, Key::Number_6},
-        {GLFW_KEY_7, Key::Number_7},
-        {GLFW_KEY_8, Key::Number_8},
-        {GLFW_KEY_9, Key::Number_9},
-        {GLFW_KEY_ENTER, Key::Enter},
-        {GLFW_KEY_BACKSPACE, Key::Backspace},
-        {GLFW_KEY_SPACE, Key::Space},
-        {GLFW_KEY_DELETE, Key::Delete},
-        {GLFW_KEY_TAB, Key::Tab},
-        {GLFW_KEY_LEFT_SHIFT, Key::LShift},
-        {GLFW_KEY_RIGHT_SHIFT, Key::RShift},
-        {GLFW_KEY_LEFT_CONTROL, Key::LCtrl},
-        {GLFW_KEY_RIGHT_CONTROL, Key::RCtrl},
-        {GLFW_KEY_LEFT_ALT, Key::LALT},
-        {GLFW_KEY_RIGHT_ALT, Key::RALT},
-        {GLFW_KEY_UP, Key::Arrow_Up},
-        {GLFW_KEY_DOWN, Key::Arrow_Down},
-        {GLFW_KEY_LEFT, Key::Arrow_Left},
-        {GLFW_KEY_RIGHT, Key::Arrow_Right},
-        {GLFW_MOUSE_BUTTON_LEFT, Key::Mouse_Left},
-        {GLFW_MOUSE_BUTTON_MIDDLE, Key::Mouse_Middle},
-        {GLFW_MOUSE_BUTTON_RIGHT, Key::Mouse_Right},
-        {GLFW_MOUSE_BUTTON_4, Key::Mouse_Option1},
-        {GLFW_MOUSE_BUTTON_5, Key::Mouse_Option2}
-    };
-
     const char* simpleVertexShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec2 a_Position;
@@ -102,8 +43,61 @@ namespace KLSE
         }
     )";
 
-    #define DEFAULT_WINDOWS_SIZE_X 800
-    #define DEFAULT_WINDOWS_SIZE_Y 600
+    const char* vertexIso3D = R"(
+        #version 330 core
+        layout (location = 0) in vec3 a_Position;
+        uniform mat4 u_MainMatrix;
+        uniform vec3 u_Position;
+        uniform vec3 u_Rotation;
+        uniform vec3 u_Scale;
+
+        mat4 rotationMatrix(vec3 r) {
+            vec3 radians = r * 3.14159265 / 180.0;
+            mat4 rotX = mat4(
+                1.0, 0.0, 0.0, 0.0,
+                0.0, cos(radians.x), -sin(radians.x), 0.0,
+                0.0, sin(radians.x), cos(radians.x), 0.0,
+                0.0, 0.0, 0.0, 1.0
+            );
+
+            mat4 rotY = mat4(
+                cos(radians.y), 0.0, sin(radians.y), 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                -sin(radians.y), 0.0, cos(radians.y), 0.0,
+                0.0, 0.0, 0.0, 1.0
+            );
+
+            mat4 rotZ = mat4(
+                cos(radians.z), -sin(radians.z), 0.0, 0.0,
+                sin(radians.z), cos(radians.z), 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            );
+
+            return rotZ * rotY * rotX;
+        }
+
+        const float camRot=1;
+        const float camRot2=1;
+
+        void main() {
+            vec3 scaledPosition = (rotationMatrix(u_Rotation) * vec4(a_Position, 1.0)).xyz * u_Scale;
+            vec3 translatedPosition = scaledPosition + u_Position;
+            vec2 isoPosition = vec2((translatedPosition.z+translatedPosition.x), (translatedPosition.x+translatedPosition.y)-translatedPosition.z);
+
+            gl_Position = u_MainMatrix * vec4(isoPosition,0.0, 1.0);
+        }
+    )";
+
+    const char* fragIso3D = R"(
+        #version 330 core
+        out vec4 FragColor;
+        uniform vec4 u_Color;
+
+        void main() {
+            FragColor = u_Color;
+        }
+    )";
 
     void GLInit(GLAntialias antialias){
         // Inicializar GLFW
@@ -128,96 +122,16 @@ namespace KLSE
             break;
         }
     }
-    void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-        GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
-        if(wuser){
-            wuser->renderer->set_viewport(IVec2(width,height));
-        }
-    }
-
-    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
-        if(wuser){
-            if (action == GLFW_PRESS) {
-                wuser->input->pressKey(GLKey2KKey[key]);
-            } else if (action == GLFW_RELEASE) {
-                wuser->input->releaseKey(GLKey2KKey[key]);
-            }
-        }
-    }
-
-    GLWindow::GLWindow():Window(){
-        window = glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
-        if (!window) {
-            std::cerr << "Failed to create GLFW window " << window << std::endl;
-            glfwTerminate();
-            exit(-1);
-        }
-        glfwMakeContextCurrent(window);
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            std::cerr << "Failed to initialize GLAD" << std::endl;
-            exit(-1);
-        }
-
-        renderer = new GLRenderer();
-
-        // Set the user pointer to this instance
-        glfwSetWindowUserPointer(window, this);
-
-        // Callbacks
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-        glfwSetKeyCallback(window, keyCallback);
-
-        renderer->init(this);
-        renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
-
-        input = new PCInputListener();
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        /*glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);*/
-    }
-    IVec2 GLWindow::get_size(){
-        IVec2 ret;
-        glfwGetWindowSize(window,&(ret.x),&(ret.y));
-        return ret;
-    }
-    void GLWindow::set_size(IVec2 size){
-        glfwSetWindowSize(window,size.x,size.y);
-    }
-
-    void GLWindow::setResizable(bool resizable){
-        glfwSetWindowAttrib(window, GLFW_RESIZABLE, resizable);
-    }
-
-    std::string GLWindow::get_title(){
-        return glfwGetWindowTitle(window);
-    }
-    void GLWindow::set_title(std::string title){
-        return glfwSetWindowTitle(window,title.c_str());
-    }
-    void GLWindow::close(){
-        glfwTerminate();
-    }
-    bool GLWindow::closed(){
-        return glfwWindowShouldClose(window);
-    }
-    void GLWindow::update(){
-        // Trocar os buffers
-        input->update();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
 
     void GLRenderer::init(Window* window){
         this->window=window;
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
         simple_program_3d=createShaderProgram(vertex3D,frag3D);
+        simple_program_iso3d=createShaderProgram(vertexIso3D,fragIso3D);
     }
     void GLRenderer::clear(){
         glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
     void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset){
@@ -353,7 +267,6 @@ namespace KLSE
         glDeleteBuffers(1, &EBO);
     }
     void GLRenderer::_draw_3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode){
-        // 1. Generate and bind VAO
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -361,57 +274,115 @@ namespace KLSE
 
         glBindVertexArray(VAO);
 
-        // 2. Bind and set vertex buffer data
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), vertex.data(), GL_STATIC_DRAW);
 
-        // 3. Bind and set element buffer data
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
 
-        // 4. Define the vertex attribute pointers (assuming 3D position)
-        glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 3 * sizeof(Dimention), (void*)0);
-
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(double), (void*)0);
         glEnableVertexAttribArray(0);
 
-        // 5. Use the shader program and set the uniform values
         glUseProgram(simple_program_3d);
 
-        // Retrieve uniform locations
-        int projLoc = glGetUniformLocation(simple_program, "u_MainMatrix");
-        if (projLoc == -1) {
-            std::cerr << "Uniform 'u_MainMatrix' not found! " << std::endl;
-        }
-
-        int colorLoc = glGetUniformLocation(simple_program, "u_Color");
-        if (colorLoc == -1) {
-            std::cerr << "Uniform 'u_Color' not found!" << std::endl;
-        }
-
-        if (camera->matrix.size()==16) {
+        int projLoc = glGetUniformLocation(simple_program_3d, "u_MainMatrix");
+        if (projLoc != -1) {
             glUniformMatrix4fv(projLoc, 1, GL_FALSE, camera->matrix.data());
         } else {
-            std::cerr << "Projection matrix is null!" << std::endl;
+            std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
         }
 
-        // Set the color uniform (ensure color components are in [0,1])
-        glUniform4f(colorLoc, 1, 0, 0, 1);
+        int colorLoc = glGetUniformLocation(simple_program_3d, "u_Color");
+        if (colorLoc != -1) {
+            glUniform4f(colorLoc, 0.0f, 0.0f, 0.0f, 1.0f);
+        } else {
+            std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
+        }
 
-        // 6. Draw the vertices using the index buffer
-        glDrawElements(mode, index.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
 
-        // 7. Unbind the VAO
         glBindVertexArray(0);
-
-        // 8. Cleanup
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
 
-        checkOpenGLError("_draw_simple_vertex");
+        checkOpenGLError("_draw_simple_3d");
+    }
+    void GLRenderer::_draw_iso3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
+        unsigned int VAO, VBO, EBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(uint32_t), index.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 3 * sizeof(Dimention), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        glUseProgram(simple_program_iso3d);
+
+        int projLoc = glGetUniformLocation(simple_program_iso3d, "u_MainMatrix");
+        if (projLoc != -1) {
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix.data());
+        } else {
+            std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
+        }
+
+        int uLoc = glGetUniformLocation(simple_program_iso3d, "u_Color");
+        if (uLoc != -1) {
+            glUniform4f(uLoc, color.r, color.g, color.b, color.a);
+        } else {
+            std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Position");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, position.x-camera->position.x, position.y-camera->position.y, position.z-camera->position.z);
+        } else {
+            std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Rotation");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, rotation.x, rotation.y, rotation.z);
+        } else {
+            std::cerr << "Uniform 'u_Rotation' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Scale");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, scale.x, scale.y, scale.z);
+        } else {
+            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
+        }
+        if(rmode==RenderMode3D::wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+
+        glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
+
+        if(rmode==RenderMode3D::wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        glBindVertexArray(0);
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+
+        checkOpenGLError("_draw_simple_iso3d");
     }
     void GLRenderer::draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera){
         _draw_3d_vertices(model->_vertex,model->_index,camera);
+    }
+    void GLRenderer::draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D mode){
+        _draw_iso3d_vertices(model->_vertex,model->_index,camera,color,transform.position,transform.rotation,transform.scale,mode);
     }
     void GLRenderer::set_viewport(IVec2 size){
         projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));

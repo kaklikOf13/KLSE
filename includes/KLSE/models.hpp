@@ -11,16 +11,13 @@ namespace KLSE {
     class Model3D {
     public:
         std::vector<Dimention> _vertex;
-        std::vector<unsigned int> _index;
+        std::vector<uint32_t> _index;
         std::vector<Dimention> _normals;
-        std::vector<unsigned int> _normalsM;
+        std::vector<uint32_t> _normalsM;
         std::vector<Dimention> _texCoords;
-        std::vector<unsigned int> _texCoordsM;
+        std::vector<uint32_t> _texCoordsM;
 
         Model3D() = default;
-
-        // Converts to a BoxCollider3D
-        BoxCollider3D* toRect() const;
         
         // Static methods
         static Model3D* cube(Dimention s = 1.0f);
@@ -30,6 +27,7 @@ namespace KLSE {
     using Matrix4 = std::vector<float>;
     
     namespace matrix4 {
+        void print(Matrix4 m);
         Matrix4 identity();
         Matrix4 projection(Vec3 size);
         Matrix4 zToMatrix(Dimention fov);
