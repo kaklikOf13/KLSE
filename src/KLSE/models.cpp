@@ -20,95 +20,49 @@ namespace KLSE {
         return new BoxCollider3D(Vec3(0, 0, 0), Vec3::sub(max, min), Vec3());
     }*/
 
-    Model3D* Model3D::cube(Dimention s) {
+    Model3D* Model3D::cube(Vec3 min,Vec3 max) {
         Model3D* ret=new Model3D();
         
         ret->_vertex = {
-            // Back face
-            0, 0, s,//0
-            s, 0, s,//1
-            s, s, s,//2
-            0, s, s,//3
-            // Front face
-            0, 0, 0,//4
-            s, 0, 0,//5
-            s, s, 0,//6
-            0, s, 0,//7
-        };
-
-        ret->_normals = {
-            // Normals for the front face
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-
-            // Normals for the back face
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-
-            // Normals for the top face
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
-
-            // Normals for the bottom face
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
-
-            // Normals for the right face
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-
-            // Normals for the left face
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0
+            //Front Face
+            {min,Vec3(0,0,1)},{Vec3(min.x,max.y,min.z),Vec3(0,0,1)},{Vec3(max.x,max.y,min.z),Vec3(0,0,1)},{Vec3(max.x,min.y,min.z),Vec3(0,0,1)},
+            //Back Face
+            {Vec3(min.x,min.x,max.z),Vec3(0,0,-1)},{Vec3(min.x,max.y,max.z),Vec3(0,0,-1)},{Vec3(max.x,max.y,max.z),Vec3(0,0,-1)},{Vec3(max.x,min.y,max.z),Vec3(0,0,-1)},
+            //Left Face
+            {min,Vec3(-1,0,0)},{Vec3(min.x,min.y,max.z),Vec3(-1,0,0)},{Vec3(min.x,max.y,max.z),Vec3(-1,0,0)},{Vec3(min.x,max.y,min.z),Vec3(-1,0,0)},
+            //Right Face
+            {Vec3(max.x,min.y,min.z),Vec3(1,0,0)},{Vec3(max.x,min.y,max.z),Vec3(1,0,0)},{Vec3(max.x,max.y,max.z),Vec3(1,0,0)},{Vec3(max.x,max.y,min.z),Vec3(1,0,0)},
+            //Top Face
+            {Vec3(min.x,min.y,min.z),Vec3(0,1,0)},{Vec3(min.x,min.y,max.z),Vec3(0,1,0)},{Vec3(max.x,min.y,max.z),Vec3(0,1,0)},{Vec3(max.x,min.y,min.z),Vec3(0,1,0)},
+            //Bottom Face
+            {Vec3(min.x,max.y,min.z),Vec3(0,-1,0)},{Vec3(max.x,max.y,min.z),Vec3(0,-1,0)},{Vec3(max.x,max.y,max.z),Vec3(0,-1,0)},{Vec3(min.x,max.y,max.z),Vec3(0,-1,0)},
         };
 
         ret->_index = {
-            // Front face
-            4, 5, 6, 4, 7, 6,
-            // Back face
+            //Front Face
             0, 1, 2, 0, 3, 2,
-            // Left face
-            4, 0, 3, 4, 7, 3,
-            // Right face
-            5, 6, 2, 5, 2, 1,
-            // Top face
-            4, 0, 1, 4, 5, 1,
-            // Bottom face
-            7, 3, 2, 7, 6, 2,
-            
-            
+            //Back Face
+            4, 5, 6, 4, 7, 6,
+            //Left Face
+            8, 9,10, 8,11,10,
+            //Right Face
+            12,13,14,12,15,14,
+            //Top Face
+            16,17,18,16,19,18,
+            //Bottom Face
+            20,21,22,20,23,22
         };
 
         return ret;
     }
 
-    Model3D* Model3D::parseObj(const std::string& objText) {
+    /*Model3D* Model3D::parseObj(const std::string& objText) {
         Model3D* ret;
         std::istringstream stream(objText);
         std::string line;
+        std::vector<Vec3> coords;
+        std::vector<Vec3> normals;
+        std::vector<Vec3> normals;
 
         while (std::getline(stream, line)) {
             std::istringstream lineStream(line);
@@ -165,7 +119,7 @@ namespace KLSE {
             }
         }
         return ret;
-    }
+    }*/
 
     namespace matrix4 {
 

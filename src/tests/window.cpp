@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
     GLWindow* window=new GLWindow();
     
     RectCollider2D* rect=new RectCollider2D(Vec2(1,1),Vec2(1,1));
-    Collider2D* circle = new CircleCollider2D(Vec2(3,2),1);
+    Collider2D* circle = new CircleCollider2D(Vec2(1,3),0.5);
 
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
@@ -21,47 +21,41 @@ int main(int argc, char const *argv[])
         std::cout<<random.idimention(0,100)<<" ";
     }
     std::cout<<"\n";
-    Model3D* m=Model3D::cube(1);
+    Model3D* m=Model3D::cube();
     Transform3D t = Transform3D();
-    Color color=HEXCOLOR::create("#000");
+    Color color=HEXCOLOR::create("#009");
     for(uint16_t i=0;i<m->_vertex.size();i++){
 
     }
     Clock c = Clock(60);
     t.position.x=3;
     t.position.y=0;
-    t.position.z=0;
+    t.position.z=-2;
     CameraIso3D* cam=CameraIso3D::TibiaStyle();
 
-    Dimention speed=0.1;
+    Dimention speed=1.5;
 
     while (!window->closed()) {
         window->renderer->clear();
         if(window->input->keyPress(Key::S)){
-            t.position.z-=speed;
+            t.rotation.z-=speed;
         }else if(window->input->keyPress(Key::W)){
-            t.position.z+=speed;
+            t.rotation.z+=speed;
         }
 
         if(window->input->keyPress(Key::D)){
-            t.position.x+=speed;
+            t.rotation.x+=speed;
         }else if(window->input->keyPress(Key::A)){
-            t.position.x-=speed;
+            t.rotation.x-=speed;
         }
 
         if(window->input->keyPress(Key::Space)){
-            t.position.y-=speed;
+            t.rotation.y-=speed;
         }else if(window->input->keyPress(Key::LShift)){
-            t.position.y+=speed;
-        }
-
-        if(window->input->keyPress(Key::Q)){
-            t.rotation.x-=1;
-        }else if(window->input->keyPress(Key::E)){
-            t.rotation.x+=1;
+            t.rotation.y+=speed;
         }
         window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
-        //window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
+        window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
         window->renderer->draw_model_iso3D(m,t,color,cam);
         window->update();
         c.tick();

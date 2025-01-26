@@ -32,8 +32,8 @@ namespace KLSE
             void set_viewport(IVec2 size) override;
 
             void _draw_simple_vertex(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index, Color color, GLenum mode = GL_TRIANGLES);
-            void _draw_3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode = GL_TRIANGLES);
-            void _draw_iso3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode = GL_TRIANGLES);
+            void _draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode = GL_TRIANGLES);
+            void _draw_iso3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode = GL_TRIANGLES);
 
             GLRenderer():Renderer(100,RGBA::create(0,0,0)){};
             GLRenderer(Dimention meter_size,Color backgroundColor):KLSE::Renderer(meter_size,backgroundColor){};

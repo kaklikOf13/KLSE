@@ -8,19 +8,21 @@
 
 namespace KLSE {
 
+    struct Vertex3D {
+        Vec3 coords;
+        Vec3 normals;
+        //Vec2 texCoords;
+    };
+
     class Model3D {
     public:
-        std::vector<Dimention> _vertex;
+        std::vector<Vertex3D> _vertex;
         std::vector<uint32_t> _index;
-        std::vector<Dimention> _normals;
-        std::vector<uint32_t> _normalsM;
-        std::vector<Dimention> _texCoords;
-        std::vector<uint32_t> _texCoordsM;
 
         Model3D() = default;
         
         // Static methods
-        static Model3D* cube(Dimention s = 1.0f);
+        static Model3D* cube(Vec3 min=Vec3(-0.5,-0.5,-0.5),Vec3 max=Vec3(0.5,0.5,0.5));
         static Model3D* parseObj(const std::string& objText);
     };
 

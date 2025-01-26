@@ -46,6 +46,8 @@ namespace KLSE
     const char* vertexIso3D = R"(
         #version 330 core
         layout (location = 0) in vec3 a_Position;
+        layout (location = 1) in vec3 a_Normal;
+        out vec3 v_normal;
         uniform mat4 u_MainMatrix;
         uniform vec3 u_Position;
         uniform vec3 u_Rotation;
@@ -79,11 +81,13 @@ namespace KLSE
         }
 
         void main() {
-            vec3 scaledPosition = (rotationMatrix(u_Rotation) * vec4(a_Position, 1.0)).xyz * u_Scale;
+            mat4 rotm=rotationMatrix(u_Rotation);
+            vec3 scaledPosition = (rotm * vec4(a_Position, 1.0)).xyz * u_Scale;
             vec3 translatedPosition = scaledPosition + u_Position;
             vec2 isoPosition = vec2((translatedPosition.z*u_CamRot.x+translatedPosition.x*u_CamRot.y), (translatedPosition.x*u_CamRot.x+translatedPosition.y)-translatedPosition.z);
 
-            gl_Position = u_MainMatrix * vec4(isoPosition,0.0, 1.0);
+            v_normal=mat3(rotm)*a_Normal;
+            gl_Position = u_MainMatrix * vec4(isoPosition,translatedPosition.z/1000.0, 1.0);
         }
     )";
 
@@ -91,9 +95,13 @@ namespace KLSE
         #version 330 core
         out vec4 FragColor;
         uniform vec4 u_Color;
+        in vec3 v_normal;
 
         void main() {
+            vec3 normal = normalize(v_normal);
+            float light=dot(normal, vec3(0.1,0.2,-1));
             FragColor = u_Color;
+            FragColor.rgb*=light;
         }
     )";
 
@@ -264,7 +272,7 @@ namespace KLSE
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
     }
-    void GLRenderer::_draw_3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode){
+    void GLRenderer::_draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode){
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -306,22 +314,16 @@ namespace KLSE
 
         checkOpenGLError("_draw_simple_3d");
     }
-    void GLRenderer::_draw_iso3d_vertices(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
-        unsigned int VAO, VBO, EBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
+   void GLRenderer::_draw_iso3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
+        VAO vao1;
 
-        glBindVertexArray(VAO);
+        vao1.Bind();
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
+        VBO vbo1((GLdouble*)vertex.data(),sizeof(Vertex3D)*vertex.size());
+        EBO ebo1((GLuint*)index.data(),sizeof(uint32_t)*index.size());
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(uint32_t), index.data(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 3 * sizeof(Dimention), (void*)0);
-        glEnableVertexAttribArray(0);
+        vao1.LinkAttrib(vbo1,0,3,GL_DOUBLE,sizeof(Vertex3D),(void*)0);
+        vao1.LinkAttrib(vbo1,1,3,GL_DOUBLE,sizeof(Vertex3D),(void*)(3*sizeof(Dimention)));
 
         glUseProgram(simple_program_iso3d);
 
@@ -377,9 +379,9 @@ namespace KLSE
         }
 
         glBindVertexArray(0);
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
+        vao1.Free();
+        vbo1.Free();
+        ebo1.Free();
 
         checkOpenGLError("_draw_simple_iso3d");
     }
