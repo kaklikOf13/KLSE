@@ -56,9 +56,9 @@ namespace KLSE {
         return ret;
     }
 
-    /*Model3D* Model3D::parseObj(const std::string& objText) {
+    Model3D* Model3D::parseObj(const std::string& objText) {
         Model3D* ret;
-        std::istringstream stream(objText);
+        /*std::istringstream stream(objText);
         std::string line;
         std::vector<Vec3> coords;
         std::vector<Vec3> normals;
@@ -117,9 +117,9 @@ namespace KLSE {
                 ret->_normalsM.insert(ret->_normalsM.end(), normals.begin(), normals.end());
                 ret->_texCoordsM.insert(ret->_texCoordsM.end(), textures.begin(), textures.end());
             }
-        }
+        }*/
         return ret;
-    }*/
+    }
 
     namespace matrix4 {
 

@@ -1,11 +1,9 @@
 #include <KLSE/klse.hpp>
-#include <KLSE/openGL/klse.hpp>
+#include <KLSE/GFX/klse.hpp>
 //#include <KLSE/vulkan/klse.hpp>
 using namespace KLSE;
 int main(int argc, char const *argv[])
 {
-    //VulkanInit();
-    //VulkanWindow* window=new VulkanWindow();
     Init();
     GLInit(GLAntialias::MSAA4X);
     GLWindow* window=new GLWindow();

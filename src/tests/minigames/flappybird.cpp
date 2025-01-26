@@ -1,5 +1,5 @@
 #include <KLSE/klse.hpp>
-#include <KLSE/openGL/klse.hpp>
+#include <KLSE/GFX/klse.hpp>
 //#include <KLSE/vulkan/klse.hpp>
 using namespace KLSE;
 

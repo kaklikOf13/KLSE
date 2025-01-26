@@ -1,4 +1,4 @@
-#include <KLSE/openGL/utils.hpp>
+#include <KLSE/GFX/utils.hpp>
 namespace KLSE{
     #pragma region Shaders
     unsigned int compileShader(unsigned int type, const char* source) {

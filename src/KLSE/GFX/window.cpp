@@ -1,4 +1,4 @@
-#include <KLSE/openGL/renderer.hpp>
+#include <KLSE/GFX/renderer.hpp>
 #include <GLFW/glfw3.h>
 #include <iostream>
 namespace KLSE

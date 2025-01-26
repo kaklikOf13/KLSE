@@ -875,7 +875,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <KLSE/openGL/glad.h>
+#include <KLSE/GFX/glad.h>
 
 static void* get_proc(const char *namez);
 
