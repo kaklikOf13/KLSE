@@ -57,41 +57,6 @@ namespace KLSE
         }
     )";
 
-    const char* vertexIso3D = R"(
-        #version 330 core
-        layout (location = 0) in vec3 a_Position;
-        layout (location = 1) in vec3 a_Normal;
-        out vec3 v_normal;
-        uniform mat4 u_MainMatrix;
-        uniform vec3 u_Position;
-        //uniform mat4 u_Rotation;
-        uniform vec3 u_Scale;
-        uniform vec2 u_CamRot;
-
-        void main() {
-            vec3 scaledPosition = a_Position * u_Scale;
-            vec3 translatedPosition = scaledPosition + u_Position;
-            vec2 isoPosition = vec2((translatedPosition.z*u_CamRot.x+translatedPosition.x*u_CamRot.y), (translatedPosition.x*u_CamRot.x+translatedPosition.y)-translatedPosition.z);
-
-            v_normal=a_Normal;
-            gl_Position = u_MainMatrix * vec4(isoPosition,-1+(translatedPosition.z/1000.0), 1.0);
-        }
-    )";
-
-    const char* fragIso3D = R"(
-        #version 330 core
-        out vec4 FragColor;
-        uniform vec4 u_Color;
-        in vec3 v_normal;
-
-        void main() {
-            vec3 normal = normalize(v_normal);
-            float light=dot(normal, vec3(0.1,0.2,-1));
-            FragColor = u_Color;
-            FragColor.rgb*=light;
-        }
-    )";
-
     void GLInit(GLAntialias antialias){
         // Inicializar GLFW
         if (!glfwInit()) {
@@ -120,7 +85,6 @@ namespace KLSE
         this->window=window;
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
         simple_program_3d=createShaderProgram(vertex3D,frag3D);
-        simple_program_iso3d=createShaderProgram(vertexIso3D,fragIso3D);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
@@ -326,82 +290,8 @@ namespace KLSE
 
         checkOpenGLError("_draw_simple_3d");
     }
-    void GLRenderer::_draw_iso3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
-        VAO vao1;
-
-        vao1.Bind();
-
-        VBO vbo1((GLdouble*)vertex.data(),sizeof(Vertex3D)*vertex.size());
-        EBO ebo1((GLuint*)index.data(),sizeof(uint32_t)*index.size());
-
-        vao1.LinkAttrib(vbo1,0,3,GL_DOUBLE,sizeof(Vertex3D),(void*)0);
-        vao1.LinkAttrib(vbo1,1,3,GL_DOUBLE,sizeof(Vertex3D),(void*)(3*sizeof(Dimention)));
-
-        glUseProgram(simple_program_iso3d);
-
-        int projLoc = glGetUniformLocation(simple_program_iso3d, "u_MainMatrix");
-        if (projLoc != -1) {
-            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix.data());
-        } else {
-            std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
-        }
-
-        int uLoc = glGetUniformLocation(simple_program_iso3d, "u_Color");
-        if (uLoc != -1) {
-            glUniform4f(uLoc, color.r, color.g, color.b, color.a);
-        } else {
-            std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
-        }
-
-        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Position");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, position.x-camera->position.x, position.y-camera->position.y, position.z-camera->position.z);
-        } else {
-            std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
-        }
-
-        /*uLoc = glGetUniformLocation(simple_program_iso3d, "u_Rotation");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, rotation.x, rotation.y, rotation.z);
-        } else {
-            std::cerr << "Uniform 'u_Rotation' not founded!" << std::endl;
-        }*/
-
-        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Scale");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, scale.x, scale.y, scale.z);
-        } else {
-            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
-        }
-
-        uLoc = glGetUniformLocation(simple_program_iso3d, "u_CamRot");
-        if (uLoc != -1) {
-            glUniform2f(uLoc, camera->rotation.x, camera->rotation.y);
-        } else {
-            std::cerr << "Uniform 'u_CamRot' not founded!" << std::endl;
-        }
-        if(rmode==RenderMode3D::wireframe){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-
-        glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
-
-        if(rmode==RenderMode3D::wireframe){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
-        glBindVertexArray(0);
-        vao1.Free();
-        vbo1.Free();
-        ebo1.Free();
-
-        checkOpenGLError("_draw_simple_iso3d");
-    }
     void GLRenderer::draw_model3D(Model3D* model,Transform3D transform,Color color, Camera3D* camera,RenderMode3D mode){
         _draw_3d_vertices(model->_vertex,model->_index,camera,color,transform.position,transform.rotation,transform.scale,mode);
-    }
-    void GLRenderer::draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D mode){
-        _draw_iso3d_vertices(model->_vertex,model->_index,camera,color,transform.position,transform.rotation,transform.scale,mode);
     }
     void GLRenderer::set_viewport(IVec2 size){
         projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));

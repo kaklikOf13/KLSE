@@ -23,9 +23,6 @@ namespace KLSE
 
         this->matrix = matrix4::mult(projection, view);
     }
-    Vec2 CameraIso3D::IsometricPosition(Vec3 pos){
-        return Vec2(pos.z*rotation.x+pos.x*rotation.y, (pos.x*rotation.x+pos.y)-pos.z);
-    }
 
     namespace HEXCOLOR
     {

@@ -28,8 +28,6 @@ int main(int argc, char const *argv[])
     }
     Clock c = Clock(60);
     Camera3D* cam=new Camera3D();
-    CameraIso3D* cami=CameraIso3D::TibiaStyle();
-    cami->position.x=-3;
     //cam->position.x=0.2;
 
     Dimention speed=0.1;
@@ -63,7 +61,6 @@ int main(int argc, char const *argv[])
         window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
         cam->update(window->get_size());
         window->renderer->draw_model3D(m,t,color,cam);
-        //window->renderer->draw_model_iso3D(m,t,color,cami);
         window->update();
         c.tick();
     }

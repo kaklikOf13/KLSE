@@ -58,20 +58,6 @@ namespace KLSE
 
         private:
     };
-    class CameraIso3D{
-        public:
-        Vec3 position;
-        Vec2 rotation;
-
-        Vec2 IsometricPosition(Vec3 pos);
-
-        CameraIso3D():position(Vec3()),rotation(Vec2(1,1)){};
-        CameraIso3D(Vec3 position,Vec2 rotation):position(position),rotation(rotation){};
-        static CameraIso3D* TibiaStyle(){
-            return new CameraIso3D(Vec3(),Vec2(0.2,1.4));
-        }
-    };
-
     class Window;
     class Renderer {
         public:
@@ -84,7 +70,6 @@ namespace KLSE
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
         virtual void draw_model3D(Model3D* model,Transform3D transform,Color color, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
-        virtual void draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void clear(){};
         virtual void init(Window* window){};
 
