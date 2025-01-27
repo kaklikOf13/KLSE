@@ -69,7 +69,7 @@ namespace KLSE
         virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30)=0;
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
-        virtual void draw_model3D(Model3D* model,Transform3D transform,Color color, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
+        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void clear(){};
         virtual void init(Window* window){};
 

@@ -6,6 +6,7 @@
 #include "models.hpp"
 #include "renderer.hpp"
 #include "objects2d.hpp"
+#include "materials.hpp"
 namespace KLSE
 {
     void Init();

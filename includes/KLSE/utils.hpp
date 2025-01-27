@@ -20,6 +20,8 @@ namespace KLSE{
     const unsigned long long a = 1664525; // Multiplier
     const unsigned long long c = 1013904223; // Increment
 
+    struct ZeroStruct{};
+
     namespace Math
     {
         class Random{

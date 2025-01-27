@@ -22,10 +22,7 @@ int main(int argc, char const *argv[])
     Model3D* m=Model3D::cube();
     Transform3D t = Transform3D();
     t.position.z=-2;
-    Color color=HEXCOLOR::create("#009");
-    for(uint16_t i=0;i<m->_vertex.size();i++){
-
-    }
+    auto material=MF3_color->createMaterial({HEXCOLOR::create("#009")});
     Clock c = Clock(60);
     Camera3D* cam=new Camera3D();
     //cam->position.x=0.2;
@@ -60,7 +57,7 @@ int main(int argc, char const *argv[])
         window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
         window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
         cam->update(window->get_size());
-        window->renderer->draw_model3D(m,t,color,cam);
+        window->renderer->draw_model3D(m,t,material,cam);
         window->update();
         c.tick();
     }
