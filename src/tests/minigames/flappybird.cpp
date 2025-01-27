@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     //VulkanInit();
     //VulkanWindow* window=new VulkanWindow();
     GLInit(GLAntialias::MSAA4X);
-    GLWindow* window=new GLWindow();
+    GLFWWindow* window=new GLFWWindow(new GLRenderer());
     window->renderer->backgroundColor=HEXCOLOR::create("#2a8ce8");
 
     initMountains();

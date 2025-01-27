@@ -14,16 +14,14 @@ namespace KLSE
         } 
     
     void Camera3D::update(Vec2 size){
-        Matrix4 projection = matrix4::perspective(fov, size.x / size.y, near, far);
+        Matrix4 projection = matrix4::perspective(Math::Deg2Rad(fov), size.x / size.y, near, far);
 
-        // A matriz de visão deve usar -position!
         Matrix4 view = matrix4::translate(
-            matrix4::rotate(matrix4::identity(), rotation),
+            matrix4::rotate(matrix4::identity(),rotation),
             Vec3::neg(position)
         );
 
-        // Multiplicação Projeção * Visão
-        matrix = matrix4::mult(projection, view);
+        this->matrix = matrix4::mult(projection, view);
     }
     Vec2 CameraIso3D::IsometricPosition(Vec3 pos){
         return Vec2(pos.z*rotation.x+pos.x*rotation.y, (pos.x*rotation.x+pos.y)-pos.z);

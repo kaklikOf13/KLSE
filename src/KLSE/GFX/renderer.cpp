@@ -26,10 +26,20 @@ namespace KLSE
     const char* vertex3D = R"(
         #version 330 core
         layout (location = 0) in vec3 a_Position;
+        layout (location = 1) in vec3 a_Normal;
+        out vec3 v_normal;
         uniform mat4 u_MainMatrix;
+        uniform vec3 u_Position;
+        //uniform mat4 u_Rotation;
+        uniform vec3 u_Scale;
 
         void main() {
-            gl_Position = u_MainMatrix * vec4(a_Position, 1.0);
+            //vec3 scaledPosition = a_Position.xyz * u_Scale;
+            vec3 scaledPosition = a_Position * u_Scale;
+            vec3 translatedPosition = scaledPosition + u_Position;
+
+            v_normal=a_Normal;
+            gl_Position = u_MainMatrix * vec4(translatedPosition,1.0);
         }
     )";
 
@@ -37,9 +47,13 @@ namespace KLSE
         #version 330 core
         out vec4 FragColor;
         uniform vec4 u_Color;
+        in vec3 v_normal;
 
         void main() {
+            vec3 normal = normalize(v_normal);
+            float light=dot(normal, vec3(0.1,0.2,-1));
             FragColor = u_Color;
+            FragColor.rgb*=light;
         }
     )";
 
@@ -50,44 +64,17 @@ namespace KLSE
         out vec3 v_normal;
         uniform mat4 u_MainMatrix;
         uniform vec3 u_Position;
-        uniform vec3 u_Rotation;
+        //uniform mat4 u_Rotation;
         uniform vec3 u_Scale;
         uniform vec2 u_CamRot;
 
-        mat4 rotationMatrix(vec3 r) {
-            vec3 radians = r * 3.14159265 / 180.0;
-            mat4 rotX = mat4(
-                1.0, 0.0, 0.0, 0.0,
-                0.0, cos(radians.x), -sin(radians.x), 0.0,
-                0.0, sin(radians.x), cos(radians.x), 0.0,
-                0.0, 0.0, 0.0, 1.0
-            );
-
-            mat4 rotY = mat4(
-                cos(radians.y), 0.0, sin(radians.y), 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                -sin(radians.y), 0.0, cos(radians.y), 0.0,
-                0.0, 0.0, 0.0, 1.0
-            );
-
-            mat4 rotZ = mat4(
-                cos(radians.z), -sin(radians.z), 0.0, 0.0,
-                sin(radians.z), cos(radians.z), 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            );
-
-            return rotZ * rotY * rotX;
-        }
-
         void main() {
-            mat4 rotm=rotationMatrix(u_Rotation);
-            vec3 scaledPosition = (rotm * vec4(a_Position, 1.0)).xyz * u_Scale;
+            vec3 scaledPosition = a_Position * u_Scale;
             vec3 translatedPosition = scaledPosition + u_Position;
             vec2 isoPosition = vec2((translatedPosition.z*u_CamRot.x+translatedPosition.x*u_CamRot.y), (translatedPosition.x*u_CamRot.x+translatedPosition.y)-translatedPosition.z);
 
-            v_normal=mat3(rotm)*a_Normal;
-            gl_Position = u_MainMatrix * vec4(isoPosition,translatedPosition.z/1000.0, 1.0);
+            v_normal=a_Normal;
+            gl_Position = u_MainMatrix * vec4(isoPosition,-1+(translatedPosition.z/1000.0), 1.0);
         }
     )";
 
@@ -134,6 +121,9 @@ namespace KLSE
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
         simple_program_3d=createShaderProgram(vertex3D,frag3D);
         simple_program_iso3d=createShaderProgram(vertexIso3D,fragIso3D);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
     }
     void GLRenderer::clear(){
         glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
@@ -272,22 +262,16 @@ namespace KLSE
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
     }
-    void GLRenderer::_draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<unsigned int>& index,Camera3D* camera,GLenum mode){
-        unsigned int VAO, VBO, EBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
+    void GLRenderer::_draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,Camera3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
+        VAO vao1;
 
-        glBindVertexArray(VAO);
+        vao1.Bind();
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(float), vertex.data(), GL_STATIC_DRAW);
+        VBO vbo1((GLdouble*)vertex.data(),sizeof(Vertex3D)*vertex.size());
+        EBO ebo1((GLuint*)index.data(),sizeof(uint32_t)*index.size());
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(double), (void*)0);
-        glEnableVertexAttribArray(0);
+        vao1.LinkAttrib(vbo1,0,3,GL_DOUBLE,sizeof(Vertex3D),(void*)0);
+        vao1.LinkAttrib(vbo1,1,3,GL_DOUBLE,sizeof(Vertex3D),(void*)(3*sizeof(Dimention)));
 
         glUseProgram(simple_program_3d);
 
@@ -298,23 +282,51 @@ namespace KLSE
             std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
         }
 
-        int colorLoc = glGetUniformLocation(simple_program_3d, "u_Color");
-        if (colorLoc != -1) {
-            glUniform4f(colorLoc, 0.0f, 0.0f, 0.0f, 1.0f);
+        int uLoc = glGetUniformLocation(simple_program_3d, "u_Color");
+        if (uLoc != -1) {
+            glUniform4f(uLoc, color.r, color.g, color.b, color.a);
         } else {
             std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
         }
 
+        uLoc = glGetUniformLocation(simple_program_3d, "u_Position");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, position.x, position.y, position.z);
+        } else {
+            std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
+        }
+
+        /*uLoc = glGetUniformLocation(simple_program_3d, "u_Rotation");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, rotation.x, rotation.y, rotation.z);
+        } else {
+            std::cerr << "Uniform 'u_Rotation' not founded!" << std::endl;
+        }*/
+
+        uLoc = glGetUniformLocation(simple_program_3d, "u_Scale");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, scale.x, scale.y, scale.z);
+        } else {
+            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
+        }
+        if(rmode==RenderMode3D::wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+
         glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
 
+        if(rmode==RenderMode3D::wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
         glBindVertexArray(0);
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
+        vao1.Free();
+        vbo1.Free();
+        ebo1.Free();
 
         checkOpenGLError("_draw_simple_3d");
     }
-   void GLRenderer::_draw_iso3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
+    void GLRenderer::_draw_iso3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,CameraIso3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
         VAO vao1;
 
         vao1.Bind();
@@ -348,12 +360,12 @@ namespace KLSE
             std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
         }
 
-        uLoc = glGetUniformLocation(simple_program_iso3d, "u_Rotation");
+        /*uLoc = glGetUniformLocation(simple_program_iso3d, "u_Rotation");
         if (uLoc != -1) {
             glUniform3f(uLoc, rotation.x, rotation.y, rotation.z);
         } else {
             std::cerr << "Uniform 'u_Rotation' not founded!" << std::endl;
-        }
+        }*/
 
         uLoc = glGetUniformLocation(simple_program_iso3d, "u_Scale");
         if (uLoc != -1) {
@@ -385,8 +397,8 @@ namespace KLSE
 
         checkOpenGLError("_draw_simple_iso3d");
     }
-    void GLRenderer::draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera){
-        _draw_3d_vertices(model->_vertex,model->_index,camera);
+    void GLRenderer::draw_model3D(Model3D* model,Transform3D transform,Color color, Camera3D* camera,RenderMode3D mode){
+        _draw_3d_vertices(model->_vertex,model->_index,camera,color,transform.position,transform.rotation,transform.scale,mode);
     }
     void GLRenderer::draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D mode){
         _draw_iso3d_vertices(model->_vertex,model->_index,camera,color,transform.position,transform.rotation,transform.scale,mode);

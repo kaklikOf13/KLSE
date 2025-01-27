@@ -54,7 +54,7 @@ namespace KLSE
 
         void update(Vec2 size);
 
-        Camera3D():position(Vec3()),rotation(Vec3()),fov(70),near(0.001),far(3000){};
+        Camera3D():position(Vec3(0,0,0)),rotation(Vec3(0,0,0)),fov(70),near(0.001),far(3000){};
 
         private:
     };
@@ -83,9 +83,10 @@ namespace KLSE
         virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30)=0;
         //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
 
-        virtual void draw_model3D(Model3D* model,Transform3D transform, Camera3D* camera)=0;
+        virtual void draw_model3D(Model3D* model,Transform3D transform,Color color, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void draw_model_iso3D(Model3D* model,Transform3D transform,Color color, CameraIso3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void clear(){};
+        virtual void init(Window* window){};
 
         virtual void set_viewport(IVec2 size)=0;
 

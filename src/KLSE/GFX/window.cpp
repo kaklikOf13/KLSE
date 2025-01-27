@@ -64,14 +64,14 @@ namespace KLSE
         {GLFW_MOUSE_BUTTON_5, Key::Mouse_Option2}
     };
     void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-        GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
+        GLFWWindow* wuser=reinterpret_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
         if(wuser){
             wuser->renderer->set_viewport(IVec2(width,height));
         }
     }
 
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        GLWindow* wuser=reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
+        GLFWWindow* wuser=reinterpret_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
         if(wuser){
             if (action == GLFW_PRESS) {
                 wuser->input->pressKey(GLKey2KKey[key]);
@@ -80,7 +80,7 @@ namespace KLSE
             }
         }
     }
-    GLWindow::GLWindow():Window(){
+    GLFWWindow::GLFWWindow(Renderer* renderer):Window(){
         window = glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
         if (!window) {
             std::cerr << "Failed to create GLFW window " << window << std::endl;
@@ -93,7 +93,7 @@ namespace KLSE
             exit(-1);
         }
 
-        renderer = new GLRenderer();
+        this->renderer=renderer;
 
         // Set the user pointer to this instance
         glfwSetWindowUserPointer(window, this);
@@ -106,38 +106,35 @@ namespace KLSE
         renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
 
         input = new PCInputListener();
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
         /*glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);*/
     }
-    IVec2 GLWindow::get_size(){
+    IVec2 GLFWWindow::get_size(){
         IVec2 ret;
         glfwGetWindowSize(window,&(ret.x),&(ret.y));
         return ret;
     }
-    void GLWindow::set_size(IVec2 size){
+    void GLFWWindow::set_size(IVec2 size){
         glfwSetWindowSize(window,size.x,size.y);
     }
 
-    void GLWindow::setResizable(bool resizable){
+    void GLFWWindow::setResizable(bool resizable){
         glfwSetWindowAttrib(window, GLFW_RESIZABLE, resizable);
     }
 
-    std::string GLWindow::get_title(){
+    std::string GLFWWindow::get_title(){
         return glfwGetWindowTitle(window);
     }
-    void GLWindow::set_title(std::string title){
+    void GLFWWindow::set_title(std::string title){
         return glfwSetWindowTitle(window,title.c_str());
     }
-    void GLWindow::close(){
+    void GLFWWindow::close(){
         glfwTerminate();
     }
-    bool GLWindow::closed(){
+    bool GLFWWindow::closed(){
         return glfwWindowShouldClose(window);
     }
-    void GLWindow::update(){
+    void GLFWWindow::update(){
         // Trocar os buffers
         input->update();
         glfwSwapBuffers(window);

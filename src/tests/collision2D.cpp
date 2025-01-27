@@ -6,7 +6,7 @@ const unsigned int collidersN=100;
 
 Vec2 spawnMin=Vec2(1,1);
 Vec2 spawnMax=Vec2(2,2);
-GLWindow* window;
+GLFWWindow* window;
 Math::Random* rando=new Math::Random();
 class OBJ:public Object2D{
     public:
@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
     //VulkanWindow* window=new VulkanWindow();
     Init();
     GLInit(GLAntialias::MSAA4X);
-    window=new GLWindow();
+    window=new GLFWWindow(new GLRenderer());
     
     ObjectsManager2D* manager=new ObjectsManager2D();
     auto layer=manager->add_layer2D("main");
