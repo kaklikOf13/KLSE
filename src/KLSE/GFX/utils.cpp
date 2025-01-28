@@ -128,4 +128,10 @@ namespace KLSE{
     }
 
     #pragma endregion
+    void checkOpenGLError(const std::string& context) {
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR) {
+            std::cerr << "OpenGL error in " << context << ": " << err << std::endl;
+        }
+    }
 }

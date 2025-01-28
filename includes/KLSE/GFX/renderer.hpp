@@ -6,18 +6,10 @@
 #include "../renderer.hpp"
 #include "../input.hpp"
 #include "../materials.hpp"
-#include "utils.hpp"
+#include "materials.hpp"
 namespace KLSE
 {
     void GLInit(GLAntialias antialias);
-
-    struct GLMaterialColorArgs{
-        Color color;
-    };
-    struct GLMaterialFArgs{
-        uint32_t program;
-    };
-    extern Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF3_color;
 
     class GLFWWindow;
     class GLRenderer;

@@ -14,6 +14,7 @@ namespace KLSE
         MSAA4X,
     };
 
+    void checkOpenGLError(const std::string& context);
 
     #pragma region Buffers
     //By Victor Gordan YT
