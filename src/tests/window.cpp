@@ -8,8 +8,14 @@ int main(int argc, char const *argv[])
     GLInit(GLAntialias::MSAA4X);
     GLFWWindow* window=new GLFWWindow(new GLRenderer());
     
-    RectCollider2D* rect=new RectCollider2D(Vec2(1,1),Vec2(1,1));
-    Collider2D* circle = new CircleCollider2D(Vec2(1,3),0.5);
+    auto container=new RContainer();
+    container->add_rectangle(Vec2(0,0),Vec2(1,1),RGBA::create(100,0,20));
+    auto cc=container->add_container();
+    cc->add_circle(Vec2(1,-0.1),0.3,RGBA::create(100,0,20));
+    cc->add_circle(Vec2(1,1.1),0.3,RGBA::create(100,0,20));
+    container->position.x+=1;
+    container->position.y+=1;
+    cc->position.y=1;
 
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
@@ -33,14 +39,18 @@ int main(int argc, char const *argv[])
         window->renderer->clear();
         if(window->input->keyPress(Key::S)){
             cam->position.z-=speed;
+            container->position.y+=speed;
         }else if(window->input->keyPress(Key::W)){
             cam->position.z+=speed;
+            container->position.y-=speed;
         }
 
         if(window->input->keyPress(Key::D)){
             cam->position.x+=speed;
+            container->position.x+=speed;
         }else if(window->input->keyPress(Key::A)){
             cam->position.x-=speed;
+            container->position.x-=speed;
         }
 
         if(window->input->keyPress(Key::Space)){
@@ -54,8 +64,7 @@ int main(int argc, char const *argv[])
         }else if(window->input->keyPress(Key::E)){
             cam->rotation.y+=speed*20;
         }
-        window->renderer->draw_rect2D(rect,RGBA::create(0,0,0),Vec2());
-        window->renderer->draw_collider2D(circle,RGBA::create(255,0,0),Vec2());
+        container->draw(window->renderer);
         cam->update(window->get_size());
         window->renderer->draw_model3D(m,t,material,cam);
         window->update();
