@@ -17,6 +17,10 @@ int main(int argc, char const *argv[])
     container->position.y+=1;
     cc->position.y=1;
 
+    auto sprite=window->renderer->create_sprite(Vec2(300,300));
+    auto rect=new RectCollider2D(Vec2(0,0),Vec2(5,5));
+    sprite->draw_collider2D(rect,RGBA::create(0,0,0),Vec2());
+
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
     Math::Random random("kaklik");
@@ -31,7 +35,6 @@ int main(int argc, char const *argv[])
     auto material=MF3_color->createMaterial({HEXCOLOR::create("#009")});
     Clock c = Clock(60);
     Camera3D* cam=new Camera3D();
-    //cam->position.x=0.2;
 
     Dimention speed=0.1;
 
@@ -67,6 +70,7 @@ int main(int argc, char const *argv[])
         container->draw(window->renderer);
         cam->update(window->get_size());
         window->renderer->draw_model3D(m,t,material,cam);
+        window->renderer->draw_sprite(sprite,Vec2(1,2),Vec2(1,1));
         window->update();
         c.tick();
     }

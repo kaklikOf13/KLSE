@@ -7,6 +7,7 @@
 #include "../input.hpp"
 #include "../materials.hpp"
 #include "materials.hpp"
+#include <iostream>
 namespace KLSE
 {
     void GLInit(GLAntialias antialias);
@@ -20,22 +21,41 @@ namespace KLSE
             Matrix4 projectionMatrix;
 
             unsigned int simple_program;
+            unsigned int simple_tex_program;
 
-            void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset) override;
-            void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30) override;
-            void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30) override;
+            void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale=Vec2(1,1)) override;
+            void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
+            void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
             void draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera3D* camera,RenderMode3D=RenderMode3D::normal)override;
+            void draw_sprite(Sprite* s,Vec2 offset,Vec2 scale)override;
             void clear() override;
 
             void set_viewport(IVec2 size) override;
 
-            void _draw_simple_vertex(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index, Color color, GLenum mode = GL_TRIANGLES);
+            void _draw_simple_vertex(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index, Color color,Vec2 scale, unsigned int s_program, GLenum mode = GL_TRIANGLES);
             //void _draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,Camera3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode = GL_TRIANGLES);
 
             GLRenderer():Renderer(100,RGBA::create(0,0,0)){};
             GLRenderer(Dimention meter_size,Color backgroundColor):KLSE::Renderer(meter_size,backgroundColor){};
 
             void init(Window* window)override;
+
+            Sprite* create_sprite(IVec2 size)override;
+    };
+    class GLSprite:public Sprite{
+        public:
+        Renderer* render;
+        IVec2 real_size;
+        Vec2 size;
+        GLSprite(GLuint fbo,GLuint texture,Vec2 size,IVec2 real_size,GLRenderer* render):fbo(fbo),texture(texture),size(size),real_size(real_size),render(render){};
+        ~GLSprite(){
+            glDeleteFramebuffers(1, &fbo);
+            glDeleteTextures(1, &texture);
+        };
+        void drawr(Renderer* r, std::vector<Dimention> vertices, std::vector<unsigned int> indices, unsigned int program);
+        void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
+        protected:
+        GLuint fbo, texture;
     };
 
     class GLFWWindow:public Window{

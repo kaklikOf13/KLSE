@@ -1,6 +1,4 @@
 #include <KLSE/GFX/renderer.hpp>
-#include <GLFW/glfw3.h>
-#include <iostream>
 namespace KLSE
 {
     const char* simpleVertexShaderSource = R"(
@@ -20,6 +18,29 @@ namespace KLSE
 
         void main() {
             FragColor = u_Color;
+        }
+    )";
+
+    const char* simpleTeVertexShaderSource = R"(
+        #version 330 core
+        layout (location = 0) in vec2 a_Position;
+        layout (location = 1) in vec2 a_TexCoord;
+        out vec2 TexCoord;
+        
+        void main() {
+            gl_Position = vec4(a_Position, 0.0, 1.0);
+            TexCoord = a_TexCoord;
+        }
+    )";
+
+    const char* simpleTeFragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+        in vec2 TexCoord;
+        uniform sampler2D u_Texture;
+        
+        void main() {
+            FragColor = texture(u_Texture, TexCoord);
         }
     )";
 
@@ -50,6 +71,7 @@ namespace KLSE
     void GLRenderer::init(Window* window){
         this->window=window;
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
+        simple_tex_program=createShaderProgram(simpleTeVertexShaderSource,simpleTeFragmentShaderSource);
 
         InitOpenGLMaterials();
 
@@ -61,7 +83,7 @@ namespace KLSE
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset){
+    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale){
         // 1. Calculate the rectangle vertices
         Dimention x1 = rect->position.x - offset.x;
         Dimention y1 = rect->position.y - offset.y;
@@ -81,10 +103,10 @@ namespace KLSE
         };
 
         // 2. Call _draw_simple_vertex with the vertices and indices
-        _draw_simple_vertex(vertices, indices, color, GL_TRIANGLES);
+        _draw_simple_vertex(vertices, indices, color,scale,simple_program, GL_TRIANGLES);
     }
 
-    void GLRenderer::draw_circle2D(CircleCollider2D* circle, Color color, Vec2 offset, unsigned int smooth) {
+    void GLRenderer::draw_circle2D(CircleCollider2D* circle, Color color, Vec2 offset,Vec2 scale, unsigned int smooth) {
         // 1. Calculate the circle's center position
         float cx = circle->position.x - offset.x;
         float cy = circle->position.y - offset.y;
@@ -113,24 +135,24 @@ namespace KLSE
         }
 
         // 4. Call _draw_simple_vertex with the vertices and indices
-        _draw_simple_vertex(vertices, indices, color, GL_TRIANGLES);
+        _draw_simple_vertex(vertices, indices, color,scale,simple_program, GL_TRIANGLES);
     }
 
-    void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth){
+    void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale,unsigned int smooth){
         switch (hitbox->type)
         {
         case ColliderType2D::circle:
-            draw_circle2D(reinterpret_cast<CircleCollider2D*>(hitbox),color,offset,smooth);
+            draw_circle2D(reinterpret_cast<CircleCollider2D*>(hitbox),color,offset,scale,smooth);
             break;
         case ColliderType2D::rect:
-            draw_rect2D(reinterpret_cast<RectCollider2D*>(hitbox),color,offset);
+            draw_rect2D(reinterpret_cast<RectCollider2D*>(hitbox),color,offset,scale);
             break;
         
         default:
             break;
         }
     }
-    void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color, GLenum mode) {
+    void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color,Vec2 scale,unsigned int s_program, GLenum mode) {
         // 1. Generate and bind VAO
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
@@ -152,18 +174,18 @@ namespace KLSE
         glEnableVertexAttribArray(0);
 
         // 5. Use the shader program and set the uniform values
-        glUseProgram(simple_program);
+        glUseProgram(s_program);
 
         // Retrieve uniform locations
-        int projLoc = glGetUniformLocation(simple_program, "u_MainMatrix");
+        int projLoc = glGetUniformLocation(s_program, "u_MainMatrix");
         if (projLoc == -1) {
             std::cerr << "Uniform 'u_MainMatrix' not found! " << std::endl;
         }
 
-        int colorLoc = glGetUniformLocation(simple_program, "u_Color");
-        if (colorLoc == -1) {
-            std::cerr << "Uniform 'u_Color' not found!" << std::endl;
-        }
+        int Loc = glGetUniformLocation(s_program, "u_Color");
+        glUniform4f(Loc, color.r, color.g, color.b, color.a);
+        /*Loc = glGetUniformLocation(s_program, "u_Scale");
+        glUniform2f(Loc, scale.x, scale.y);*/
 
         // Set the projection matrix uniform
         if (projectionMatrix.size()==16) {
@@ -172,8 +194,6 @@ namespace KLSE
             std::cerr << "Projection matrix is null!" << std::endl;
         }
 
-        // Set the color uniform (ensure color components are in [0,1])
-        glUniform4f(colorLoc, color.r, color.g, color.b, color.a);
 
         // 6. Draw the vertices using the index buffer
         glDrawElements(mode, index.size(), GL_UNSIGNED_INT, 0);
@@ -186,75 +206,54 @@ namespace KLSE
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
     }
-    /*void GLRenderer::_draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,Camera3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode){
-        VAO vao1;
+    void GLRenderer::draw_sprite(Sprite* s,Vec2 offset,Vec2 scale){
+        Dimention x1 = offset.x;
+        Dimention y1 = offset.y;
+        Dimention x2 = x1 + offset.x;
+        Dimention y2 = y1 + offset.y;
 
-        vao1.Bind();
+        std::vector<Dimention> vertices = {
+        //Coord     TexCoords
+            x1, y1, 0.0f, 1.0f,  // Bottom-left
+            x2, y1, 0.0f, 0.0f,  // Bottom-right
+            x2, y2, 1.0f, 0.0f,  // Top-right
+            x1, y2, 1.0f, 1.0f   // Top-left
+        };
 
-        VBO vbo1((GLdouble*)vertex.data(),sizeof(Vertex3D)*vertex.size());
-        EBO ebo1((GLuint*)index.data(),sizeof(uint32_t)*index.size());
+        std::vector<unsigned int> indices = {
+            0, 1, 2,  // First triangle
+            2, 3, 0   // Second triangle
+        };
 
-        vao1.LinkAttrib(vbo1,0,3,GL_DOUBLE,sizeof(Vertex3D),(void*)0);
-        vao1.LinkAttrib(vbo1,1,3,GL_DOUBLE,sizeof(Vertex3D),(void*)(3*sizeof(Dimention)));
-
-        glUseProgram(simple_program_3d);
-
-        int projLoc = glGetUniformLocation(simple_program_3d, "u_MainMatrix");
-        if (projLoc != -1) {
-            glUniformMatrix4fv(projLoc, 1, GL_FALSE, camera->matrix.data());
-        } else {
-            std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
-        }
-
-        int uLoc = glGetUniformLocation(simple_program_3d, "u_Color");
-        if (uLoc != -1) {
-            glUniform4f(uLoc, color.r, color.g, color.b, color.a);
-        } else {
-            std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
-        }
-
-        uLoc = glGetUniformLocation(simple_program_3d, "u_Position");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, position.x, position.y, position.z);
-        } else {
-            std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
-        }
-
-        uLoc = glGetUniformLocation(simple_program_3d, "u_Rotation");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, rotation.x, rotation.y, rotation.z);
-        } else {
-            std::cerr << "Uniform 'u_Rotation' not founded!" << std::endl;
-        }
-
-        uLoc = glGetUniformLocation(simple_program_3d, "u_Scale");
-        if (uLoc != -1) {
-            glUniform3f(uLoc, scale.x, scale.y, scale.z);
-        } else {
-            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
-        }
-        if(rmode==RenderMode3D::wireframe){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-
-        glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
-
-        if(rmode==RenderMode3D::wireframe){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
-        glBindVertexArray(0);
-        vao1.Free();
-        vbo1.Free();
-        ebo1.Free();
-
-        checkOpenGLError("_draw_simple_3d");
-    }*/
+        reinterpret_cast<GLSprite*>(s)->drawr(this,vertices,indices,simple_tex_program);
+    }
     void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera3D* camera,RenderMode3D m){
         reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,this->window,model,camera,transform);
     }
     void GLRenderer::set_viewport(IVec2 size){
         projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));
         glViewport(0,0,size.x, size.y);
+    }
+
+    Sprite* GLRenderer::create_sprite(IVec2 size){
+        GLuint fbo, texture;
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, size.x, size.y);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        IVec2 ws=window->get_size();
+        glViewport(0, 0, ws.x, ws.y);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        auto s=new GLSprite(fbo,texture,Vec2::dscale(Vec2(size),this->meter_size),size,this);
+        return reinterpret_cast<Sprite*>(s);
     }
 }

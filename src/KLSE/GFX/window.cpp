@@ -1,6 +1,4 @@
 #include <KLSE/GFX/renderer.hpp>
-#include <GLFW/glfw3.h>
-#include <iostream>
 namespace KLSE
 {
     #define DEFAULT_WINDOWS_SIZE_X 800

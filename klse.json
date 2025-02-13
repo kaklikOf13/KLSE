@@ -7,9 +7,6 @@
             "lib":{
                 "task":"klse compile-static-lib KLSE dist/windows \"-fPIC -I./includes -I./includes-exe -L./libs\""
             },
-            "lib-wasm":{
-                "task":"klse generate-wasm KLSE dist/wasm \"-fPIC -I./includes -L./libs\""
-            },
             "executable":{
                 "task":"klse build-dir dist/windows/bin/main && g++ src/EXE/main.cpp -L./dist/windows/libs -lKLSE -I./includes -o dist/windows/bin/main/klse.exe"
             },

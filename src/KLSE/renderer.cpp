@@ -30,11 +30,16 @@ namespace KLSE
     }
     void DrawForm2D::draw(Renderer* render,RContainer* container){
         Vec2 offset=Vec2::neg(container->real_position);
-        render->draw_collider2D(this->collider,this->color,offset);
+        render->draw_collider2D(this->collider,this->color,offset,Vec2());
     }
     void RContainer::CalculateRealPosition(){
-        if(this->parent)this->real_position=Vec2::add(parent->real_position,this->position);
-        else this->real_position=this->position;
+        if(parent){
+            real_position=Vec2::add(parent->real_position,position);
+            //real_scale=Vec2::mult(parent->real_scale,scale);
+        }else {
+            real_position=position;
+            //real_scale=scale;
+        }
     }
     RContainer::~RContainer(){
         for(uint32_t i=0;i<this->forms.size();i++){

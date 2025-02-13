@@ -59,21 +59,25 @@ namespace KLSE
         private:
     };
     class Window;
+    class Sprite;
     class Renderer {
         public:
         Dimention meter_size;
         Color backgroundColor;
         Window* window;
-        virtual void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset)=0;
-        virtual void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,unsigned int smooth=30)=0;
-        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,unsigned int smooth=30)=0;
-        //virtual void draw_image2D(Sprite image,Vec2 position,Vec2 size,Vec2 offset){};
+        virtual void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale=Vec2(1,1))=0;
+        virtual void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
+        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
+        virtual void draw_sprite(Sprite* s,Vec2 offset,Vec2 scale)=0;
 
         virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void clear(){};
         virtual void init(Window* window){};
 
         virtual void set_viewport(IVec2 size)=0;
+
+        virtual Sprite* create_sprite(IVec2 size)=0;
+
 
         Renderer(Dimention meter_size,Color backgroundColor):meter_size(meter_size),backgroundColor(backgroundColor){}
         Renderer():meter_size(100),backgroundColor(0,0,0){}
@@ -105,6 +109,15 @@ namespace KLSE
         DrawForm2D():color(RGBA::create(0,0,0)),collider(nullptr){};
         ~DrawForm2D();
     };
+    class Sprite{
+        public:
+        std::string id;
+        Renderer* render;
+        IVec2 real_size;
+        Vec2 size;
+        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
+        ~Sprite(){};
+    };
     class RContainer{
         public:
         std::vector<DrawForm2D*> forms;
@@ -114,7 +127,7 @@ namespace KLSE
         Vec2 scale;
         Dimention rotation;
         void CalculateRealPosition();
-        RContainer(){};
+        RContainer():scale(Vec2(1,1)){};
         ~RContainer();
 
         DrawForm2D* add_rectangle(Vec2 position, Vec2 size, Color color);
@@ -124,6 +137,7 @@ namespace KLSE
         void draw(Renderer* render);
 
         Vec2 real_position;
+        Vec2 real_scale;
     };
 } // namespace KLSE
 
