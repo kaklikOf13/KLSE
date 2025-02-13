@@ -53,6 +53,14 @@ namespace KLSE{
                 return static_cast<unsigned long int>(rand());
             }
         }
+        int32 Floor(float32 x){
+            int32 i = static_cast<int32>(x);
+            return (x < 0 && x != i) ? i - 1 : i;
+        }
+        int64 Floor(float64 x){
+            int64 i = static_cast<int64>(x);
+            return (x < 0 && x != i) ? i - 1 : i;
+        }
     } // namespace Math
 
     std::vector<std::string> splitPath(std::string path) {

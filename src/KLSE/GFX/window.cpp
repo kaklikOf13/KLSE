@@ -109,7 +109,10 @@ namespace KLSE
     }
     IVec2 GLFWWindow::get_size(){
         IVec2 ret;
-        glfwGetWindowSize(window,&(ret.x),&(ret.y));
+        int32 x,y;
+        glfwGetWindowSize(window,&x,&y);
+        ret.x=x;
+        ret.y=y;
         return ret;
     }
     void GLFWWindow::set_size(IVec2 size){

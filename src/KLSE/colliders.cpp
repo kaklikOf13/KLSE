@@ -23,7 +23,7 @@ namespace KLSE
     bool SphereCollider3D::collidingWith(Collider3D* other) {
         switch(other->type){
             case ColliderType3D::sphere:
-                return Vec3::less(Vec3::sub(transform.position,other->transform.position),Vec3::add(transform.scale,other->transform.scale));
+                return (transform.position-other->transform.position)<(transform.scale+other->transform.scale);
             default:
                 break;
         };
@@ -115,7 +115,7 @@ namespace KLSE
       return Vec2::distance(position,point)<radius;
     }
     bool SphereCollider3D::pointInside(Vec3 point) {
-      return Vec3::less(Vec3::sub(transform.position,point),transform.scale);
+      return (transform.position-point)<transform.scale;
     }
     bool RectCollider2D::pointInside(Vec2 point) {
         return (position.x+size.x>=point.x&&position.x<=point.x)&&(position.y+size.y>=point.y&&position.y<=point.y);
@@ -132,7 +132,7 @@ namespace KLSE
         this->radius*=scale;
     }
     void RectCollider2D::scale(Dimention scale){
-        this->size=Vec2::scale(size,scale);
+        this->size=size*scale;
     }
 
     Vec2 Collider2D::center() {
@@ -145,10 +145,10 @@ namespace KLSE
         return position;
     }
     Vec2 RectCollider2D::center() {
-        return Vec2::add(position,Vec2::dscale(size,2));
+        return position+size/2;
     }
     Vec3 BoxCollider3D::center() {
-        return Vec3::add(transform.position,Vec3::dscale(transform.scale,2));
+        return transform.position+(transform.scale/2);
     }
     Vec3 SphereCollider3D::center() {
         return transform.position;
@@ -168,7 +168,7 @@ namespace KLSE
         return Vec3();
     }
     Vec2 RectCollider2D::randomPoint() {
-        return Vec2::add(position,Vec2::random2(Vec2(),size));
+        return position+Vec2::random2(Vec2(),size);
     }
     Vec2 CircleCollider2D::randomPoint() {
         Dimention angle = Math::random::dimention(0,Math::PI*2);
@@ -176,7 +176,7 @@ namespace KLSE
         return Vec2(position.x+(std::cos(angle)*length),position.y+(std::sin(angle)*length));
     }
     Vec3 BoxCollider3D::randomPoint() {
-        return Vec3::add(transform.position,Vec3::random3(Vec3(),transform.scale));
+        return transform.position+Vec3::random3(Vec3(),transform.scale);
     }
 
     RectCollider2D* Collider2D::toRect(){
@@ -186,7 +186,7 @@ namespace KLSE
         return this;
     }
     RectCollider2D* CircleCollider2D::toRect(){
-        return new RectCollider2D(Vec2::sub(position,Vec2(-radius,-radius)),Vec2(radius,radius));
+        return new RectCollider2D(position-Vec2(-radius,-radius),Vec2(radius,radius));
     }
     BoxCollider3D* Collider3D::toBox(){
         return new BoxCollider3D(Vec3(),Vec3(),Vec3());
@@ -201,20 +201,20 @@ namespace KLSE
     namespace _Collision
     {
         static bool circle_with_rect(CircleCollider2D* hb1,RectCollider2D* hb2){
-            Vec2 cp=Vec2::clamp2(hb1->position,hb2->position,Vec2::add(hb2->position,hb2->size));
+            Vec2 cp=Vec2::clamp2(hb1->position,hb2->position,hb2->position+hb2->size);
             Dimention dist=Vec2::distanceSquared(hb1->position,cp);
             return (dist<hb1->radius*hb1->radius)||((hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x)&&(hb1->position.y>=hb2->position.y&&hb1->position.y<=hb2->position.y+hb2->size.y));
         };
         static OverlapCollision2D circle_with_circle_ov(CircleCollider2D* hb1,CircleCollider2D* hb2){
             Dimention dists = Vec2::distance(hb1->position,hb2->position);
-            Vec2 dis=Vec2::sub(hb1->position,hb2->position);
+            Vec2 dis=hb1->position-hb2->position;
             if(dists<0.00001){
                 return OverlapCollision2D(true,Vec2(1,1));
             }
             if (dists < (hb1->radius + hb2->radius)){
                 Dimention overlap=(hb1->radius + hb2->radius)-dists;
-                Vec2 dire=Vec2::dscale(dis,dists);
-                Vec2 ret=Vec2::neg(Vec2::scale(dire,overlap*2));
+                Vec2 dire=dis/dists;
+                Vec2 ret=Vec2::neg(dire*(overlap*2));
                 return OverlapCollision2D(true,ret);
             }
             return OverlapCollision2D();
@@ -223,13 +223,13 @@ namespace KLSE
             Vec2 val1;
             Dimention val2;
             if ((hb2->position.x <= hb1->position.x && hb1->position.x <= hb2->position.x+hb2->size.x) && (hb2->position.y <= hb1->position.y && hb1->position.y <= hb2->position.y+hb2->size.y)) {
-                Vec2 halfDim = Vec2::dscale(Vec2::sub(Vec2::add(hb2->position,hb2->size), hb2->position), 2);
-                Vec2 p=Vec2::sub(hb1->position, Vec2::add(hb2->position, halfDim));
-                Vec2 p2=Vec2::sub(Vec2::sub(Vec2::absolute(p),halfDim),Vec2(hb1->radius,hb1->radius));
+                Vec2 halfDim = ((hb2->position+hb2->size)- hb2->position)/2;
+                Vec2 p=hb1->position-(hb2->position+ halfDim);
+                Vec2 p2=(Vec2::absolute(p)-halfDim)-Vec2(hb1->radius,hb1->radius);
                 val1=Vec2(p.x > 0 ? 1 : -1,p.y > 0 ? 1 : -1);
                 val2=p2.x;
             }else{
-                Vec2 dir = Vec2::sub(Vec2::clamp2(hb1->position,hb2->position,Vec2::add(hb2->position,hb2->size)),hb1->position);
+                Vec2 dir = Vec2::clamp2(hb1->position,hb2->position,(hb2->position+hb2->size)-hb1->position);
                 Dimention dstSqr = Vec2::squared(dir);
 
                 if (dstSqr < hb1->radius * hb1->radius) {
@@ -241,37 +241,37 @@ namespace KLSE
                 }
             }
 
-            Vec2 pos=Vec2::normalizeSafe(Vec2::scale(val1,val2*reverse),Vec2());
-            if(Vec2::is(pos,Vec2())){
+            Vec2 pos=Vec2::normalizeSafe(val1/(val2*reverse),Vec2());
+            if(pos==Vec2()){
                 return OverlapCollision2D();
             }
             return OverlapCollision2D(true,pos);
         }
         static OverlapCollision2D rect_with_rect_ov(RectCollider2D* hb1,RectCollider2D* hb2){
-            Vec2 ss=Vec2::dscale(Vec2::add(hb1->size,hb2->size),2);
-            Vec2 dist=Vec2::sub(hb1->position,hb2->position);
-            if(Vec2::less(Vec2::absolute(dist),ss)){
-                Vec2 ov=Vec2::maxDecimal(Vec2::normalizeSafe(Vec2::sub(ss,Vec2::absolute(dist)),Vec2(1,0)),2);
+            Vec2 ss=(hb1->size+hb2->size)/2;
+            Vec2 dist=hb1->position-hb2->position;
+            if(Vec2::absolute(dist)<ss){
+                Vec2 ov=Vec2::maxDecimal(Vec2::normalizeSafe(ss-Vec2::absolute(dist),Vec2(1,0)),2);
                 Vec2 ov2=Vec2();
                 if(ov.x<ov.y){
                     ov2.x=dist.x>0?-ov.x:ov.x;
                 }else{
                     ov2.y=dist.y>0?-ov.y:ov.y;
                 }
-                return OverlapCollision2D(!Vec2::is(ov2,Vec2()),ov2);
+                return OverlapCollision2D(!(ov2==Vec2()),ov2);
             }
             return OverlapCollision2D();
         }
 
         static OverlapCollision3D box_with_box_ov(BoxCollider3D* hb1,BoxCollider3D* hb2){
-            Vec3 dist= Vec3::sub(hb1->center(),hb2->center());
-            Vec3 ss=Vec3::dscale(Vec3::add(hb1->transform.scale,hb2->transform.scale),2);
-            if(Vec3::less(Vec3::absolute(dist),ss)){
+            Vec3 dist= hb1->center()-hb2->center();
+            Vec3 ss=(hb1->transform.scale+hb2->transform.scale)/2;
+            if(Vec3::absolute(dist)<ss){
                 Vec3 ov=Vec3::min3(
-                    Vec3::sub(ss,Vec3::absolute(dist)),
+                    ss-Vec3::absolute(dist),
                     Vec3());
                 Vec3 dire=Vec3();
-                Vec3 ovp=Vec3::div(ov,ss);
+                Vec3 ovp=ov/ss;
                 if(ovp.x<ovp.y&&ovp.x<ovp.z){
                     dire.x=dist.x<0?1:-1;
                 }
@@ -280,7 +280,7 @@ namespace KLSE
                 }else if(ovp.z<ovp.x&&ovp.z<ovp.y){
                     dire.z=dist.z<0?1:-1;
                 }
-                return OverlapCollision3D(true,Vec3::maxDecimal(Vec3::mult(ov,dire),3),Vec3::sub(dire,Vec3::mult(ovp,dire)),dire);
+                return OverlapCollision3D(true,Vec3::maxDecimal(ov*dire,3),dire-(ovp*dire),dire);
             }
             return OverlapCollision3D();
         };

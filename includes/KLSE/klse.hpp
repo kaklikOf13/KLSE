@@ -1,5 +1,6 @@
 #ifndef KLSE_HPP
 #define KLSE_HPP
+#include "net/net.hpp"
 #include "geometry.hpp"
 #include "utils.hpp"
 #include "colliders.hpp"

@@ -1,7 +1,6 @@
 #ifndef KLSE_UTILS_HPP
 #define KLSE_UTILS_HPP
 #include <algorithm>
-#include "geometry.hpp"
 
 #include <string.h>
 #include <vector>
@@ -19,6 +18,24 @@
 namespace KLSE{
     const unsigned long long a = 1664525; // Multiplier
     const unsigned long long c = 1013904223; // Increment
+
+    using byte=unsigned char;
+
+    using uint8=byte;
+    using uint16=short unsigned;
+    using uint32=unsigned;
+    using uint64=long long unsigned;
+
+    using int8=char;
+    using int16=short int;
+    using int32=int;
+    using int64=long long int;
+
+    using float32=float;
+    using float64=double;
+
+    typedef float64 Dimention;
+    typedef int64 IDimention;
 
     struct ZeroStruct{};
 
@@ -51,6 +68,9 @@ namespace KLSE{
             Dimention dimention(Dimention min, Dimention max);
             unsigned long int object_id();
         }
+
+        int32 Floor(float32);
+        int64 Floor(float64);
     } // namespace Math
 
     class Formatter

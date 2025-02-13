@@ -58,9 +58,9 @@ int main(int argc, char const *argv[])
             player->position.x-=playerSpeed;
         }
 
-        screenSize=Vec2::dscale(window->get_size(),window->renderer->meter_size);
+        screenSize=window->get_size()/window->renderer->meter_size;
 
-        player->position=Vec2::clamp2(player->position,Vec2(),Vec2::sub(screenSize,player->size));
+        player->position=Vec2::clamp2(player->position,Vec2(),screenSize-player->size);
 
         if(shootDelayReduce==0){
             if(shootDelay>3){
@@ -79,7 +79,7 @@ int main(int argc, char const *argv[])
         }
 
         for(int i=0;i<projectiles.size();i++){
-            projectiles[i].collider->position=Vec2::add(projectiles[i].collider->position,projectiles[i].speed);
+            projectiles[i].collider->position+=projectiles[i].speed;
             if(projectiles[i].lifeTime==0){
                 delete projectiles[i].collider;
                 projectiles.erase(projectiles.begin()+i);

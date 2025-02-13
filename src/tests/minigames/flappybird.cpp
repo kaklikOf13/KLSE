@@ -23,9 +23,9 @@ std::vector<Dimention> mountainsSpeed;
 
 void generatePipe(){
     Vec2 size=Vec2(.5,screenSize.y);
-    Vec2 pos=Vec2::random2(Vec2(screenSize.x,(-size.y)+1),Vec2::add(screenSize,Vec2(5,(-size.y)-2)));
+    Vec2 pos=Vec2::random2(Vec2(screenSize.x,(-size.y)+1),screenSize+Vec2(5,(-size.y)-2));
 
-    pipes.push_back(new RectCollider2D(Vec2::add(pos,Vec2(0,size.y+1.5)),size));
+    pipes.push_back(new RectCollider2D(pos+Vec2(0,size.y+1.5),size));
     pipes.push_back(new RectCollider2D(pos,size));
 }
 void initMountains(){
@@ -66,7 +66,7 @@ int main(int argc, char const *argv[])
     uint8_t pp=0;
 
     while (!window->closed()) {
-        screenSize=Vec2::dscale(window->get_size(),window->renderer->meter_size);
+        screenSize=window->get_size()/window->renderer->meter_size;
 
         window->renderer->clear();
 
@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
             playerVelocity.y=-jumpForce;
         }
 
-        player->position=Vec2::add(player->position,playerVelocity);
+        player->position=player->position+playerVelocity;
 
         if(pipes.size()<2){
             generatePipe();

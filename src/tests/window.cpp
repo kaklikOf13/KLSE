@@ -13,6 +13,7 @@ int main(int argc, char const *argv[])
     auto cc=container->add_container();
     cc->add_circle(Vec2(1,-0.1),0.3,RGBA::create(100,0,20));
     cc->add_circle(Vec2(1,1.1),0.3,RGBA::create(100,0,20));
+
     container->position.x+=1;
     container->position.y+=1;
     cc->position.y=1;

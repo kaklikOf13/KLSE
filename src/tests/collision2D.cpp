@@ -28,8 +28,8 @@ class OBJ:public Object2D{
             }
             auto col=collider->overlapCollision(objs[i]->collider);
             if(col.colliding){
-                collider->position=Vec2::sub(collider->position,Vec2::scale(col.overlap,.02));
-                objs[i]->collider->position=Vec2::add(objs[i]->collider->position,Vec2::scale(col.overlap,.02));
+                collider->position-=col.overlap*.02;
+                objs[i]->collider->position+=col.overlap*.02;
             }
         }
        layer->update_object(this);

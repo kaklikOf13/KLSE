@@ -34,7 +34,7 @@ namespace KLSE
     }
     void RContainer::CalculateRealPosition(){
         if(parent){
-            real_position=Vec2::add(parent->real_position,position);
+            real_position=parent->real_position+position;
             //real_scale=Vec2::mult(parent->real_scale,scale);
         }else {
             real_position=position;

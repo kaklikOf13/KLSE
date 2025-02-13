@@ -2,27 +2,27 @@
 #define KLSE_GEOMETRY_HPP
 #include <iostream>
 #include <cmath>
+#include "utils.hpp"
 namespace KLSE{
     extern "C"{
-    typedef double Dimention;
-    typedef int IDimention;
     #pragma region Vec2
 
     typedef float RadAngle;
     typedef int DegAngle;
 
     struct IVec2;
+    struct IVec3;
     
     //HASH
 
-    typedef long long int HashIVec2;
-    typedef long long int HashIVec3;
+    typedef int64 HashIVec2;
+    typedef int64 HashIVec3;
 
     const HashIVec2 prime1 = 51345689903;
     const HashIVec2 prime2 = 102691380403;
     const HashIVec2 prime3 = 154037072377;
 
-    const long long IDimentionLimit = std::numeric_limits<long>::max();
+    const int64 IDimentionLimit = std::numeric_limits<long>::max();
 
     struct Vec2{
         Dimention x;
@@ -36,25 +36,42 @@ namespace KLSE{
 
         static Vec2 random2(Vec2 min, Vec2 max);
 
-        static Vec2 add(Vec2 a, Vec2 b);
+        Vec2& operator+=(const Vec2& other);
+        Vec2 operator+(const Vec2& other);
+        Vec2& operator+=(const IVec2& other);
+        Vec2 operator+(const IVec2& other);
 
-        static Vec2 sub(Vec2 a, Vec2 b);
+        Vec2& operator-=(const Vec2& other);
+        Vec2 operator-(const Vec2& other);
+        Vec2& operator-=(const IVec2& other);
+        Vec2 operator-(const IVec2& other);
 
-        static Vec2 mult(Vec2 a, Vec2 b);
+        Vec2& operator*=(const Vec2& other);
+        Vec2 operator*(const Vec2& other);
+        Vec2& operator*=(const IVec2& other);
+        Vec2 operator*(const IVec2& other);
+        Vec2& operator*=(Dimention other);
+        Vec2 operator*(Dimention other);
 
-        static Vec2 div(Vec2 a, Vec2 b);
+        Vec2& operator/=(const Vec2& other);
+        Vec2 operator/(const Vec2& other);
+        Vec2& operator/=(const IVec2& other);
+        Vec2 operator/(const IVec2& other);
+        Vec2& operator/=(Dimention other);
+        Vec2 operator/(Dimention other);
 
-        static Vec2 scale(Vec2 a, Dimention scalar);
+        bool operator==(const Vec2& other);
+        bool operator==(const IVec2& other);
 
-        static Vec2 dscale(Vec2 a, Dimention scalar);
+        bool operator>(const Vec2& other);
+        bool operator>(const IVec2& other);
+        bool operator>=(const Vec2& other);
+        bool operator>=(const IVec2& other);
 
-        static bool is(Vec2 a, Vec2 b);
-
-        static bool greater(Vec2 a, Vec2 b);
-
-        static bool less(Vec2 a, Vec2 b);
-
-        static bool isEqual(Vec2 a, Vec2 b);
+        bool operator<(const Vec2& other);
+        bool operator<(const IVec2& other);
+        bool operator<=(const Vec2& other);
+        bool operator<=(const IVec2& other);
 
         static bool greaterOr(Vec2 a, Vec2 b);
 
@@ -123,25 +140,42 @@ namespace KLSE{
 
         static IVec2 random2(IVec2 min, IVec2 max);
 
-        static IVec2 add(IVec2 a, IVec2 b);
+        IVec2& operator+=(const Vec2& other);
+        IVec2 operator+(const Vec2& other);
+        IVec2& operator+=(const IVec2& other);
+        IVec2 operator+(const IVec2& other);
 
-        static IVec2 sub(IVec2 a, IVec2 b);
+        IVec2& operator-=(const Vec2& other);
+        IVec2 operator-(const Vec2& other);
+        IVec2& operator-=(const IVec2& other);
+        IVec2 operator-(const IVec2& other);
 
-        static IVec2 mult(IVec2 a, IVec2 b);
+        IVec2& operator*=(const Vec2& other);
+        IVec2 operator*(const Vec2& other);
+        IVec2& operator*=(const IVec2& other);
+        IVec2 operator*(const IVec2& other);
+        IVec2& operator*=(IDimention other);
+        IVec2 operator*(IDimention other);
 
-        static IVec2 div(IVec2 a, IVec2 b);
+        IVec2& operator/=(const Vec2& other);
+        IVec2 operator/(const Vec2& other);
+        IVec2& operator/=(const IVec2& other);
+        IVec2 operator/(const IVec2& other);
+        IVec2& operator/=(IDimention other);
+        IVec2 operator/(IDimention other);
 
-        static IVec2 scale(IVec2 a, IDimention scalar);
+        bool operator==(const Vec2& other);
+        bool operator==(const IVec2& other);
 
-        static IVec2 dscale(IVec2 a, IDimention scalar);
+        bool operator>(const Vec2& other);
+        bool operator>(const IVec2& other);
+        bool operator>=(const Vec2& other);
+        bool operator>=(const IVec2& other);
 
-        static bool is(IVec2 a, IVec2 b);
-
-        static bool greater(IVec2 a, IVec2 b);
-
-        static bool less(IVec2 a, IVec2 b);
-
-        static bool isEqual(IVec2 a, IVec2 b);
+        bool operator<(const Vec2& other);
+        bool operator<(const IVec2& other);
+        bool operator<=(const Vec2& other);
+        bool operator<=(const IVec2& other);
 
         static bool greaterOr(IVec2 a, IVec2 b);
 
@@ -216,25 +250,42 @@ namespace KLSE{
 
         static Vec3 random3(Vec3 min, Vec3 max);
 
-        static Vec3 add(Vec3 a, Vec3 b);
+        Vec3& operator+=(const Vec3& other);
+        Vec3 operator+(const Vec3& other);
+        Vec3& operator+=(const IVec3& other);
+        Vec3 operator+(const IVec3& other);
 
-        static Vec3 sub(Vec3 a, Vec3 b);
+        Vec3& operator-=(const Vec3& other);
+        Vec3 operator-(const Vec3& other);
+        Vec3& operator-=(const IVec3& other);
+        Vec3 operator-(const IVec3& other);
 
-        static Vec3 mult(Vec3 a, Vec3 b);
+        Vec3& operator*=(const Vec3& other);
+        Vec3 operator*(const Vec3& other);
+        Vec3& operator*=(const IVec3& other);
+        Vec3 operator*(const IVec3& other);
+        Vec3& operator*=(Dimention other);
+        Vec3 operator*(Dimention other);
 
-        static Vec3 div(Vec3 a, Vec3 b);
+        Vec3& operator/=(const Vec3& other);
+        Vec3 operator/(const Vec3& other);
+        Vec3& operator/=(const IVec3& other);
+        Vec3 operator/(const IVec3& other);
+        Vec3& operator/=(Dimention other);
+        Vec3 operator/(Dimention other);
 
-        static Vec3 scale(Vec3 a, Dimention scalar);
+        bool operator==(const Vec3& other);
+        bool operator==(const IVec3& other);
 
-        static Vec3 dscale(Vec3 a, Dimention scalar);
-
-        static bool is(Vec3 a, Vec3 b);
-
-        static bool greater(Vec3 a, Vec3 b);
-
-        static bool less(Vec3 a, Vec3 b);
-
-        static bool isEqual(Vec3 a, Vec3 b);
+        bool operator>(const Vec3& other);
+        bool operator>(const IVec3& other);
+        bool operator>=(const Vec3& other);
+        bool operator>=(const IVec3& other);
+    
+        bool operator<(const Vec3& other);
+        bool operator<(const IVec3& other);
+        bool operator<=(const Vec3& other);
+        bool operator<=(const IVec3& other);
 
         static bool greaterOr(Vec3 a, Vec3 b);
 
@@ -301,25 +352,42 @@ namespace KLSE{
 
         static IVec3 random3(IVec3 min, IVec3 max);
 
-        static IVec3 add(IVec3 a, IVec3 b);
+        IVec3& operator+=(const Vec3& other);
+        IVec3 operator+(const Vec3& other);
+        IVec3& operator+=(const IVec3& other);
+        IVec3 operator+(const IVec3& other);
 
-        static IVec3 sub(IVec3 a, IVec3 b);
+        IVec3& operator-=(const Vec3& other);
+        IVec3 operator-(const Vec3& other);
+        IVec3& operator-=(const IVec3& other);
+        IVec3 operator-(const IVec3& other);
 
-        static IVec3 mult(IVec3 a, IVec3 b);
+        IVec3& operator*=(const Vec3& other);
+        IVec3 operator*(const Vec3& other);
+        IVec3& operator*=(const IVec3& other);
+        IVec3 operator*(const IVec3& other);
+        IVec3& operator*=(IDimention other);
+        IVec3 operator*(IDimention other);
 
-        static IVec3 div(IVec3 a, IVec3 b);
+        IVec3& operator/=(const Vec3& other);
+        IVec3 operator/(const Vec3& other);
+        IVec3& operator/=(const IVec3& other);
+        IVec3 operator/(const IVec3& other);
+        IVec3& operator/=(IDimention other);
+        IVec3 operator/(IDimention other);
 
-        static IVec3 scale(IVec3 a, Dimention scalar);
+        bool operator==(const Vec3& other);
+        bool operator==(const IVec3& other);
 
-        static IVec3 dscale(IVec3 a, Dimention scalar);
-
-        static bool is(IVec3 a, IVec3 b);
-
-        static bool greater(IVec3 a, IVec3 b);
-
-        static bool less(IVec3 a, IVec3 b);
-
-        static bool isEqual(IVec3 a, IVec3 b);
+        bool operator>(const Vec3& other);
+        bool operator>(const IVec3& other);
+        bool operator>=(const Vec3& other);
+        bool operator>=(const IVec3& other);
+    
+        bool operator<(const Vec3& other);
+        bool operator<(const IVec3& other);
+        bool operator<=(const Vec3& other);
+        bool operator<=(const IVec3& other);
 
         static bool greaterOr(IVec3 a, IVec3 b);
 

@@ -3,6 +3,7 @@
 namespace KLSE{
 
     #pragma region Vec2
+    #pragma region FVec2
     Vec2::Vec2(IVec2 t) : x(static_cast<Dimention>(t.x)), y(static_cast<Dimention>(t.y)) {}
 
     Vec2 Vec2::random(Dimention min, Dimention max) {
@@ -12,46 +13,128 @@ namespace KLSE{
     Vec2 Vec2::random2(Vec2 min, Vec2 max) {
         return Vec2(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y));
     }
-
-    Vec2 Vec2::add(Vec2 a, Vec2 b) {
-        return Vec2(a.x + b.x, a.y + b.y);
+    #pragma region VEC2 Operators
+    //Sum
+    Vec2& Vec2::operator+=(const Vec2& other){
+        x+=other.x;
+        y+=other.y;
+        return *this;
+    }
+    Vec2  Vec2::operator+(const Vec2& other){
+        return Vec2(x+other.x,y+other.y);
+    }
+    Vec2& Vec2::operator+=(const IVec2& other){
+        x+=static_cast<Dimention>(other.x);
+        y+=static_cast<Dimention>(other.y);
+        return *this;
+    }
+    Vec2  Vec2::operator+(const IVec2& other){
+        return Vec2(x+static_cast<Dimention>(other.x),y+static_cast<Dimention>(other.y));
+    }
+    //Sub
+    Vec2& Vec2::operator-=(const Vec2& other){
+        x+=other.x;
+        y+=other.y;
+        return *this;
+    }
+    Vec2 Vec2::operator-(const Vec2& other){
+        return Vec2(x+other.x,y+other.y);
+    }
+    Vec2& Vec2::operator-=(const IVec2& other){
+        x-=static_cast<Dimention>(other.x);
+        y-=static_cast<Dimention>(other.y);
+        return *this;
+    }
+    Vec2  Vec2::operator-(const IVec2& other){
+        return Vec2(x-static_cast<Dimention>(other.x),y-static_cast<Dimention>(other.y));
+    }
+    //Mult
+    Vec2& Vec2::operator*=(const Vec2& other){
+        x*=other.x;
+        y*=other.y;
+        return *this;
+    }
+    Vec2 Vec2::operator*(const Vec2& other){
+        return Vec2(x*other.x,y*other.y);
+    }
+    Vec2& Vec2::operator*=(const IVec2& other){
+        x*=static_cast<Dimention>(other.x);
+        y*=static_cast<Dimention>(other.y);
+        return *this;
+    }
+    Vec2  Vec2::operator*(const IVec2& other){
+        return Vec2(x*static_cast<Dimention>(other.x),y*static_cast<Dimention>(other.y));
+    }
+    Vec2& Vec2::operator*=(Dimention other){
+        x*=other;
+        y*=other;
+        return *this;
+    }
+    Vec2 Vec2::operator*(Dimention other){
+        return Vec2(x*other,y*other);
+    }
+    //Div
+    Vec2& Vec2::operator/=(const Vec2& other){
+        x/=other.x;
+        y/=other.y;
+        return *this;
+    }
+    Vec2 Vec2::operator/(const Vec2& other){
+        return Vec2(x/other.x,y/other.y);
+    }
+    Vec2& Vec2::operator/=(const IVec2& other){
+        x/=static_cast<Dimention>(other.x);
+        y/=static_cast<Dimention>(other.y);
+        return *this;
+    }
+    Vec2  Vec2::operator/(const IVec2& other){
+        return Vec2(x/static_cast<Dimention>(other.x),y/static_cast<Dimention>(other.y));
+    }
+    Vec2& Vec2::operator/=(Dimention other){
+        x/=other;
+        y/=other;
+        return *this;
+    }
+    Vec2 Vec2::operator/(Dimention other){
+        return Vec2(x/other,y/other);
     }
 
-    Vec2 Vec2::sub(Vec2 a, Vec2 b) {
-        return Vec2(a.x - b.x, a.y - b.y);
+    //==
+    bool Vec2::operator==(const Vec2& other) {
+        return x == other.x && y == other.y;
+    }
+    bool Vec2::operator==(const IVec2& other) {
+        return x==static_cast<Dimention>(other.x) && y == static_cast<Dimention>(other.y);
     }
 
-    Vec2 Vec2::mult(Vec2 a, Vec2 b) {
-        return Vec2(a.x * b.x, a.y * b.y);
+    //> and >=
+    bool Vec2::operator>(const Vec2& other) {
+        return x>other.x && y>other.y;
+    }
+    bool Vec2::operator>(const IVec2& other) {
+        return x>static_cast<Dimention>(other.x) && y>static_cast<Dimention>(other.y);
+    }
+    bool Vec2::operator>=(const Vec2& other) {
+        return x>=other.x && y>=other.y;
+    }
+    bool Vec2::operator>=(const IVec2& other) {
+        return x>=static_cast<Dimention>(other.x) && y>=static_cast<Dimention>(other.y);
     }
 
-    Vec2 Vec2::div(Vec2 a, Vec2 b) {
-        return Vec2(a.x / b.x, a.y / b.y);
+    //< and <=
+    bool Vec2::operator<(const Vec2& other) {
+        return x<other.x && y<other.y;
     }
-
-    Vec2 Vec2::scale(Vec2 a, Dimention scalar) {
-        return Vec2(a.x * scalar, a.y * scalar);
+    bool Vec2::operator<(const IVec2& other) {
+        return x<static_cast<Dimention>(other.x) && y<static_cast<Dimention>(other.y);
     }
-
-    Vec2 Vec2::dscale(Vec2 a, Dimention scalar) {
-        return Vec2(a.x / scalar, a.y / scalar);
+    bool Vec2::operator<=(const Vec2& other) {
+        return x<=other.x && y<=other.y;
     }
-
-    bool Vec2::is(Vec2 a, Vec2 b) {
-        return a.x == b.x && a.y == b.y;
+    bool Vec2::operator<=(const IVec2& other) {
+        return x<=static_cast<Dimention>(other.x) && y<=static_cast<Dimention>(other.y);
     }
-
-    bool Vec2::greater(Vec2 a, Vec2 b) {
-        return a.x > b.x && a.y > b.y;
-    }
-
-    bool Vec2::less(Vec2 a, Vec2 b) {
-        return a.x < b.x && a.y < b.y;
-    }
-
-    bool Vec2::isEqual(Vec2 a, Vec2 b) {
-        return a.x == b.x && a.y == b.y;
-    }
+    #pragma endregion
 
     bool Vec2::greaterOr(Vec2 a, Vec2 b) {
         return a.x > b.x || a.y > b.y;
@@ -103,7 +186,7 @@ namespace KLSE{
     }
 
     Vec2 Vec2::lerp(Vec2 current, Vec2 end, Dimention interpolation) {
-        return add(scale(current, 1 - interpolation), scale(end, interpolation));
+        return (current*(1 - interpolation))+(end*interpolation);
     }
 
     Vec2 Vec2::normalizeSafe(Vec2 vec, Vec2 fallback) {
@@ -167,7 +250,8 @@ namespace KLSE{
         return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
     }
 
-    //#DefIVec2
+    #pragma endregion
+    #pragma region IVec2
 
     IVec2 IVec2::random(IDimention min, IDimention max) {
         return IVec2(Math::random::dimention(min, max), Math::random::dimention(min, max));
@@ -177,45 +261,127 @@ namespace KLSE{
         return IVec2(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y));
     }
 
-    IVec2 IVec2::add(IVec2 a, IVec2 b) {
-        return IVec2(a.x + b.x, a.y + b.y);
+    #pragma region IVec2 Operators
+    //Sum
+    IVec2& IVec2::operator+=(const Vec2& other){
+        x+=Math::Floor(other.x);
+        y+=Math::Floor(other.y);
+        return *this;
+    }
+    IVec2  IVec2::operator+(const Vec2& other){
+        return IVec2(x+Math::Floor(other.x),y+Math::Floor(other.y));
+    }
+    IVec2& IVec2::operator+=(const IVec2& other){
+        x+=other.x;
+        y+=other.y;
+        return *this;
+    }
+    IVec2  IVec2::operator+(const IVec2& other){
+        return IVec2(x+other.x,y+other.y);
+    }
+    //Sub
+    IVec2& IVec2::operator-=(const Vec2& other){
+        x-=Math::Floor(other.x);
+        y-=Math::Floor(other.y);
+        return *this;
+    }
+    IVec2  IVec2::operator-(const Vec2& other){
+        return IVec2(x-Math::Floor(other.x),y-Math::Floor(other.y));
+    }
+    IVec2& IVec2::operator-=(const IVec2& other){
+        x-=other.x;
+        y-=other.y;
+        return *this;
+    }
+    IVec2  IVec2::operator-(const IVec2& other){
+        return IVec2(x-other.x,y-other.y);
+    }
+    //Mult
+    IVec2& IVec2::operator*=(const Vec2& other){
+        x*=Math::Floor(other.x);
+        y*=Math::Floor(other.y);
+        return *this;
+    }
+    IVec2  IVec2::operator*(const Vec2& other){
+        return IVec2(x*Math::Floor(other.x),y*Math::Floor(other.y));
+    }
+    IVec2& IVec2::operator*=(const IVec2& other){
+        x*=other.x;
+        y*=other.y;
+        return *this;
+    }
+    IVec2  IVec2::operator*(const IVec2& other){
+        return IVec2(x*other.x,y*other.y);
+    }
+    IVec2& IVec2::operator*=(IDimention other){
+        x*=other;
+        y*=other;
+        return *this;
+    }
+    IVec2 IVec2::operator*(IDimention other){
+        return IVec2(x*other,y*other);
+    }
+    //Div
+    IVec2& IVec2::operator/=(const Vec2& other){
+        x/=Math::Floor(other.x);
+        y/=Math::Floor(other.y);
+        return *this;
+    }
+    IVec2  IVec2::operator/(const Vec2& other){
+        return IVec2(x/Math::Floor(other.x),y/Math::Floor(other.y));
+    }
+    IVec2& IVec2::operator/=(const IVec2& other){
+        x/=other.x;
+        y/=other.y;
+        return *this;
+    }
+    IVec2  IVec2::operator/(const IVec2& other){
+        return IVec2(x/other.x,y/other.y);
+    }
+    IVec2& IVec2::operator/=(IDimention other){
+        x/=other;
+        y/=other;
+        return *this;
+    }
+    IVec2 IVec2::operator/(IDimention other){
+        return IVec2(x/other,y/other);
     }
 
-    IVec2 IVec2::sub(IVec2 a, IVec2 b) {
-        return IVec2(a.x - b.x, a.y - b.y);
+    //==
+    bool IVec2::operator==(const Vec2& other) {
+        return x == Math::Floor(other.x) && y == Math::Floor(other.y);
+    }
+    bool IVec2::operator==(const IVec2& other) {
+        return x==other.x && y==other.y;
+    }
+    //> and >=
+    bool IVec2::operator>(const Vec2& other) {
+        return x > Math::Floor(other.x) && y > Math::Floor(other.y);
+    }
+    bool IVec2::operator>(const IVec2& other) {
+        return x>other.x && y>other.y;
+    }
+    bool IVec2::operator>=(const Vec2& other) {
+        return x >= Math::Floor(other.x) && y >= Math::Floor(other.y);
+    }
+    bool IVec2::operator>=(const IVec2& other) {
+        return x>=other.x && y>=other.y;
+    }
+    //< and <=
+    bool IVec2::operator<(const Vec2& other) {
+        return x < Math::Floor(other.x) && y < Math::Floor(other.y);
+    }
+    bool IVec2::operator<(const IVec2& other) {
+        return x<other.x && y<other.y;
+    }
+    bool IVec2::operator<=(const Vec2& other) {
+        return x <= Math::Floor(other.x) && y <= Math::Floor(other.y);
+    }
+    bool IVec2::operator<=(const IVec2& other) {
+        return x<=other.x && y<=other.y;
     }
 
-    IVec2 IVec2::mult(IVec2 a, IVec2 b) {
-        return IVec2(a.x * b.x, a.y * b.y);
-    }
-
-    IVec2 IVec2::div(IVec2 a, IVec2 b) {
-        return IVec2(a.x / b.x, a.y / b.y);
-    }
-
-    IVec2 IVec2::scale(IVec2 a, IDimention scalar) {
-        return IVec2(a.x * scalar, a.y * scalar);
-    }
-
-    IVec2 IVec2::dscale(IVec2 a, IDimention scalar) {
-        return IVec2(a.x / scalar, a.y / scalar);
-    }
-
-    bool IVec2::is(IVec2 a, IVec2 b) {
-        return a.x == b.x && a.y == b.y;
-    }
-
-    bool IVec2::greater(IVec2 a, IVec2 b) {
-        return a.x > b.x && a.y > b.y;
-    }
-
-    bool IVec2::less(IVec2 a, IVec2 b) {
-        return a.x < b.x && a.y < b.y;
-    }
-
-    bool IVec2::isEqual(IVec2 a, IVec2 b) {
-        return a.x == b.x && a.y == b.y;
-    }
+    #pragma endregion
 
     bool IVec2::greaterOr(IVec2 a, IVec2 b) {
         return a.x > b.x || a.y > b.y;
@@ -267,7 +433,7 @@ namespace KLSE{
     }
 
     IVec2 IVec2::lerp(IVec2 current, IVec2 end, IDimention interpolation) {
-        return add(scale(current, 1 - interpolation), scale(end, interpolation));
+        return (current*(1-interpolation))+(end*interpolation);
     }
 
     IVec2 IVec2::normalizeSafe(IVec2 vec, IVec2 fallback) {
@@ -334,11 +500,11 @@ namespace KLSE{
     HashIVec2 IVec2::hash(IVec2 vec){
         return (vec.x*prime1)^(vec.y * prime2);
     }
-
+    #pragma endregion
     #pragma endregion
 
     #pragma region Vec3
-
+    #pragma region FVec3
     Vec3 Vec3::random(Dimention min, Dimention max) {
         return Vec3(Math::random::dimention(min, max), Math::random::dimention(min, max), Math::random::dimention(min, max));
     }
@@ -347,45 +513,136 @@ namespace KLSE{
         return Vec3(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y), Math::random::dimention(min.z, max.z));
     }
 
-    Vec3 Vec3::add(Vec3 a, Vec3 b) {
-        return Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+    #pragma region Vec3 Operators
+    //Sum
+    Vec3& Vec3::operator+=(const Vec3& other){
+        x+=other.x;
+        y+=other.y;
+        z+=other.z;
+        return *this;
+    }
+    Vec3  Vec3::operator+(const Vec3& other){
+        return Vec3(x+other.x,y+other.y,z+other.z);
+    }
+    Vec3& Vec3::operator+=(const IVec3& other){
+        x+=static_cast<Dimention>(other.x);
+        y+=static_cast<Dimention>(other.y);
+        z+=static_cast<Dimention>(other.z);
+        return *this;
+    }
+    Vec3  Vec3::operator+(const IVec3& other){
+        return Vec3(x+static_cast<Dimention>(other.x),y+static_cast<Dimention>(other.y),z+static_cast<Dimention>(other.z));
+    }
+    //Sub
+    Vec3& Vec3::operator-=(const Vec3& other){
+        x-=other.x;
+        y-=other.y;
+        z-=other.z;
+        return *this;
+    }
+    Vec3  Vec3::operator-(const Vec3& other){
+        return Vec3(x-other.x,y-other.y,z-other.z);
+    }
+    Vec3& Vec3::operator-=(const IVec3& other){
+        x-=static_cast<Dimention>(other.x);
+        y-=static_cast<Dimention>(other.y);
+        z-=static_cast<Dimention>(other.z);
+        return *this;
+    }
+    Vec3  Vec3::operator-(const IVec3& other){
+        return Vec3(x-static_cast<Dimention>(other.x),y-static_cast<Dimention>(other.y),z-static_cast<Dimention>(other.z));
+    }
+    //Mult
+    Vec3& Vec3::operator*=(const Vec3& other){
+        x*=other.x;
+        y*=other.y;
+        z*=other.z;
+        return *this;
+    }
+    Vec3  Vec3::operator*(const Vec3& other){
+        return Vec3(x*other.x,y*other.y,z*other.z);
+    }
+    Vec3& Vec3::operator*=(const IVec3& other){
+        x*=static_cast<Dimention>(other.x);
+        y*=static_cast<Dimention>(other.y);
+        z*=static_cast<Dimention>(other.z);
+        return *this;
+    }
+    Vec3  Vec3::operator*(const IVec3& other){
+        return Vec3(x*static_cast<Dimention>(other.x),y*static_cast<Dimention>(other.y),z*static_cast<Dimention>(other.z));
+    }
+    Vec3& Vec3::operator*=(Dimention other){
+        x*=other;
+        y*=other;
+        z*=other;
+        return *this;
+    }
+    Vec3  Vec3::operator*(Dimention other){
+        return Vec3(x*other,y*other,z*other);
+    }
+    //Div
+    Vec3& Vec3::operator/=(const Vec3& other){
+        x/=other.x;
+        y/=other.y;
+        z/=other.z;
+        return *this;
+    }
+    Vec3  Vec3::operator/(const Vec3& other){
+        return Vec3(x/other.x,y/other.y,z/other.z);
+    }
+    Vec3& Vec3::operator/=(const IVec3& other){
+        x/=static_cast<Dimention>(other.x);
+        y/=static_cast<Dimention>(other.y);
+        z/=static_cast<Dimention>(other.z);
+        return *this;
+    }
+    Vec3  Vec3::operator/(const IVec3& other){
+        return Vec3(x/static_cast<Dimention>(other.x),y/static_cast<Dimention>(other.y),z/static_cast<Dimention>(other.z));
+    }
+    Vec3& Vec3::operator/=(Dimention other){
+        x/=other;
+        y/=other;
+        z/=other;
+        return *this;
+    }
+    Vec3  Vec3::operator/(Dimention other){
+        return Vec3(x/other,y/other,z/other);
+    }
+    //==
+    bool  Vec3::operator==(const Vec3& other){
+        return x == other.x && y == other.y && z == other.z;
+    }
+    bool  Vec3::operator==(const IVec3& other){
+        return x == static_cast<Dimention>(other.x) && y == static_cast<Dimention>(other.y) && z == static_cast<Dimention>(other.z);
+    }
+    //> and >=
+    bool  Vec3::operator>=(const Vec3& other){
+        return x >= other.x && y >= other.y && z >= other.z;
+    }
+    bool  Vec3::operator>=(const IVec3& other){
+        return x >= static_cast<Dimention>(other.x) && y >= static_cast<Dimention>(other.y) && z >= static_cast<Dimention>(other.z);
+    }
+    bool  Vec3::operator>(const Vec3& other){
+        return x > other.x && y > other.y && z > other.z;
+    }
+    bool  Vec3::operator>(const IVec3& other){
+        return x > static_cast<Dimention>(other.x) && y > static_cast<Dimention>(other.y) && z > static_cast<Dimention>(other.z);
     }
 
-    Vec3 Vec3::sub(Vec3 a, Vec3 b) {
-        return Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
+    //< and <=
+    bool  Vec3::operator<=(const Vec3& other){
+        return x <= other.x && y <= other.y && z <= other.z;
     }
-
-    Vec3 Vec3::mult(Vec3 a, Vec3 b) {
-        return Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+    bool  Vec3::operator<=(const IVec3& other){
+        return x <= static_cast<Dimention>(other.x) && y <= static_cast<Dimention>(other.y) && z <= static_cast<Dimention>(other.z);
     }
-
-    Vec3 Vec3::div(Vec3 a, Vec3 b) {
-        return Vec3(a.x / b.x, a.y / b.y, a.z / b.z);
+    bool  Vec3::operator<(const Vec3& other){
+        return x < other.x && y < other.y && z < other.z;
     }
-
-    Vec3 Vec3::scale(Vec3 a, Dimention scalar) {
-        return Vec3(a.x * scalar, a.y * scalar, a.z * scalar);
+    bool  Vec3::operator<(const IVec3& other){
+        return x < static_cast<Dimention>(other.x) && y < static_cast<Dimention>(other.y) && z < static_cast<Dimention>(other.z);
     }
-
-    Vec3 Vec3::dscale(Vec3 a, Dimention scalar) {
-        return Vec3(a.x / scalar, a.y / scalar, a.z / scalar);
-    }
-
-    bool Vec3::is(Vec3 a, Vec3 b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
-
-    bool Vec3::greater(Vec3 a, Vec3 b) {
-        return a.x > b.x && a.y > b.y && a.z > b.z;
-    }
-
-    bool Vec3::less(Vec3 a, Vec3 b) {
-        return a.x < b.x && a.y < b.y && a.z < b.z;
-    }
-
-    bool Vec3::isEqual(Vec3 a, Vec3 b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
+    #pragma endregion
 
     bool Vec3::greaterOr(Vec3 a, Vec3 b) {
         return a.x > b.x || a.y > b.y || a.z > b.z;
@@ -437,7 +694,7 @@ namespace KLSE{
     }
 
     Vec3 Vec3::lerp(Vec3 current, Vec3 end, Dimention interpolation) {
-        return add(scale(current, 1 - interpolation), scale(end, interpolation));
+        return (current*(1-interpolation))+(end*interpolation);
     }
 
     Vec3 Vec3::normalizeSafe(Vec3 vec, Vec3 fallback) {
@@ -496,7 +753,8 @@ namespace KLSE{
     std::string Vec3::toString(Vec3 vec){
         return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
     }
-
+    #pragma endregion
+    #pragma region IVec3
     IVec3 IVec3::random(Dimention min, Dimention max) {
         return IVec3(Math::random::dimention(min, max), Math::random::dimention(min, max), Math::random::dimention(min, max));
     }
@@ -505,45 +763,141 @@ namespace KLSE{
         return IVec3(Math::random::dimention(min.x, max.x), Math::random::dimention(min.y, max.y), Math::random::dimention(min.z, max.z));
     }
 
-    IVec3 IVec3::add(IVec3 a, IVec3 b) {
-        return IVec3(a.x + b.x, a.y + b.y, a.z + b.z);
+    #pragma region IVec3 Operators
+
+    //Sum
+    IVec3& IVec3::operator+=(const Vec3& other){
+        x+=Math::Floor(other.x);
+        y+=Math::Floor(other.y);
+        z+=Math::Floor(other.z);
+        return *this;
+    }
+    IVec3  IVec3::operator+(const Vec3& other){
+        return IVec3(x+Math::Floor(other.x),y+Math::Floor(other.y),z+Math::Floor(other.z));
+    }
+    IVec3& IVec3::operator+=(const IVec3& other){
+        x+=other.x;
+        y+=other.y;
+        z+=other.z;
+        return *this;
+    }
+    IVec3  IVec3::operator+(const IVec3& other){
+        return IVec3(x+other.x,y+other.y,z+other.z);
+    }
+    //Sub
+    IVec3& IVec3::operator-=(const Vec3& other){
+        x-=Math::Floor(other.x);
+        y-=Math::Floor(other.y);
+        z-=Math::Floor(other.z);
+        return *this;
+    }
+    IVec3  IVec3::operator-(const Vec3& other){
+        return IVec3(x-Math::Floor(other.x),y-Math::Floor(other.y),z-Math::Floor(other.z));
+    }
+    IVec3& IVec3::operator-=(const IVec3& other){
+        x-=other.x;
+        y-=other.y;
+        z-=other.z;
+        return *this;
+    }
+    IVec3  IVec3::operator-(const IVec3& other){
+        return IVec3(x-other.x,y-other.y,z-other.z);
     }
 
-    IVec3 IVec3::sub(IVec3 a, IVec3 b) {
-        return IVec3(a.x - b.x, a.y - b.y, a.z - b.z);
+    //Mult
+    IVec3& IVec3::operator*=(const Vec3& other){
+        x*=Math::Floor(other.x);
+        y*=Math::Floor(other.y);
+        z*=Math::Floor(other.z);
+        return *this;
+    }
+    IVec3  IVec3::operator*(const Vec3& other){
+        return IVec3(x*Math::Floor(other.x),y*Math::Floor(other.y),z*Math::Floor(other.z));
+    }
+    IVec3& IVec3::operator*=(const IVec3& other){
+        x*=other.x;
+        y*=other.y;
+        z*=other.z;
+        return *this;
+    }
+    IVec3  IVec3::operator*(const IVec3& other){
+        return IVec3(x*other.x,y*other.y,z*other.z);
+    }
+    IVec3& IVec3::operator*=(IDimention other){
+        x*=other;
+        y*=other;
+        z*=other;
+        return *this;
+    }
+    IVec3 IVec3::operator*(IDimention other){
+        return IVec3(x*other,y*other,z*other);
+    }
+    //Div
+    IVec3& IVec3::operator/=(const Vec3& other){
+        x/=Math::Floor(other.x);
+        y/=Math::Floor(other.y);
+        z/=Math::Floor(other.z);
+        return *this;
+    }
+    IVec3  IVec3::operator/(const Vec3& other){
+        return IVec3(x/Math::Floor(other.x),y/Math::Floor(other.y),z/Math::Floor(other.z));
+    }
+    IVec3& IVec3::operator/=(const IVec3& other){
+        x/=other.x;
+        y/=other.y;
+        z/=other.z;
+        return *this;
+    }
+    IVec3  IVec3::operator/(const IVec3& other){
+        return IVec3(x/other.x,y/other.y,z/other.z);
+    }
+    IVec3& IVec3::operator/=(IDimention other){
+        x/=other;
+        y/=other;
+        z/=other;
+        return *this;
+    }
+    IVec3 IVec3::operator/(IDimention other){
+        return IVec3(x/other,y/other,z/other);
     }
 
-    IVec3 IVec3::mult(IVec3 a, IVec3 b) {
-        return IVec3(a.x * b.x, a.y * b.y, a.z * b.z);
+    //==
+    bool  IVec3::operator==(const Vec3& other){
+        return x == Math::Floor(other.x) && y == Math::Floor(other.y) && z == Math::Floor(other.z);
+    }
+    bool  IVec3::operator==(const IVec3& other){
+        return x == other.x && y == other.y && z == other.z;
     }
 
-    IVec3 IVec3::div(IVec3 a, IVec3 b) {
-        return IVec3(a.x / b.x, a.y / b.y, a.z / b.z);
+    //> and >=
+    bool  IVec3::operator>(const Vec3& other){
+        return x > Math::Floor(other.x) && y > Math::Floor(other.y) && z > Math::Floor(other.z);
+    }
+    bool  IVec3::operator>(const IVec3& other){
+        return x > other.x && y > other.y && z > other.z;
+    }
+    bool  IVec3::operator>=(const Vec3& other){
+        return x >= Math::Floor(other.x) && y >= Math::Floor(other.y) && z >= Math::Floor(other.z);
+    }
+    bool  IVec3::operator>=(const IVec3& other){
+        return x >= other.x && y >= other.y && z >= other.z;
     }
 
-    IVec3 IVec3::scale(IVec3 a, Dimention scalar) {
-        return IVec3(a.x * scalar, a.y * scalar, a.z * scalar);
+    //< and <=
+    bool  IVec3::operator<(const Vec3& other){
+        return x < Math::Floor(other.x) && y < Math::Floor(other.y) && z < Math::Floor(other.z);
+    }
+    bool  IVec3::operator<(const IVec3& other){
+        return x < other.x && y < other.y && z < other.z;
+    }
+    bool  IVec3::operator<=(const Vec3& other){
+        return x <= Math::Floor(other.x) && y <= Math::Floor(other.y) && z <= Math::Floor(other.z);
+    }
+    bool  IVec3::operator<=(const IVec3& other){
+        return x <= other.x && y <= other.y && z <= other.z;
     }
 
-    IVec3 IVec3::dscale(IVec3 a, Dimention scalar) {
-        return IVec3(a.x / scalar, a.y / scalar, a.z / scalar);
-    }
-
-    bool IVec3::is(IVec3 a, IVec3 b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
-
-    bool IVec3::greater(IVec3 a, IVec3 b) {
-        return a.x > b.x && a.y > b.y && a.z > b.z;
-    }
-
-    bool IVec3::less(IVec3 a, IVec3 b) {
-        return a.x < b.x && a.y < b.y && a.z < b.z;
-    }
-
-    bool IVec3::isEqual(IVec3 a, IVec3 b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
+    #pragma endregion
 
     bool IVec3::greaterOr(IVec3 a, IVec3 b) {
         return a.x > b.x || a.y > b.y || a.z > b.z;
@@ -595,7 +949,7 @@ namespace KLSE{
     }
 
     IVec3 IVec3::lerp(IVec3 current, IVec3 end, Dimention interpolation) {
-        return add(scale(current, 1 - interpolation), scale(end, interpolation));
+        return (current*(1-interpolation))+(end*interpolation);
     }
 
     IVec3 IVec3::normalizeSafe(IVec3 vec, IVec3 fallback) {
@@ -658,7 +1012,7 @@ namespace KLSE{
     HashIVec3 IVec3::hash(IVec3 vec){
         return (vec.x*prime1)^(vec.y * prime2)^(vec.z * prime3);
     }
-
+    #pragma endregion
     #pragma endregion
     
 }

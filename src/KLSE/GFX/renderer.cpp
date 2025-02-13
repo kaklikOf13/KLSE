@@ -253,7 +253,7 @@ namespace KLSE
         IVec2 ws=window->get_size();
         glViewport(0, 0, ws.x, ws.y);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto s=new GLSprite(fbo,texture,Vec2::dscale(Vec2(size),this->meter_size),size,this);
+        auto s=new GLSprite(fbo,texture,Vec2(size)/this->meter_size,size,this);
         return reinterpret_cast<Sprite*>(s);
     }
 }
