@@ -1,22 +1,15 @@
 <h1>KAKLIK SIMPLE ENGINE</h1>
 
 You Need GCC https://gcc.gnu.org/
-You Need Download And Install THE klse program
-Compile_Executable:
+You Need Download And Install The klse CLI Program
+## Compile CLI:
+
+* To Compile CLI You Need Install The Python 3.11+ And PyInstall
 ```
-klse task windows # on Windows
-klse task linux # on Windows
+klse build-dir
+klse task build cli
 ```
 
-Create Project:
-```
-KLSE new-project
-# Digit Project Name
-# Digit Template Name(use list-templates to show all templates)
-```
+## How To Use KLSE
 
-Create .IO Game
-
-```
-KLSE new-project IO
-```
+To Init A Project Use `klse init c++`

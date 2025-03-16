@@ -2,5 +2,10 @@
 ## Containers
 [ ] Rotation
 [ ] Pre-Render
+## Executable
+[ ] Templates
+[ ] Tests
+[ ] Typescript Engine Merge
 ## Others
 [X] Improve Executable
+[ ] END VM!
