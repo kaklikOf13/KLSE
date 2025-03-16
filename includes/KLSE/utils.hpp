@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include <string.h>
-#include <vector>
 
 #include <chrono>
 #include <thread>
@@ -38,6 +37,8 @@ namespace KLSE{
     typedef int64 IDimention;
 
     struct ZeroStruct{};
+
+    
 
     namespace Math
     {

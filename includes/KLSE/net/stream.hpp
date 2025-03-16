@@ -16,47 +16,19 @@ namespace KLSE
             delete[] content;
         }
 
-        void writeUInt8(uint8 val){
-            content[pointer]=val;
-            pointer++;
-        }
-        void writeUInt16(uint16 val){
-            content[pointer++] = val & 0xFF;
-            content[pointer++] = (val >> 8) & 0xFF;
-        }
-        void writeUInt32(uint32 val){
-            content[pointer++] = val & 0xFF;
-            content[pointer++] = (val >> 8) & 0xFF;
-            content[pointer++] = (val >> 16) & 0xFF;
-            content[pointer++] = (val >> 24) & 0xFF;
-        }
-        void writeUInt64(uint64 val){
-            content[pointer++] = val & 0xFF;
-            content[pointer++] = (val >> 8) & 0xFF;
-            content[pointer++] = (val >> 16) & 0xFF;
-            content[pointer++] = (val >> 24) & 0xFF;
-            content[pointer++] = (val >> 32) & 0xFF;
-            content[pointer++] = (val >> 40) & 0xFF;
-            content[pointer++] = (val >> 48) & 0xFF;
-            content[pointer++] = (val >> 56) & 0xFF;
-        }
+        void writeUInt8(uint8 val);
+        void writeUInt16(uint16 val);
+        void writeUInt32(uint32 val);
+        void writeUInt64(uint64 val);
+        void writeFloat32(float32 val);
+        void writeFloat64(float64 val);
 
-        void writeFloat32(float32 val) {
-            content[pointer++] = (uint32)val & 0xFF;
-            content[pointer++] = ((uint32)val >> 8) & 0xFF;
-            content[pointer++] = ((uint32)val >> 16) & 0xFF;
-            content[pointer++] = ((uint32)val >> 24) & 0xFF;
-        }
-        void writeFloat64(float64 val) {
-            content[pointer++] = (uint64)val & 0xFF;
-            content[pointer++] = ((uint64)val >> 8) & 0xFF;
-            content[pointer++] = ((uint64)val >> 16) & 0xFF;
-            content[pointer++] = ((uint64)val >> 24) & 0xFF;
-            content[pointer++] = ((uint64)val >> 32) & 0xFF;
-            content[pointer++] = ((uint64)val >> 40) & 0xFF;
-            content[pointer++] = ((uint64)val >> 48) & 0xFF;
-            content[pointer++] = ((uint64)val >> 56) & 0xFF;
-        }
+        uint8 readUInt8();
+        uint16 readUInt16();
+        uint32 readUInt32();
+        uint64 readUInt64();
+        float32 readFloat32();
+        float64 readFloat64();
     };
 } // namespace KLSE
 

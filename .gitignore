@@ -1,11 +1,21 @@
 deno.lock
 .deno.lock
 ./deno.lock
+
 dist
 .dist
 ./dist
+build
+.build
+./build
 
 .vscode
 
 temp
 private
+
+__pycache__
+* copy
+
+venv
+main.spec
