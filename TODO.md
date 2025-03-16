@@ -1,11 +1,14 @@
-<h1>KLSE TODO LIST</h1>
+# KLSE TODO LIST
 ## Containers
 [ ] Rotation
 [ ] Pre-Render
-## Executable
+## CLI
 [ ] Templates
 [ ] Tests
 [ ] Typescript Engine Merge
+[ ] Create Dir IF Not Exist
+[ ] Compile Libs
+[ ] Libs Instalation
 ## Others
 [X] Improve Executable
 [ ] END VM!
