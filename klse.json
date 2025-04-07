@@ -5,7 +5,7 @@
         "build":{
             "childs":{
                 "klse":{
-                    "task":"klse build-dir & klse compile-folder c++ dist/obj src/KLSE '-I./includes'"
+                    "task":"klse build-dir & klse compile-folder c++ dist/obj src/KLSE '-I./includes' & klse merge-lib dist/libs/klse.a dist/obj"
                 },
                 "cli":{
                     "task":"pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py"

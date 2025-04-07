@@ -1,22 +1,21 @@
-# Copyright (c) 2025 Kaklik And Viktor Hugo Caetano M. Goulart
+""" Copyright (c) 2025 Kaklik
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
 
 # system
 import json
@@ -49,6 +48,7 @@ default_commands = {
     "task": Command("task", "Execute a klse.json tasks file `klse -tp dir task build release`"),
     "smart-compile":Command("smart-compile","Compile Just Modified Files"),
     "compile-folder":Command("compile-folder","Compile A Entire Folder. But Dont Compile The Subfolders"),
+    "merge-lib":Command("merge-lib","Merge All .o files Of A Folder In A Static Lib"),
     "build-dir": Command("build-dir", "Prepares all the bin and build directories based on your current CD directory")
 }
 
@@ -170,12 +170,26 @@ def prepare_commands():
             fp=src_dir+"/"+f
             if os.path.isfile(fp):
                 default_commands["smart-compile"].exec(f"{language} {fp} {output_dir} {args_ext}")
+    def merge_lib_klse(args: str):
+        args=shsplit(args)
+        if len(args)<2:
+            print_error("Invalid Args Count")
+            sys.exit(1)
+        output_file=args[0]
+        src_dir=args[1]
+        files=os.listdir(src_dir)
+        command=f"{compilers['ar']} rcs {output_file}"
+        for f in files:
+            command+=" "+src_dir+"/"+f
+        print_success("COMMAND",command)
+        subprocess.run(command)
     default_options["-tp"].setExec(task_path_klse)
     
     default_commands["help"].setExec(help_klse)
     default_commands["task"].setExec(task_exec_klse)
     default_commands["smart-compile"].setExec(smart_compile_klse)
     default_commands["compile-folder"].setExec(compile_folder_klse)
+    default_commands["merge-lib"].setExec(merge_lib_klse)
     default_commands["build-dir"].setExec(build_dir_klse)
 
 def lex_parse(args: list[str]) -> tuple[Command, list[Opt], list[str]]:
@@ -216,6 +230,13 @@ def lex_parse(args: list[str]) -> tuple[Command, list[Opt], list[str]]:
                     break
                 case "compile-folder":
                     cmm = default_commands["compile-folder"]
+                    to_append: list[str] = []
+                    for arg2 in args[i + 1:]:
+                        to_append.append(arg2)
+                    arguments.append(" ".join(to_append))
+                    break
+                case "merge-lib":
+                    cmm = default_commands["merge-lib"]
                     to_append: list[str] = []
                     for arg2 in args[i + 1:]:
                         to_append.append(arg2)
@@ -264,18 +285,27 @@ def interpret_cmd(command: Command, options: list[Opt], arguments: list[str]):
             else:
                 print_error("Arguments list is empty, this means the CLI tool expected an argument for an option but it was missing")
                 sys.exit(1)
+        elif command == default_commands["merge-lib"]:
+            if arguments:
+                command.exec(arguments.pop(0))
+            else:
+                print_error("Arguments list is empty, this means the CLI tool expected an argument for an option but it was missing")
+                sys.exit(1)
         else:
             command.exec()
 
 compilers = {
     "c":shutil.which("gcc"), 
-    "c++":shutil.which("g++")
+    "c++":shutil.which("g++"),
+    "ar":shutil.which("ar"),
 }
 if not compilers["c"]:
     print("Couldn't find the C compiler (assumes 'gcc' alias), please create an alias for your C compiler or download one from the internet (mingw or gcc)")
     sys.exit(1)
 if not compilers["c++"]:
     print("Couldn't find the C++ compiler (assumes 'g++' alias), please create an alias for your C compiler or download one from the internet (mingw or gcc)")
+if not compilers["ar"]:
+    print("Couldn't find the C++ compiler (assumes 'ar' alias), please create an alias for your C compiler or download one from the internet (mingw or gcc)")
 
 def main(args: list[str] = sys.argv):
     prepare_commands()
