@@ -1,6 +1,5 @@
 #include <KLSE/klse.hpp>
 #include <KLSE/GFX/klse.hpp>
-//#include <KLSE/vulkan/klse.hpp>
 using namespace KLSE;
 int main(int argc, char const *argv[])
 {
@@ -71,7 +70,6 @@ int main(int argc, char const *argv[])
         container->draw(window->renderer);
         cam->update(window->get_size());
         window->renderer->draw_model3D(m,t,material,cam);
-        window->renderer->draw_sprite(sprite,Vec2(1,2),Vec2(1,1));
         window->update();
         c.tick();
     }

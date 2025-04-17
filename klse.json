@@ -5,10 +5,22 @@
         "build":{
             "childs":{
                 "klse":{
-                    "task":"klse build-dir & klse compile-folder c++ dist/obj src/KLSE '-I./includes' & klse merge-lib dist/libs/klse.a dist/obj"
+                    "task":"klse build-dir & klse compile-folder c++ dist/obj src/KLSE '-I./includes' & klse merge-lib dist/libs/klse.lib dist/obj",
+                    "childs":{
+                        "gfx":{
+                            "task":"klse compile-folder c++ dist/obj src/KLSE/GFX '-I./includes' & klse merge-lib dist/libs/klse_gfx.lib dist/obj"
+                        }
+                    }
                 },
                 "cli":{
                     "task":"pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py"
+                },
+                "tests":{
+                    "childs":{
+                        "window":{
+                            "task":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gfx -lklse -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/bin/tests/window.exe"
+                        }
+                    }
                 }
             }
         }
