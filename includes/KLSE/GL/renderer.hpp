@@ -30,7 +30,6 @@ namespace KLSE
 {
     void GLInit(GLAntialias antialias);
 
-    class GLFWWindow;
     class GLRenderer;
     class GLRenderer:public Renderer{
         public:
@@ -74,27 +73,6 @@ namespace KLSE
         void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
         protected:
         GLuint fbo, texture;
-    };
-
-    class GLFWWindow:public Window{
-        public:
-            Renderer* renderer;
-
-            PCInputListener* input;
-
-            IVec2 get_size()override;
-            void set_size(IVec2 size)override;
-
-            std::string get_title()override;
-            void set_title(std::string title)override;
-
-            void setResizable(bool resizable)override;
-
-            void update()override;
-            void close()override;
-            bool closed()override;
-            GLFWwindow* window;
-            GLFWWindow(Renderer* renderer);
     };
 } // namespace KLSE
 #endif

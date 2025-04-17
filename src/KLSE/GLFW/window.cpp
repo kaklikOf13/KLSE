@@ -16,7 +16,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#include <KLSE/GFX/renderer.hpp>
+#include "KLSE/GLFW/klse.hpp"
 namespace KLSE
 {
     #define DEFAULT_WINDOWS_SIZE_X 800
@@ -104,10 +104,7 @@ namespace KLSE
             exit(-1);
         }
         glfwMakeContextCurrent(window);
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            std::cerr << "Failed to initialize GLAD" << std::endl;
-            exit(-1);
-        }
+
 
         this->renderer=renderer;
 

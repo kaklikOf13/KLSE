@@ -155,8 +155,7 @@ def prepare_commands():
             sys.exit(1)
         output_dir=args[1]
         if not os.path.isdir(output_dir):
-            print_error("Invalid Output Dir")
-            sys.exit(1)
+            os.mkdir(output_dir)
         args_ext=""
         if(len(args)>3):
             args_ext=" ".join(args[3:len(args)])

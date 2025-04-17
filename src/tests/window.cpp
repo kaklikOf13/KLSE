@@ -1,5 +1,6 @@
 #include <KLSE/klse.hpp>
-#include <KLSE/GFX/klse.hpp>
+#include <KLSE/GL/klse.hpp>
+#include <KLSE/GLFW/klse.hpp>
 using namespace KLSE;
 int main(int argc, char const *argv[])
 {

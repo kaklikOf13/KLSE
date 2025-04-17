@@ -5,10 +5,16 @@
         "build":{
             "childs":{
                 "klse":{
-                    "task":"klse build-dir & klse compile-folder c++ dist/obj src/KLSE '-I./includes' & klse merge-lib dist/libs/klse.lib dist/obj",
+                    "task":"klse build-dir & klse compile-folder c++ dist/obj/klse src/KLSE '-I./includes' & klse merge-lib dist/libs/klse.lib dist/obj/klse",
                     "childs":{
-                        "gfx":{
-                            "task":"klse compile-folder c++ dist/obj src/KLSE/GFX '-I./includes' & klse merge-lib dist/libs/klse_gfx.lib dist/obj"
+                        "gl":{
+                            "task":"klse compile-folder c++ dist/obj/klse_gl src/KLSE/GL '-I./includes' & klse merge-lib dist/libs/klse_gl.lib dist/obj/klse_gl"
+                        },
+                        "glfw":{
+                            "task":"klse compile-folder c++ dist/obj/klse_glfw src/KLSE/GLFW '-I./includes' & klse merge-lib dist/libs/klse_glfw.lib dist/obj/klse_glfw"
+                        },
+                        "full":{
+                            "task":"klse task build klse & klse task build klse gl & klse task build klse glfw"
                         }
                     }
                 },
@@ -18,7 +24,7 @@
                 "tests":{
                     "childs":{
                         "window":{
-                            "task":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gfx -lklse -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/bin/tests/window.exe"
+                            "task":"klse task build klse full & g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/bin/tests/window.exe"
                         }
                     }
                 }

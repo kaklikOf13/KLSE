@@ -16,7 +16,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#include <KLSE/GFX/renderer.hpp>
+#include <KLSE/GL/renderer.hpp>
 namespace KLSE
 {
     const char* simpleVertexShaderSource = R"(
@@ -87,6 +87,10 @@ namespace KLSE
     }
 
     void GLRenderer::init(Window* window){
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+            std::cerr << "Failed to initialize GLAD" << std::endl;
+            exit(-1);
+        }
         this->window=window;
         simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
         simple_tex_program=createShaderProgram(simpleTeVertexShaderSource,simpleTeFragmentShaderSource);
