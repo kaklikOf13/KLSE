@@ -355,6 +355,8 @@ namespace KLSE{
         static Dimention length(Vec3 vec);
 
         static std::string toString(Vec3 vec);
+
+        static Vec3 pyramid_loop(Vec3 vec, Dimention minY,Dimention maxY,Dimention maxLoopSize,Dimention minLoop);
     };
 
     struct IVec3{
@@ -363,7 +365,7 @@ namespace KLSE{
         IDimention z;
 
         IVec3() : x(0), y(0), z(0) {}
-        IVec3(Dimention x, Dimention y, Dimention z) : x(x), y(y), z(z) {}
+        IVec3(IDimention x, IDimention y, IDimention z) : x(x), y(y), z(z) {}
 
         static IVec3 random(Dimention min, Dimention max);
 
@@ -459,20 +461,11 @@ namespace KLSE{
         static std::string toString(IVec3 vec);
 
         static HashIVec3 hash(IVec3 vec);
+
+        static IVec3 pyramid_loop(IVec3 vec, IDimention minY, IDimention maxY, IDimention maxLoopSize, IDimention minLoop);
     };
 
     #pragma endregion
-
-    namespace Math
-    {
-        const Dimention PI=3.1415926;
-        static RadAngle Deg2Rad(DegAngle ang){
-            return ang * (PI / 180.0);
-        }
-        static DegAngle Rad2Deg(RadAngle ang){
-            return ang * (180.0 / PI);
-        }
-    } // namespace math
 
     struct Transform3D{
         Vec3 position;
@@ -493,5 +486,22 @@ namespace KLSE{
         Transform2D():position(Vec2()),scale(Vec2(1,1)),rotation(0){};
         Transform2D(Vec2 position, Vec2 scale, Dimention rotation):position(position),scale(scale),rotation(rotation){}
     };
+
+    #pragma region Math
+    namespace Math
+    {
+        const Dimention PI=3.1415926;
+        RadAngle deg_to_rad(DegAngle ang);
+        DegAngle rad_to_deg(RadAngle ang);
+
+        Dimention mod(Dimention x, Dimention y);
+        Dimention loop(Dimention n, Dimention min, Dimention max);
+        Dimention loop_range(Dimention y,Dimention minY, Dimention maxY ,Dimention maxLoopSize,Dimention min_loop);
+
+        IDimention imod(IDimention x, IDimention y);
+        IDimention iloop(IDimention n, IDimention min, IDimention max);
+        IDimention iloop_range(IDimention y,IDimention minY, IDimention maxY, IDimention maxLoopSize, IDimention min_loop);
+    } // namespace math
+    #pragma endregion
 }
 #endif

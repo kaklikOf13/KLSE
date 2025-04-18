@@ -80,15 +80,14 @@ namespace KLSE
         Dimention meter_size;
         Vec2 position;
         Dimention zoom;
+        Dimention rotation;
 
         Matrix4 matrix;
 
         void update(Vec2 size);
 
         ~Camera2D()=default;
-        Camera2D():position(Vec2()),zoom(1),meter_size(100){}
-        Camera2D(Vec2 position):position(position),zoom(1),meter_size(100){}
-        Camera2D(Vec2 position, Dimention zoom):position(position),zoom(zoom){}
+        Camera2D():position(Vec2()),zoom(1.0),meter_size(100.0),rotation(0.0){}
     };
     class Window;
     class Sprite;

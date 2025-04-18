@@ -22,33 +22,6 @@ SOFTWARE.*/
 #include "geometry.hpp"
 #include "utils.hpp"
 namespace KLSE{
-    
-    /*export const Collision=Object.freeze({
-        circle_with_rect(hb1:CircleCollider2D*,hb2:RectCollider2D):boolean{
-            const cp=v2.clamp2(hb1.position,hb2.position,v2.add(hb2.position,hb2.size))
-            const dist=v2.distance(hb1.position,cp)
-            return (dist<hb1.radius*hb1.radius)||((hb1.position.x>=hb2.position.x&&hb1.position.x<=hb2.position.x+hb2.size.x)&&(hb1.position.x>=hb2.position.x&&hb1.position.x<=hb2.position.x+hb2.size.x))
-        },
-        circle_with_rect_ov(hb1:CircleCollider2D*,hb2:RectCollider2D){
-            if ((hb2.position.x <= hb1.position.x && hb1.position.x <= hb2.position.x+hb2.size.x) && (hb2.position.y <= hb1.position.y && hb1.position.y <= hb2.position.y+hb2.size.y)) {
-
-                const halfDim = v2.dscale(v2.sub(v2.add(hb2.position,hb2.size), hb2.position), 2)
-                const p=v2.sub(hb1.position, v2.add(hb2.position, halfDim))
-                const p2=v2.sub(v2.sub(v2.absolute(p),halfDim),v2.new(hb1.radius,hb1.radius))
-                return [v2.new(p.x > 0 ? 1 : -1,p.y > 0 ? 1 : -1),p2.x]
-            }
-
-            const dir = v2.sub(v2.clamp2(hb1.position,hb2.position,v2.add(hb2.position,hb2.size)),hb1.position)
-            const dstSqr = v2.squared(dir)
-
-            if (dstSqr < hb1.radius * hb1.radius) {
-                const dst = Math.sqrt(dstSqr)
-                return [v2.normalizeSafe(dir),(hb1.radius - dst)]
-            }
-            return null
-        },
-    })*/
-
     enum class ColliderType2D: unsigned char{
         circle=0,
         rect=1,

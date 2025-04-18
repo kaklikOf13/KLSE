@@ -359,7 +359,7 @@ namespace KLSE {
         }
 
         Matrix4 rotate(const Matrix4& m, Vec3 angle) {
-            Matrix4 result = zRotate(yRotate(xRotate(m, Math::Deg2Rad(angle.x)), Math::Deg2Rad(angle.y)), Math::Deg2Rad(angle.z));
+            Matrix4 result = zRotate(yRotate(xRotate(m, Math::deg_to_rad(angle.x)), Math::deg_to_rad(angle.y)), Math::deg_to_rad(angle.z));
             return result;
         }
 

@@ -32,7 +32,7 @@ namespace KLSE
         } 
     
     void Camera3D::update(Vec2 size){
-        Matrix4 projection = matrix4::perspective(Math::Deg2Rad(fov), size.x / size.y, near, far);
+        Matrix4 projection = matrix4::perspective(Math::deg_to_rad(fov), size.x / size.y, near, far);
 
         Matrix4 view = matrix4::translate(
             matrix4::rotate(matrix4::identity(),rotation),
@@ -42,9 +42,9 @@ namespace KLSE
         this->matrix = matrix4::mult(projection, view);
     }
     void Camera2D::update(Vec2 size){
-        Matrix4 projection = matrix4::projection({size.x/this->meter_size,size.y/this->meter_size,500});
+        Matrix4 projection = matrix4::projection({(size.x/meter_size)*zoom,(size.y/meter_size)*zoom,500});
 
-        this->matrix = projection;
+        matrix = matrix4::translate(projection,Vec3(-position.x,-position.y,0));
     }
     DrawForm2D::~DrawForm2D(){
         if(this->collider!=nullptr){

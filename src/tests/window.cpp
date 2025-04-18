@@ -39,27 +39,37 @@ int main(int argc, char const *argv[])
 
         if(window->input->keyPress(Key::S)){
             cam3->position.z-=speed;
+            t2.position.y+=speed;
         }else if(window->input->keyPress(Key::W)){
             cam3->position.z+=speed;
+            t2.position.y-=speed;
         }
 
         if(window->input->keyPress(Key::D)){
             cam3->position.x+=speed;
+            t2.position.x+=speed;
         }else if(window->input->keyPress(Key::A)){
             cam3->position.x-=speed;
+            t2.position.x-=speed;
         }
 
         if(window->input->keyPress(Key::Space)){
             cam3->position.y-=speed;
+            cam2->zoom*=0.9;
         }else if(window->input->keyPress(Key::LShift)){
             cam3->position.y+=speed;
+            cam2->zoom*=2;
         }
 
         if(window->input->keyPress(Key::Q)){
             cam3->rotation.y-=speed*20;
+            cam2->position.x+=speed/2;
         }else if(window->input->keyPress(Key::E)){
             cam3->rotation.y+=speed*20;
+            cam2->position.x-=speed/2;
         }
+
+        //cam2->position=t2.position;
 
         cam3->update(window->get_size());
         cam2->update(window->get_size());

@@ -760,6 +760,12 @@ namespace KLSE{
         return Vec3(std::ceil(vec.x), std::ceil(vec.y), std::ceil(vec.z));
     }
 
+    Vec3 Vec3::pyramid_loop(Vec3 vec, Dimention minY,Dimention maxY,Dimention maxLoopSize,Dimention minLoop){
+        Dimention loopRange = Math::loop_range(vec.y, minY, maxY, maxLoopSize, minLoop);
+
+        return Vec3{Math::loop(vec.x, 0, loopRange), vec.y, Math::loop(vec.z, 0, loopRange)};
+    }
+
     Dimention Vec3::length(Vec3 vec) {
         return sqrt(squared(vec));
     }
@@ -1015,6 +1021,12 @@ namespace KLSE{
         return IVec3(std::ceil(vec.x), std::ceil(vec.y), std::ceil(vec.z));
     }
 
+    IVec3 IVec3::pyramid_loop(IVec3 vec, IDimention minY, IDimention maxY, IDimention maxLoopSize, IDimention minLoop){
+        IDimention loopRange = Math::iloop_range(vec.y, minY, maxY, maxLoopSize, minLoop);
+
+        return IVec3{Math::iloop(vec.x, 0, loopRange), vec.y, Math::iloop(vec.z, 0, loopRange)};
+    }
+
     Dimention IVec3::length(IVec3 vec) {
         return sqrt(squared(vec));
     }
@@ -1032,5 +1044,63 @@ namespace KLSE{
     }
     #pragma endregion
     #pragma endregion
+    
+    namespace Math
+    {
+        RadAngle deg_to_rad(DegAngle ang){
+            return ang * (PI / 180.0);
+        }
+        DegAngle rad_to_deg(RadAngle ang){
+            return ang * (180.0 / PI);
+        }
+
+        Dimention mod(Dimention x, Dimention y){
+            if (y == 0) return 0;
+            Dimention result = x - (x / y) * y;
+            if ((result < 0 && y > 0) || (result > 0 && y < 0)) {
+                result += y;
+            }
+            return result;
+        }
+
+        Dimention loop(Dimention n, Dimention min, Dimention max) {
+            Dimention size = max - min;
+            Dimention f = mod(n - min, size);
+            if (f < 0) {
+                f += size;
+            }
+            return f + min;
+        }
+
+        Dimention loop_range(Dimention y, Dimention minY, Dimention maxY, Dimention maxLoopSize, Dimention min_loop) {
+            Dimention rangeY = maxY - minY;
+            Dimention yNorm = (y-minY) / rangeY;
+        
+            return min_loop + (1.0 - yNorm) *(maxLoopSize-min_loop);
+        }
+
+        IDimention imod(IDimention x, IDimention y){
+            if (y == 0) return 0;
+            IDimention result = x - (x / y) * y;
+            if ((result < 0 && y > 0) || (result > 0 && y < 0)) {
+                result += y;
+            }
+            return result;
+        }
+        IDimention iloop(IDimention n, IDimention min, IDimention max) {
+            IDimention size = max - min;
+            IDimention f = imod(n - min, size);
+            if (f < 0) {
+                f += size;
+            }
+            return f + min;
+        }
+        IDimention iloop_range(IDimention y, IDimention minY, IDimention maxY, IDimention maxLoopSize, IDimention min_loop) {
+            Dimention rangeY = maxY - minY;
+            Dimention yNorm = (y-minY) / rangeY;
+        
+            return min_loop + (1 - yNorm) *(maxLoopSize-min_loop);
+        }
+    } // namespace Math
     
 }
