@@ -59,20 +59,31 @@ namespace KLSE
         Color create(std::string hex);
     }; // namespace HEX
 
-    class Camera3D{
+    class CameraI3D{
         public:
         Vec3 position;
+
+        Dimention meter_size;
+
+        Matrix4 matrix;
+        CameraI3D():position(Vec3()),meter_size(100){};
+
+        void update(Vec2 size);
+
+        private:
+    };
+    class Camera3D: public CameraI3D{
+        public:
         Vec3 rotation;
 
         Dimention fov;
         Dimention near;
         Dimention far;
 
-        Matrix4 matrix;
 
         void update(Vec2 size);
 
-        Camera3D():position(Vec3(0,0,0)),rotation(Vec3(0,0,0)),fov(70),near(0.001),far(3000){};
+        Camera3D():rotation(Vec3(0,0,0)),fov(70),near(0.001),far(3000){};
 
         private:
     };
@@ -96,7 +107,7 @@ namespace KLSE
         Color backgroundColor;
         Window* window;
 
-        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
+        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera)=0;
 
         virtual void clear(){};

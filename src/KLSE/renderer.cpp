@@ -41,6 +41,11 @@ namespace KLSE
 
         this->matrix = matrix4::mult(projection, view);
     }
+    void CameraI3D::update(Vec2 size){
+        Matrix4 projection = matrix4::projection({(size.x/meter_size),(size.y/meter_size),1000});
+
+        matrix = matrix4::translate(projection,Vec3(-position.x,-position.y,-position.z));
+    }
     void Camera2D::update(Vec2 size){
         Matrix4 projection = matrix4::projection({(size.x/meter_size)*zoom,(size.y/meter_size)*zoom,500});
 

@@ -52,6 +52,40 @@ namespace KLSE
         }
     )";
 
+    const char* vertexI3Dcolor = R"(
+        #version 330 core
+        layout (location = 0) in vec3 a_Position;
+        layout (location = 1) in vec3 a_Normal;
+        out vec3 v_normal;
+        uniform mat4 u_MainMatrix;
+        uniform vec3 u_Position;
+        uniform mat4 u_Rotation;
+        uniform vec3 u_Scale;
+
+        void main() {
+            vec3 rotPos=(vec4(a_Position,1.0)*u_Rotation).xyz;
+            vec3 translatedPosition = (rotPos * u_Scale) + u_Position;
+
+            vec2 iso_p=vec2(translatedPosition.x+translatedPosition.z, (translatedPosition.x-translatedPosition.y)-translatedPosition.z);
+            v_normal=a_Normal;
+            gl_Position = u_MainMatrix * vec4(iso_p,-translatedPosition.z-10.0,1.0);
+        }
+    )";
+
+    const char* fragI3Dcolor = R"(
+        #version 330 core
+        out vec4 FragColor;
+        uniform vec4 u_Color;
+        in vec3 v_normal;
+
+        void main() {
+            vec3 normal = normalize(v_normal);
+            float light=dot(normal, vec3(0.3,-1,-1));
+            FragColor = u_Color;
+            FragColor.rgb*=light;
+        }
+    )";
+
     const char* vertex2Dcolor = R"(
         #version 330 core
         layout (location = 0) in vec2 a_Position;
@@ -77,7 +111,7 @@ namespace KLSE
             FragColor = u_Color;
         }
     )";
-    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, Camera3D* camera,const Transform3D& t){
+    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, CameraI3D* camera,const Transform3D& t){
         VAO vao1;
 
         vao1.Bind();
@@ -194,10 +228,14 @@ namespace KLSE
     }
 
     Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF3_color;
+    Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MFI3_color;
     Material2DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF2_color;
     void InitOpenGLMaterials(){
         MF3_color=new Material3DFactory(&ColorMaterial3DExecute,{
             createShaderProgram(vertex3Dcolor,frag3Dcolor)
+        });
+        MFI3_color=new Material3DFactory(&ColorMaterial3DExecute,{
+            createShaderProgram(vertexI3Dcolor,fragI3Dcolor)
         });
         MF2_color=new Material2DFactory(&ColorMaterial2DExecute,{
             createShaderProgram(vertex2Dcolor,frag2Dcolor)

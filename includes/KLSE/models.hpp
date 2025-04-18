@@ -23,6 +23,9 @@ SOFTWARE.*/
 #include "colliders.hpp"
 #include <string>
 #include <vector>
+#include <sstream>
+#include <cmath>
+#include <fstream>
 
 namespace KLSE {
 
@@ -42,6 +45,7 @@ namespace KLSE {
         // Static methods
         static Model3D* cube(Vec3 min=Vec3(-0.5,-0.5,-0.5),Vec3 max=Vec3(0.5,0.5,0.5));
         static Model3D* parseObj(const std::string& objText);
+        static Model3D* loadObj(const std::string& path);
     };
 
     struct Vertex2D {

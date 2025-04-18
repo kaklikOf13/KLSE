@@ -156,32 +156,6 @@ namespace KLSE{
         return oss.str();
     }
 
-    namespace KLSEFile
-    {
-    
-        void t_from_json(json& j, Tasks& t) {
-            // Deserialize the 'task' value
-            j.at("task").get_to(t.task);
-
-            // Check if 'childs' exists and deserialize it
-            if (j.contains("childs")) {
-                for (const auto& [key, value] : j.at("childs").items()) {
-                    Tasks childTask;
-                    t_from_json(value, childTask); // Recursively deserialize the child task
-                    t.childs[key] = childTask;
-                }
-            }
-        }
-
-        // Define how KLSEFile is deserialized from JSON
-        void d_from_json(json& j, KLSEDef& kf) {
-            if (j.contains("name")) j.at("name").get_to(kf.name);
-            if (j.contains("version")) j.at("version").get_to(kf.version);
-            if (j.contains("owner")) j.at("owner").get_to(kf.owner);
-            t_from_json(j.at("windows_tasks"),kf.windows_tasks);
-        }
-    }
-
     std::string replaceAll(std::string str, std::string toReplace, std::string replaceWith) {
         std::string result = str;
         size_t pos = 0;

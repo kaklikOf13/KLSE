@@ -17,8 +17,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/models.hpp>
-#include <sstream>
-#include <cmath>
 
 namespace KLSE {
 
@@ -91,14 +89,31 @@ namespace KLSE {
 
         return ret;
     }
+    Model3D* Model3D::loadObj(const std::string& path){
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Error On Open File: " << path << std::endl;
+            return nullptr;
+        }
 
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+
+        file.close();
+
+        return Model3D::parseObj(buffer.str());
+    }
     Model3D* Model3D::parseObj(const std::string& objText) {
-        Model3D* ret;
-        /*std::istringstream stream(objText);
+        Model3D* ret = new Model3D();
+        std::istringstream stream(objText);
         std::string line;
-        std::vector<Vec3> coords;
+        
+        std::vector<Vec3> positions;
         std::vector<Vec3> normals;
-        std::vector<Vec3> normals;
+        std::vector<Vec2> texCoords;
+
+        // Para evitar duplicação de vértices
+        std::map<std::tuple<int, int, int>, uint32_t> uniqueVertexMap;
 
         while (std::getline(stream, line)) {
             std::istringstream lineStream(line);
@@ -106,54 +121,53 @@ namespace KLSE {
             lineStream >> prefix;
 
             if (prefix == "v") {
-                float x, y, z;
+                Dimention x, y, z;
                 lineStream >> x >> y >> z;
-                ret->_vertex.push_back(-x); // Invert x coordinate
-                ret->_vertex.push_back(y);
-                ret->_vertex.push_back(z);
+                positions.push_back(Vec3(x, y, z));
             } else if (prefix == "vn") {
-                float x, y, z;
+                Dimention x, y, z;
                 lineStream >> x >> y >> z;
-                ret->_normals.push_back(x);
-                ret->_normals.push_back(y);
-                ret->_normals.push_back(z);
+                normals.push_back(Vec3(x, y, z));
             } else if (prefix == "vt") {
-                float u, v;
+                Dimention u, v;
                 lineStream >> u >> v;
-                ret->_texCoords.push_back(u);
-                ret->_texCoords.push_back(v);
+                texCoords.push_back(Vec2(u, v));
             } else if (prefix == "f") {
-                std::vector<int> vertices, textures, normals;
                 std::string part;
                 while (lineStream >> part) {
                     std::istringstream partStream(part);
                     std::string index;
-                    int v, vt, vn;
+                    int vi = -1, ti = -1, ni = -1;
+
+                    // Parse vertex index
                     std::getline(partStream, index, '/');
-                    v = std::stoi(index) - 1;
+                    if (!index.empty()) vi = std::stoi(index) - 1;
 
+                    // Parse texture coord index
                     if (std::getline(partStream, index, '/')) {
-                        if (!index.empty()) {
-                            vt = std::stoi(index) - 1;
-                            textures.push_back(vt);
-                        }
-                    }
-                    
-                    if (std::getline(partStream, index, '/')) {
-                        if (!index.empty()) {
-                            vn = std::stoi(index) - 1;
-                            normals.push_back(vn);
-                        }
+                        if (!index.empty()) ti = std::stoi(index) - 1;
                     }
 
-                    vertices.push_back(v);
+                    // Parse normal index
+                    if (std::getline(partStream, index, '/')) {
+                        if (!index.empty()) ni = std::stoi(index) - 1;
+                    }
+
+                    auto key = std::make_tuple(vi, ti, ni);
+                    if (uniqueVertexMap.count(key) == 0) {
+                        Vertex3D v;
+                        v.coords = (vi >= 0 && vi < positions.size()) ? positions[vi] : Vec3();
+                        v.normals = (ni >= 0 && ni < normals.size()) ? normals[ni] : Vec3();
+                        // Se quiser adicionar texCoords ao Vertex3D, pode adicionar aqui também
+                        uniqueVertexMap[key] = static_cast<uint32_t>(ret->_vertex.size());
+                        ret->_vertex.push_back(v);
+                    }
+
+                    ret->_index.push_back(uniqueVertexMap[key]);
                 }
-
-                ret->_index.insert(ret->_index.end(), vertices.begin(), vertices.end());
-                ret->_normalsM.insert(ret->_normalsM.end(), normals.begin(), normals.end());
-                ret->_texCoordsM.insert(ret->_texCoordsM.end(), textures.begin(), textures.end());
             }
-        }*/
+        }
+
         return ret;
     }
 

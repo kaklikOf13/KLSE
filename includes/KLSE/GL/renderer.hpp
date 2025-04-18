@@ -33,7 +33,7 @@ namespace KLSE
         public:
             Window* window;
 
-            void draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera3D* camera,RenderMode3D=RenderMode3D::normal)override;
+            void draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)override;
             void draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera)override;
             void clear() override;
 
