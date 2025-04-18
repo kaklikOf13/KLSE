@@ -19,7 +19,6 @@ SOFTWARE.*/
 #ifndef KLSE_GL_RENDERER_HPP
 #define KLSE_GL_RENDERER_HPP
 #include "glad.h"
-#include <GLFW/glfw3.h>
 #include "../models.hpp"
 #include "../renderer.hpp"
 #include "../input.hpp"
@@ -28,32 +27,20 @@ SOFTWARE.*/
 #include <iostream>
 namespace KLSE
 {
-    void GLInit(GLAntialias antialias);
 
     class GLRenderer;
     class GLRenderer:public Renderer{
         public:
             Window* window;
 
-            Matrix4 projectionMatrix;
-
-            unsigned int simple_program;
-            unsigned int simple_tex_program;
-
-            void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale=Vec2(1,1)) override;
-            void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
-            void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30) override;
             void draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera3D* camera,RenderMode3D=RenderMode3D::normal)override;
-            void draw_sprite(Sprite* s,Vec2 offset,Vec2 scale)override;
+            void draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera)override;
             void clear() override;
 
             void set_viewport(IVec2 size) override;
 
-            void _draw_simple_vertex(const std::vector<Dimention>& vertex,const std::vector<unsigned int>& index, Color color,Vec2 scale, unsigned int s_program, GLenum mode = GL_TRIANGLES);
-            //void _draw_3d_vertices(const std::vector<Vertex3D>& vertex,const std::vector<uint32_t>& index,Camera3D* camera,Color color,Vec3 position,Vec3 rotation,Vec3 scale,RenderMode3D rmode,GLenum mode = GL_TRIANGLES);
-
-            GLRenderer():Renderer(100,RGBA::create(0,0,0)){};
-            GLRenderer(Dimention meter_size,Color backgroundColor):KLSE::Renderer(meter_size,backgroundColor){};
+            GLRenderer():Renderer(RGBA::create(0,0,0)){};
+            GLRenderer(Color backgroundColor):KLSE::Renderer(backgroundColor){};
 
             void init(Window* window)override;
 

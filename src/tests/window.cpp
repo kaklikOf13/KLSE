@@ -5,22 +5,10 @@ using namespace KLSE;
 int main(int argc, char const *argv[])
 {
     Init();
-    GLInit(GLAntialias::MSAA4X);
+    GLFWInit_GL(GLAntialias::MSAA4X);
     GLFWWindow* window=new GLFWWindow(new GLRenderer());
-    
-    auto container=new RContainer();
-    container->add_rectangle(Vec2(0,0),Vec2(1,1),RGBA::create(100,0,20));
-    auto cc=container->add_container();
-    cc->add_circle(Vec2(1,-0.1),0.3,RGBA::create(100,0,20));
-    cc->add_circle(Vec2(1,1.1),0.3,RGBA::create(100,0,20));
 
-    container->position.x+=1;
-    container->position.y+=1;
-    cc->position.y=1;
-
-    auto sprite=window->renderer->create_sprite(Vec2(300,300));
     auto rect=new RectCollider2D(Vec2(0,0),Vec2(5,5));
-    sprite->draw_collider2D(rect,RGBA::create(0,0,0),Vec2());
 
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
@@ -30,47 +18,55 @@ int main(int argc, char const *argv[])
         std::cout<<random.idimention(0,100)<<" ";
     }
     std::cout<<"\n";
-    Model3D* m=Model3D::cube();
-    Transform3D t = Transform3D();
-    t.position.z=-2;
-    auto material=MF3_color->createMaterial({HEXCOLOR::create("#009")});
+
+    Model3D* m3=Model3D::cube();
+    Transform3D t3 = Transform3D();
+    t3.position.z=-2;
+    auto material3=MF3_color->createMaterial({HEXCOLOR::create("#009")});
+
+    Model2D* m2=Model2D::rect();
+    Transform2D t2 = Transform2D();
+    auto material2=MF2_color->createMaterial({HEXCOLOR::create("#034")});
+
     Clock c = Clock(60);
-    Camera3D* cam=new Camera3D();
+    Camera3D* cam3=new Camera3D();
+    Camera2D* cam2=new Camera2D();
 
     Dimention speed=0.1;
 
     while (!window->closed()) {
         window->renderer->clear();
+
         if(window->input->keyPress(Key::S)){
-            cam->position.z-=speed;
-            container->position.y+=speed;
+            cam3->position.z-=speed;
         }else if(window->input->keyPress(Key::W)){
-            cam->position.z+=speed;
-            container->position.y-=speed;
+            cam3->position.z+=speed;
         }
 
         if(window->input->keyPress(Key::D)){
-            cam->position.x+=speed;
-            container->position.x+=speed;
+            cam3->position.x+=speed;
         }else if(window->input->keyPress(Key::A)){
-            cam->position.x-=speed;
-            container->position.x-=speed;
+            cam3->position.x-=speed;
         }
 
         if(window->input->keyPress(Key::Space)){
-            cam->position.y-=speed;
+            cam3->position.y-=speed;
         }else if(window->input->keyPress(Key::LShift)){
-            cam->position.y+=speed;
+            cam3->position.y+=speed;
         }
 
         if(window->input->keyPress(Key::Q)){
-            cam->rotation.y-=speed*20;
+            cam3->rotation.y-=speed*20;
         }else if(window->input->keyPress(Key::E)){
-            cam->rotation.y+=speed*20;
+            cam3->rotation.y+=speed*20;
         }
-        container->draw(window->renderer);
-        cam->update(window->get_size());
-        window->renderer->draw_model3D(m,t,material,cam);
+
+        cam3->update(window->get_size());
+        cam2->update(window->get_size());
+
+        window->renderer->draw_model3D(m3,t3,material3,cam3);
+        window->renderer->draw_model2D(m2,t2,material2,cam2);
+
         window->update();
         c.tick();
     }

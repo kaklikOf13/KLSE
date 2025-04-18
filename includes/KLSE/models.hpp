@@ -44,6 +44,20 @@ namespace KLSE {
         static Model3D* parseObj(const std::string& objText);
     };
 
+    struct Vertex2D {
+        Vec2 coords;
+        Vec2 texCoords;
+    };
+
+    class Model2D {
+    public:
+        std::vector<Vertex2D> _vertex;
+        std::vector<uint32_t> _index;
+
+        static Model2D* rect(Vec2 min=Vec2(0,0),Vec2 max=Vec2(1,1));
+        Model2D() = default;
+    };
+
     using Matrix4 = std::vector<float>;
     
     namespace matrix4 {

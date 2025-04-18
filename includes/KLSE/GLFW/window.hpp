@@ -5,6 +5,13 @@
 #include <GLFW/glfw3.h>
 namespace KLSE
 {
+    enum class GLAntialias:uint8_t{
+        none,
+        MSAA1X,
+        MSAA2X,
+        MSAA4X,
+    };
+    void GLFWInit_GL(GLAntialias antialias);
     class GLFWWindow:public Window{
         public:
             Renderer* renderer;

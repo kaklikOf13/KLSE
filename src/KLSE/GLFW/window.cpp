@@ -119,8 +119,6 @@ namespace KLSE
         renderer->set_viewport(IVec2(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y));
 
         input = new PCInputListener();
-        /*glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);*/
     }
     IVec2 GLFWWindow::get_size(){
         IVec2 ret;
@@ -155,5 +153,28 @@ namespace KLSE
         input->update();
         glfwSwapBuffers(window);
         glfwPollEvents();
+    }
+    void GLFWInit_GL(GLAntialias antialias){
+        // Inicializar GLFW
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW" << std::endl;
+            exit(-1);
+        }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        switch (antialias)
+        {
+        case GLAntialias::MSAA1X:
+            glfwWindowHint(GLFW_SAMPLES, 1);
+        case GLAntialias::MSAA2X:
+            glfwWindowHint(GLFW_SAMPLES, 2);
+        case GLAntialias::MSAA4X:
+            glfwWindowHint(GLFW_SAMPLES, 4);
+            break;
+        default:
+            break;
+        }
     }
 }

@@ -30,6 +30,8 @@ namespace KLSE
         uint32_t program;
     };
     extern Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF3_color;
+
+    extern Material2DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF2_color;
     void InitOpenGLMaterials();
 } // namespace KLSE
 #endif

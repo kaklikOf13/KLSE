@@ -51,7 +51,33 @@ namespace KLSE
             FragColor.rgb*=light;
         }
     )";
-    void ColorMaterialExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, Camera3D* camera,const Transform3D& t){
+
+    const char* vertex2Dcolor = R"(
+        #version 330 core
+        layout (location = 0) in vec2 a_Position;
+        layout (location = 1) in vec2 a_UV;
+
+        uniform vec3 u_Position;
+        uniform vec2 u_Scale;
+
+        uniform mat4 u_MainMatrix;
+
+        void main() {
+            vec3 scaledPos=vec3(a_Position*u_Scale,0);
+            gl_Position = u_MainMatrix * vec4(u_Position+scaledPos, 1.0);
+        }
+    )";
+
+    const char* frag2Dcolor = R"(
+        #version 330 core
+        out vec4 FragColor;
+        uniform vec4 u_Color;
+
+        void main() {
+            FragColor = u_Color;
+        }
+    )";
+    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, Camera3D* camera,const Transform3D& t){
         VAO vao1;
 
         vao1.Bind();
@@ -112,10 +138,69 @@ namespace KLSE
 
         checkOpenGLError("_draw_3d");
     }
+
+    void ColorMaterial2DExecute(Material2D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t){
+        VAO vao1;
+
+        vao1.Bind();
+
+        VBO vbo1((GLdouble*)model->_vertex.data(),sizeof(Vertex2D)*model->_vertex.size());
+        EBO ebo1((GLuint*)model->_index.data(),sizeof(uint32_t)*model->_index.size());
+
+        vao1.LinkAttrib(vbo1,0,2,GL_DOUBLE,sizeof(Vertex2D),(void*)0); //a_Position
+        vao1.LinkAttrib(vbo1,1,2,GL_DOUBLE,sizeof(Vertex2D),(void*)(2*sizeof(Dimention)));//a_UV
+
+        auto program=material->factory->args.program;
+
+        glUseProgram(program);
+
+        int projLoc = glGetUniformLocation(program, "u_MainMatrix");
+        if (projLoc != -1) {
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, camera->matrix.data());
+        } else {
+            std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
+        }
+
+        int uLoc = glGetUniformLocation(program, "u_Color");
+        if (uLoc != -1) {
+            glUniform4f(uLoc, material->args.color.r, material->args.color.g, material->args.color.b, material->args.color.a);
+        } else {
+            std::cerr << "Uniform 'u_Color' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(program, "u_Position");
+        if (uLoc != -1) {
+            glUniform3f(uLoc, t.position.x, t.position.y, t.zIndex);
+        } else {
+            std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
+        }
+
+        uLoc = glGetUniformLocation(program, "u_Scale");
+        if (uLoc != -1) {
+            glUniform2f(uLoc, t.scale.x, t.scale.y);
+        } else {
+            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
+        }
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        glDrawElements(GL_TRIANGLES, model->_index.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        vao1.Free();
+        vbo1.Free();
+        ebo1.Free();
+
+        checkOpenGLError("_draw_2d");
+    }
+
     Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF3_color;
+    Material2DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF2_color;
     void InitOpenGLMaterials(){
-        MF3_color=new Material3DFactory(&ColorMaterialExecute,{
+        MF3_color=new Material3DFactory(&ColorMaterial3DExecute,{
             createShaderProgram(vertex3Dcolor,frag3Dcolor)
+        });
+        MF2_color=new Material2DFactory(&ColorMaterial2DExecute,{
+            createShaderProgram(vertex2Dcolor,frag2Dcolor)
         });
     }
 } // namespace KLSE

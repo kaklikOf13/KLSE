@@ -41,6 +41,11 @@ namespace KLSE
 
         this->matrix = matrix4::mult(projection, view);
     }
+    void Camera2D::update(Vec2 size){
+        Matrix4 projection = matrix4::projection({size.x/this->meter_size,size.y/this->meter_size,500});
+
+        this->matrix = projection;
+    }
     DrawForm2D::~DrawForm2D(){
         if(this->collider!=nullptr){
             delete this->collider;
@@ -48,7 +53,6 @@ namespace KLSE
     }
     void DrawForm2D::draw(Renderer* render,RContainer* container){
         Vec2 offset=Vec2::neg(container->real_position);
-        render->draw_collider2D(this->collider,this->color,offset,Vec2());
     }
     void RContainer::CalculateRealPosition(){
         if(parent){

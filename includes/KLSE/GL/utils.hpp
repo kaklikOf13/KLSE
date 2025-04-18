@@ -25,13 +25,6 @@ SOFTWARE.*/
 #include "../input.hpp"
 namespace KLSE
 {
-    enum class GLAntialias:uint8_t{
-        none,
-        MSAA1X,
-        MSAA2X,
-        MSAA4X,
-    };
-
     void checkOpenGLError(const std::string& context);
 
     #pragma region Buffers

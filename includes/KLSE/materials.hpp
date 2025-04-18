@@ -40,5 +40,26 @@ namespace KLSE{
         MaterialArg args;
         Material3D(Material3DFactory<MaterialArg,FactoryArgs>* factory, MaterialArg arg):factory(factory),args(arg){};
     };
+    
+    template<typename MaterialArg,typename FactoryArgs>class Material2D;
+    template<typename MaterialArg,typename FactoryArgs>using Material2DExecutionFunction = void(*)(Material2D<MaterialArg,FactoryArgs>*,Window*,Model2D* model, Camera2D*,const Transform2D& transform);
+
+    using Material2DExecutionFunction2 = void(*)(void*,Window*,Model2D*, Camera2D*,const Transform2D&);
+    template<typename MaterialArg,typename FactoryArgs>class Material2DFactory{
+        public:
+        Material2DExecutionFunction<MaterialArg,FactoryArgs> execute;
+        FactoryArgs args;
+        Material2D<MaterialArg,FactoryArgs>* createMaterial(MaterialArg arg){
+            auto m=new Material2D<MaterialArg,FactoryArgs>(this,arg);
+            return m;
+        }
+        Material2DFactory(Material2DExecutionFunction<MaterialArg,FactoryArgs> on_execute,FactoryArgs args):execute(on_execute),args(args){}
+    };
+    template<typename MaterialArg,typename FactoryArgs> class Material2D{
+        public:
+        Material2DFactory<MaterialArg,FactoryArgs>* factory;
+        MaterialArg args;
+        Material2D(Material2DFactory<MaterialArg,FactoryArgs>* factory, MaterialArg arg):factory(factory),args(arg){};
+    };
 }
 #endif

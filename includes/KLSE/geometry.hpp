@@ -22,7 +22,6 @@ SOFTWARE.*/
 #include <cmath>
 #include "utils.hpp"
 namespace KLSE{
-    extern "C"{
     #pragma region Vec2
 
     typedef float RadAngle;
@@ -483,6 +482,16 @@ namespace KLSE{
         Transform3D():position(Vec3()),scale(Vec3(1,1,1)),rotation(Vec3()){};
         Transform3D(Vec3 position, Vec3 scale, Vec3 rotation):position(position),scale(scale),rotation(rotation){}
     };
-    }
+    struct Transform2D{
+        Vec2 position;
+        Dimention zIndex;
+        Vec2 scale;
+        Vec2 hotspot;
+
+        Dimention rotation;
+        ~Transform2D()=default;
+        Transform2D():position(Vec2()),scale(Vec2(1,1)),rotation(0){};
+        Transform2D(Vec2 position, Vec2 scale, Dimention rotation):position(position),scale(scale),rotation(rotation){}
+    };
 }
 #endif

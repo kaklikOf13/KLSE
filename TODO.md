@@ -7,7 +7,7 @@
 [ ] Tests
 [ ] Typescript Engine Merge
 [ ] Create Dir IF Not Exist
-[ ] Compile Libs
+[X] Compile Libs
 [ ] Libs Instalation
 ## Others
 [X] Improve Executable

@@ -76,19 +76,30 @@ namespace KLSE
 
         private:
     };
+    struct Camera2D{
+        Dimention meter_size;
+        Vec2 position;
+        Dimention zoom;
+
+        Matrix4 matrix;
+
+        void update(Vec2 size);
+
+        ~Camera2D()=default;
+        Camera2D():position(Vec2()),zoom(1),meter_size(100){}
+        Camera2D(Vec2 position):position(position),zoom(1),meter_size(100){}
+        Camera2D(Vec2 position, Dimention zoom):position(position),zoom(zoom){}
+    };
     class Window;
     class Sprite;
     class Renderer {
         public:
-        Dimention meter_size;
         Color backgroundColor;
         Window* window;
-        virtual void draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale=Vec2(1,1))=0;
-        virtual void draw_circle2D(CircleCollider2D* circle,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
-        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
-        virtual void draw_sprite(Sprite* s,Vec2 offset,Vec2 scale)=0;
 
         virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, Camera3D* camera,RenderMode3D=RenderMode3D::normal)=0;
+        virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera)=0;
+
         virtual void clear(){};
         virtual void init(Window* window){};
 
@@ -96,9 +107,8 @@ namespace KLSE
 
         virtual Sprite* create_sprite(IVec2 size)=0;
 
-
-        Renderer(Dimention meter_size,Color backgroundColor):meter_size(meter_size),backgroundColor(backgroundColor){}
-        Renderer():meter_size(100),backgroundColor(0,0,0){}
+        Renderer(Color backgroundColor):backgroundColor(backgroundColor){}
+        Renderer():backgroundColor(0,0,0){}
     };
 
     class Window{

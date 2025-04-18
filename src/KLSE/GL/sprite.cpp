@@ -24,7 +24,6 @@ namespace KLSE
         render->set_viewport(real_size);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        render->draw_collider2D(col,color,offset,scale,s);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         render->set_viewport(reinterpret_cast<GLRenderer*>(render)->window->get_size());

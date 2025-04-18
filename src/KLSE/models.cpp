@@ -74,6 +74,24 @@ namespace KLSE {
         return ret;
     }
 
+    Model2D* Model2D::rect(Vec2 min,Vec2 max) {
+        Model2D* ret=new Model2D();
+        
+        ret->_vertex = {
+            {{min.x,min.y},{0,0}},
+            {{max.x,min.y},{1,0}},
+            {{max.x,max.y},{1,1}},
+            {{min.x,max.y},{0,1}}
+        };
+
+        ret->_index = {
+            0, 1, 2,  // First triangle
+            2, 3, 0   // Second triangle
+        };
+
+        return ret;
+    }
+
     Model3D* Model3D::parseObj(const std::string& objText) {
         Model3D* ret;
         /*std::istringstream stream(objText);

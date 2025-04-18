@@ -19,72 +19,6 @@ SOFTWARE.*/
 #include <KLSE/GL/renderer.hpp>
 namespace KLSE
 {
-    const char* simpleVertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec2 a_Position;
-        uniform mat4 u_MainMatrix;
-
-        void main() {
-            gl_Position = u_MainMatrix * vec4(a_Position, 0.0, 1.0);
-        }
-    )";
-
-    const char* simpleFragmentShaderSource = R"(
-        #version 330 core
-        out vec4 FragColor;
-        uniform vec4 u_Color;
-
-        void main() {
-            FragColor = u_Color;
-        }
-    )";
-
-    const char* simpleTeVertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec2 a_Position;
-        layout (location = 1) in vec2 a_TexCoord;
-        out vec2 TexCoord;
-        
-        void main() {
-            gl_Position = vec4(a_Position, 0.0, 1.0);
-            TexCoord = a_TexCoord;
-        }
-    )";
-
-    const char* simpleTeFragmentShaderSource = R"(
-        #version 330 core
-        out vec4 FragColor;
-        in vec2 TexCoord;
-        uniform sampler2D u_Texture;
-        
-        void main() {
-            FragColor = texture(u_Texture, TexCoord);
-        }
-    )";
-
-    void GLInit(GLAntialias antialias){
-        // Inicializar GLFW
-        if (!glfwInit()) {
-            std::cerr << "Failed to initialize GLFW" << std::endl;
-            exit(-1);
-        }
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        switch (antialias)
-        {
-        case GLAntialias::MSAA1X:
-            glfwWindowHint(GLFW_SAMPLES, 1);
-        case GLAntialias::MSAA2X:
-            glfwWindowHint(GLFW_SAMPLES, 2);
-        case GLAntialias::MSAA4X:
-            glfwWindowHint(GLFW_SAMPLES, 4);
-            break;
-        default:
-            break;
-        }
-    }
 
     void GLRenderer::init(Window* window){
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -92,8 +26,6 @@ namespace KLSE
             exit(-1);
         }
         this->window=window;
-        simple_program=createShaderProgram(simpleVertexShaderSource,simpleFragmentShaderSource);
-        simple_tex_program=createShaderProgram(simpleTeVertexShaderSource,simpleTeFragmentShaderSource);
 
         InitOpenGLMaterials();
 
@@ -105,7 +37,7 @@ namespace KLSE
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale){
+    /*void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale){
         // 1. Calculate the rectangle vertices
         Dimention x1 = rect->position.x - offset.x;
         Dimention y1 = rect->position.y - offset.y;
@@ -158,9 +90,9 @@ namespace KLSE
 
         // 4. Call _draw_simple_vertex with the vertices and indices
         _draw_simple_vertex(vertices, indices, color,scale,simple_program, GL_TRIANGLES);
-    }
+    }*/
 
-    void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale,unsigned int smooth){
+    /*void GLRenderer::draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale,unsigned int smooth){
         switch (hitbox->type)
         {
         case ColliderType2D::circle:
@@ -173,8 +105,8 @@ namespace KLSE
         default:
             break;
         }
-    }
-    void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color,Vec2 scale,unsigned int s_program, GLenum mode) {
+    }*/
+    /*void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color,Vec2 scale,unsigned int s_program, GLenum mode) {
         // 1. Generate and bind VAO
         unsigned int VAO, VBO, EBO;
         glGenVertexArrays(1, &VAO);
@@ -206,8 +138,6 @@ namespace KLSE
 
         int Loc = glGetUniformLocation(s_program, "u_Color");
         glUniform4f(Loc, color.r, color.g, color.b, color.a);
-        /*Loc = glGetUniformLocation(s_program, "u_Scale");
-        glUniform2f(Loc, scale.x, scale.y);*/
 
         // Set the projection matrix uniform
         if (projectionMatrix.size()==16) {
@@ -227,33 +157,14 @@ namespace KLSE
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
-    }
-    void GLRenderer::draw_sprite(Sprite* s,Vec2 offset,Vec2 scale){
-        Dimention x1 = offset.x;
-        Dimention y1 = offset.y;
-        Dimention x2 = x1 + offset.x;
-        Dimention y2 = y1 + offset.y;
-
-        std::vector<Dimention> vertices = {
-        //Coord     TexCoords
-            x1, y1, 0.0f, 1.0f,  // Bottom-left
-            x2, y1, 0.0f, 0.0f,  // Bottom-right
-            x2, y2, 1.0f, 0.0f,  // Top-right
-            x1, y2, 1.0f, 1.0f   // Top-left
-        };
-
-        std::vector<unsigned int> indices = {
-            0, 1, 2,  // First triangle
-            2, 3, 0   // Second triangle
-        };
-
-        reinterpret_cast<GLSprite*>(s)->drawr(this,vertices,indices,simple_tex_program);
-    }
+    }*/
     void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera3D* camera,RenderMode3D m){
         reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,this->window,model,camera,transform);
     }
+    void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera){
+        reinterpret_cast<Material2DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,this->window,model,camera,transform);
+    }
     void GLRenderer::set_viewport(IVec2 size){
-        projectionMatrix=matrix4::projection(Vec3(size.x/meter_size,size.y/meter_size,500));
         glViewport(0,0,size.x, size.y);
     }
 
@@ -275,7 +186,7 @@ namespace KLSE
         IVec2 ws=window->get_size();
         glViewport(0, 0, ws.x, ws.y);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto s=new GLSprite(fbo,texture,Vec2(size)/this->meter_size,size,this);
+        auto s=new GLSprite(fbo,texture,Vec2(size),size,this);
         return reinterpret_cast<Sprite*>(s);
     }
 }
