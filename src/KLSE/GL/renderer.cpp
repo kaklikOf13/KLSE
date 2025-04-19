@@ -17,6 +17,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/GL/renderer.hpp>
+#include "KLSE/GL/materials.hpp"
+#include <GLFW/glfw3.h>
 namespace KLSE
 {
 
@@ -186,7 +188,27 @@ namespace KLSE
         IVec2 ws=window->get_size();
         glViewport(0, 0, ws.x, ws.y);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto s=new GLSprite(fbo,texture,Vec2(size),size,this);
+        auto s=new GLSprite(fbo,texture,size,this);
+        return reinterpret_cast<Sprite*>(s);
+    }
+    Sprite* GLRenderer::load_sprite_from_raw_data(byte* data, IDimention width, IDimention height) {
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        GLuint dummy_fbo = 0;
+    
+        auto s = new GLSprite(dummy_fbo, texture, IVec2(width, height), this);
         return reinterpret_cast<Sprite*>(s);
     }
 }

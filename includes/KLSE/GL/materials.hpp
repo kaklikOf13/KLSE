@@ -20,6 +20,7 @@ SOFTWARE.*/
 #define KLSE_GL_MATERIAL_HPP
 #include "../materials.hpp"
 #include "utils.hpp"
+#include "sprite.hpp"
 #include "../renderer.hpp"
 namespace KLSE
 {
@@ -34,6 +35,11 @@ namespace KLSE
     extern Material3DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MFI3_color;
 
     extern Material2DFactory<GLMaterialColorArgs,GLMaterialFArgs>* MF2_color;
+
+    struct GLMaterialSpriteArgs{
+        GLSprite* sprite;
+    };
+    extern Material2DFactory<GLMaterialSpriteArgs,GLMaterialFArgs>* MF2_sprite;
     void InitOpenGLMaterials();
 } // namespace KLSE
 #endif

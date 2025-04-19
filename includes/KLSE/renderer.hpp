@@ -106,9 +106,11 @@ namespace KLSE
         public:
         Color backgroundColor;
         Window* window;
+        Model2D* default_rect;
 
         virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera)=0;
+        //virtual void draw_sprite2D(Sprite* model,const Transform2D& transform, Camera2D* camera)=0;
 
         virtual void clear(){};
         virtual void init(Window* window){};
@@ -116,8 +118,9 @@ namespace KLSE
         virtual void set_viewport(IVec2 size)=0;
 
         virtual Sprite* create_sprite(IVec2 size)=0;
+        virtual Sprite* load_sprite_from_raw_data(byte* data, IDimention width, IDimention height)=0;
 
-        Renderer(Color backgroundColor):backgroundColor(backgroundColor){}
+        Renderer(Color backgroundColor):backgroundColor(backgroundColor),default_rect(Model2D::rect()){}
         Renderer():backgroundColor(0,0,0){}
     };
 
@@ -151,9 +154,7 @@ namespace KLSE
         public:
         std::string id;
         Renderer* render;
-        IVec2 real_size;
-        Vec2 size;
-        virtual void draw_collider2D(Collider2D* hitbox,Color color,Vec2 offset,Vec2 scale=Vec2(1,1),unsigned int smooth=30)=0;
+        IVec2 size;
         ~Sprite(){};
     };
     class RContainer{

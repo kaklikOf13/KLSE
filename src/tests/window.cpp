@@ -34,6 +34,9 @@ int main(int argc, char const *argv[])
 
     Model2D* m2=Model2D::rect();
     Transform2D t2 = Transform2D();
+    Transform2D t2t = Transform2D();
+    t2t.position.y=3;
+    t2t.position.x=3;
     auto material2=MF2_color->createMaterial({HEXCOLOR::create("#034")});
 
     Clock c = Clock(60);
@@ -42,6 +45,18 @@ int main(int argc, char const *argv[])
     Camera2D* cam2=new Camera2D();
 
     Dimention speed=0.1;
+
+    byte* data = new byte[64 * 64 * 4];
+
+    for (int i = 0; i < 64 * 64; ++i) {
+        data[i * 4 + 0] = i/64; // R
+        data[i * 4 + 1] = 0;   // G
+        data[i * 4 + 2] = 0;   // B
+        data[i * 4 + 3] = 255; // A
+    }
+
+    auto material2t=MF2_sprite->createMaterial({reinterpret_cast<GLSprite*>(window->renderer->load_sprite_from_raw_data(data, 64, 64))});
+    delete[] data;
 
     while (!window->closed()) {
         window->renderer->clear();
@@ -93,6 +108,7 @@ int main(int argc, char const *argv[])
         window->renderer->draw_model3D(m3,t3,material3,cam3);
         window->renderer->draw_model3D(mi3,ti3,materiali3,cami3);
         window->renderer->draw_model2D(m2,t2,material2,cam2);
+        window->renderer->draw_model2D(m2,t2t,material2t,cam2);
 
         window->update();
         c.tick();
