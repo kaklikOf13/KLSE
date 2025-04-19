@@ -22,5 +22,4 @@ SOFTWARE.*/
 #include "utils.hpp"
 #include "renderer.hpp"
 #include "materials.hpp"
-#include "sprite.hpp"
 #endif

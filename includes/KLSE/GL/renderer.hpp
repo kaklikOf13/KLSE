@@ -29,14 +29,21 @@ namespace KLSE
 {
 
     class GLRenderer;
+    class GLSprite:public Sprite{
+        public:
+        GLRenderer* render;
+        GLuint texture;
+        GLSprite(GLuint texture,IVec2 size,GLRenderer* render):Sprite(size),texture(texture),render(render){};
+        ~GLSprite(){
+            glDeleteTextures(1, &texture);
+        };
+    }; 
     class GLRenderer:public Renderer{
         public:
-            Window* window;
-
             void draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)override;
             void draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera)override;
+            void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera)override;
 
-            //void draw_sprite2D(Sprite* model,const Transform2D& transform, Camera2D* camera)override;
             void clear() override;
 
             void set_viewport(IVec2 size) override;
@@ -46,8 +53,7 @@ namespace KLSE
 
             void init(Window* window)override;
 
-            Sprite* load_sprite(Image* img)override;
-            void* sprite_basic_material(Image* img)override;
+            Sprite* load_sprite(Image* img,bool create_material=true)override;
     };
 } // namespace KLSE
 #endif

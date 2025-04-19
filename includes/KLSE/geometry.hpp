@@ -357,6 +357,8 @@ namespace KLSE{
         static std::string toString(Vec3 vec);
 
         static Vec3 pyramid_loop(Vec3 vec, Dimention minY,Dimention maxY,Dimention maxLoopSize,Dimention minLoop);
+
+        static Vec2 isometric_proj(Vec3 vec);
     };
 
     struct IVec3{
@@ -463,6 +465,8 @@ namespace KLSE{
         static HashIVec3 hash(IVec3 vec);
 
         static IVec3 pyramid_loop(IVec3 vec, IDimention minY, IDimention maxY, IDimention maxLoopSize, IDimention minLoop);
+
+        static IVec2 isometric_proj(IVec3 vec);
     };
 
     #pragma endregion

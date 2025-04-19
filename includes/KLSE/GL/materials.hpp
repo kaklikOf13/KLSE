@@ -20,7 +20,7 @@ SOFTWARE.*/
 #define KLSE_GL_MATERIAL_HPP
 #include "../rendering/materials.hpp"
 #include "utils.hpp"
-#include "sprite.hpp"
+#include "renderer.hpp"
 #include "../rendering/renderer.hpp"
 namespace KLSE
 {

@@ -54,6 +54,9 @@ namespace KLSE
 
         matrix = matrix4::translate(projection,Vec3(-position.x,-position.y,0));
     }
+    Vec2 Camera2D::pixel_to_meter(IVec2 vec){
+        return (Vec2(vec)/meter_size);
+    }
     DrawForm2D::~DrawForm2D(){
         if(this->collider!=nullptr){
             delete this->collider;

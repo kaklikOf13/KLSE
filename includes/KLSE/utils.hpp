@@ -55,8 +55,7 @@ namespace KLSE{
     typedef int64 IDimention;
 
     struct ZeroStruct{};
-
-    
+    class ZeroClass{public:ZeroClass(){};~ZeroClass()=default;};
 
     namespace Math
     {

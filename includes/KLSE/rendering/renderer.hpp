@@ -104,6 +104,7 @@ namespace KLSE
         Matrix4 matrix;
 
         void update(Vec2 size);
+        Vec2 pixel_to_meter(IVec2 vec);
 
         ~Camera2D()=default;
         Camera2D():position(Vec2()),zoom(1.0),meter_size(100.0),rotation(0.0){}
@@ -118,15 +119,14 @@ namespace KLSE
 
         virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)=0;
         virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera)=0;
-        //virtual void draw_sprite2D(Sprite* model,const Transform2D& transform, Camera2D* camera)=0;
+        virtual void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera)=0;
 
         virtual void clear(){};
         virtual void init(Window* window){};
 
         virtual void set_viewport(IVec2 size)=0;
 
-        virtual Sprite* load_sprite(Image* img)=0;
-        virtual void* sprite_basic_material(Image* data)=0;
+        virtual Sprite* load_sprite(Image* img,bool create_material=true)=0;
 
         Renderer(Color backgroundColor):backgroundColor(backgroundColor),default_rect(Model2D::rect()){}
         Renderer():backgroundColor(0,0,0){}
@@ -160,10 +160,14 @@ namespace KLSE
     };
     class Sprite{
         public:
-        std::string id;
         Renderer* render;
+        ZeroClass* material;
         IVec2 size;
-        ~Sprite(){};
+        Sprite(){};
+        Sprite(IVec2 size):size(size){};
+        ~Sprite(){
+            delete material;
+        };
     };
     class RContainer{
         public:

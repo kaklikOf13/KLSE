@@ -777,6 +777,10 @@ namespace KLSE{
     std::string Vec3::toString(Vec3 vec){
         return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
     }
+
+    Vec2 Vec3::isometric_proj(Vec3 vec){
+        return Vec2(vec.x+vec.z, (vec.x-vec.y)-vec.z);
+    }
     #pragma endregion
     #pragma region IVec3
     IVec3 IVec3::random(Dimention min, Dimention max) {
@@ -1041,6 +1045,10 @@ namespace KLSE{
 
     HashIVec3 IVec3::hash(IVec3 vec){
         return (vec.x*prime1)^(vec.y * prime2)^(vec.z * prime3);
+    }
+
+    IVec2 IVec3::isometric_proj(IVec3 vec){
+        return IVec2(vec.x+vec.z, (vec.x-vec.y)-vec.z);
     }
     #pragma endregion
     #pragma endregion

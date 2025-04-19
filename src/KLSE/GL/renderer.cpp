@@ -40,29 +40,7 @@ namespace KLSE
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    /*void GLRenderer::draw_rect2D(RectCollider2D* rect, Color color,Vec2 offset,Vec2 scale){
-        // 1. Calculate the rectangle vertices
-        Dimention x1 = rect->position.x - offset.x;
-        Dimention y1 = rect->position.y - offset.y;
-        Dimention x2 = x1 + rect->size.x;
-        Dimention y2 = y1 + rect->size.y;
-
-        std::vector<Dimention> vertices = {
-            x1, y1,  // Bottom-left
-            x2, y1,  // Bottom-right
-            x2, y2,  // Top-right
-            x1, y2   // Top-left
-        };
-
-        std::vector<unsigned int> indices = {
-            0, 1, 2,  // First triangle
-            2, 3, 0   // Second triangle
-        };
-
-        // 2. Call _draw_simple_vertex with the vertices and indices
-        _draw_simple_vertex(vertices, indices, color,scale,simple_program, GL_TRIANGLES);
-    }
-
+    /*
     void GLRenderer::draw_circle2D(CircleCollider2D* circle, Color color, Vec2 offset,Vec2 scale, unsigned int smooth) {
         // 1. Calculate the circle's center position
         float cx = circle->position.x - offset.x;
@@ -109,68 +87,21 @@ namespace KLSE
             break;
         }
     }*/
-    /*void GLRenderer::_draw_simple_vertex(const std::vector<Dimention>& vertex, const std::vector<unsigned int>& index, Color color,Vec2 scale,unsigned int s_program, GLenum mode) {
-        // 1. Generate and bind VAO
-        unsigned int VAO, VBO, EBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-
-        glBindVertexArray(VAO);
-
-        // 2. Bind and set vertex buffer data
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Dimention), vertex.data(), GL_STATIC_DRAW);
-
-        // 3. Bind and set element buffer data
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), index.data(), GL_STATIC_DRAW);
-
-        // 4. Define the vertex attribute pointers (assuming 2D position)
-        glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 2 * sizeof(Dimention), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        // 5. Use the shader program and set the uniform values
-        glUseProgram(s_program);
-
-        // Retrieve uniform locations
-        int projLoc = glGetUniformLocation(s_program, "u_MainMatrix");
-        if (projLoc == -1) {
-            std::cerr << "Uniform 'u_MainMatrix' not found! " << std::endl;
-        }
-
-        int Loc = glGetUniformLocation(s_program, "u_Color");
-        glUniform4f(Loc, color.r, color.g, color.b, color.a);
-
-        // Set the projection matrix uniform
-        if (projectionMatrix.size()==16) {
-            glUniformMatrix4fv(projLoc, 1, GL_FALSE, projectionMatrix.data());
-        } else {
-            std::cerr << "Projection matrix is null!" << std::endl;
-        }
-
-
-        // 6. Draw the vertices using the index buffer
-        glDrawElements(mode, index.size(), GL_UNSIGNED_INT, 0);
-
-        // 7. Unbind the VAO
-        glBindVertexArray(0);
-
-        // 8. Cleanup
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }*/
     void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D m){
         reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform);
     }
     void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera){
         reinterpret_cast<Material2DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform);
     }
+    void GLRenderer::draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera){
+        Model2D* mod=Model2D::rect(Vec2(),camera->pixel_to_meter(sprite->size));
+        draw_model2D(mod,transform,sprite->material,camera);
+        delete mod;
+    }
     void GLRenderer::set_viewport(IVec2 size){
         glViewport(0,0,size.x, size.y);
     }
-    Sprite* GLRenderer::load_sprite(Image* img) {
+    Sprite* GLRenderer::load_sprite(Image* img,bool create_material) {
         GLuint texture;
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
@@ -185,11 +116,9 @@ namespace KLSE
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
-        auto s = new GLSprite(texture, img->size, this);
+        auto s = new GLSprite(texture, IVec2(img->size.x,img->size.y), this);
+        if(create_material)s->material=reinterpret_cast<ZeroClass*>(MF2_sprite->createMaterial({s}));
         delete img;
         return reinterpret_cast<Sprite*>(s);
-    }
-    void* GLRenderer::sprite_basic_material(Image* img) {
-        return reinterpret_cast<void*>(MF2_sprite->createMaterial({reinterpret_cast<GLSprite*>(load_sprite(img))}));
     }
 }

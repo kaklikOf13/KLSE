@@ -46,9 +46,11 @@ int main(int argc, char const *argv[])
 
     Dimention speed=0.1;
 
-    auto img=Image::load_image("../../../assets/icons/icon_64x64.bmp");
-    //img->print(img);
-    auto material2t=window->renderer->sprite_basic_material(img);
+    auto sprite1=window->renderer->load_sprite(Image::load_image("../../../assets/icons/icon_64x64.bmp"));
+    auto sprite2=window->renderer->load_sprite(Image::load_image("../../../assets/images/kaklik.bmp"));
+
+    Vec3 kaklik_pos=Vec3(3,0,0);
+    Transform2D kaklik_t=Transform2D();
 
     while (!window->closed()) {
         window->renderer->clear();
@@ -57,29 +59,35 @@ int main(int argc, char const *argv[])
             cam3->position.z-=speed;
             t2.position.y+=speed;
             ti3.position.z-=speed;
+            kaklik_pos.z-=speed*0.5;
         }else if(window->input->keyPress(Key::W)){
             cam3->position.z+=speed;
             t2.position.y-=speed;
             ti3.position.z+=speed;
+            kaklik_pos.z+=speed*0.5;
         }
 
         if(window->input->keyPress(Key::D)){
             cam3->position.x+=speed;
             t2.position.x+=speed;
             ti3.position.x+=speed;
+            kaklik_pos.x+=speed*0.5;
+            kaklik_t.scale.x=1;
         }else if(window->input->keyPress(Key::A)){
             cam3->position.x-=speed;
             t2.position.x-=speed;
             ti3.position.x-=speed;
+            kaklik_pos.x-=speed*0.5;
+            kaklik_t.scale.x=-1;
         }
 
         if(window->input->keyPress(Key::Space)){
             cam3->position.y-=speed;
-            cam2->zoom*=0.9;
+            cam2->zoom-=0.1;
             ti3.position.y-=speed;
         }else if(window->input->keyPress(Key::LShift)){
             cam3->position.y+=speed;
-            cam2->zoom*=2;
+            cam2->zoom+=0.1;
             ti3.position.y+=speed;
         }
 
@@ -93,6 +101,8 @@ int main(int argc, char const *argv[])
             ti3.rotation.x-=1;
         }
 
+        kaklik_t.position=Vec3::isometric_proj(kaklik_pos);
+
         cam3->update(window->get_size());
         cami3->update(window->get_size());
         cam2->update(window->get_size());
@@ -100,7 +110,9 @@ int main(int argc, char const *argv[])
         window->renderer->draw_model3D(m3,t3,material3,cam3);
         window->renderer->draw_model3D(mi3,ti3,materiali3,cami3);
         window->renderer->draw_model2D(m2,t2,material2,cam2);
-        window->renderer->draw_model2D(m2,t2t,material2t,cam2);
+    
+        window->renderer->draw_sprite2D(sprite1,t2t,cam2);
+        window->renderer->draw_sprite2D(sprite2,kaklik_t,cam2);
 
         window->update();
         c.tick();

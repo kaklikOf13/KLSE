@@ -31,7 +31,7 @@ namespace KLSE
         }
         Image(IVec2 size):size(size){
             uint64 ss=size.x*size.y;
-            content=new RGBA[ss];   
+            content=new RGBA[ss];
         }
         static void print(Image* img);
         static Image* fill(Color default_color,IVec2 size);
