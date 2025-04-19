@@ -119,12 +119,11 @@ namespace KLSE
         out vec2 TexCoord;
 
         uniform vec3 u_Position;
-        uniform vec2 u_Scale;
 
         uniform mat4 u_MainMatrix;
 
         void main() {
-            vec3 scaledPos=vec3(a_Position*u_Scale,0);
+            vec3 scaledPos=vec3(a_Position,0);
             gl_Position = u_MainMatrix * vec4(u_Position+scaledPos, 1.0);
             TexCoord = a_UV;
         }
@@ -142,7 +141,7 @@ namespace KLSE
             FragColor = texture(u_Texture, TexCoord);
         }
     )";
-    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, CameraI3D* camera,const Transform3D& t){
+    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, CameraI3D* camera,const Transform3D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();
@@ -204,7 +203,7 @@ namespace KLSE
         checkOpenGLError("_draw_3d");
     }
 
-    void ColorMaterial2DExecute(Material2D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t){
+    void ColorMaterial2DExecute(Material2D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();
@@ -258,7 +257,7 @@ namespace KLSE
         checkOpenGLError("_draw_2d");
     }
 
-    void SpriteMaterial2DExecute(Material2D<GLMaterialSpriteArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t){
+    void SpriteMaterial2DExecute(Material2D<GLMaterialSpriteArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();
@@ -290,14 +289,6 @@ namespace KLSE
         } else {
             std::cerr << "Uniform 'u_Position' not founded!" << std::endl;
         }
-
-        uLoc = glGetUniformLocation(program, "u_Scale");
-        if (uLoc != -1) {
-            glUniform2f(uLoc, t.scale.x, t.scale.y);
-        } else {
-            std::cerr << "Uniform 'u_Scale' not founded!" << std::endl;
-        }
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         glDrawElements(GL_TRIANGLES, model->_index.size(), GL_UNSIGNED_INT, 0);

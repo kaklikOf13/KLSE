@@ -152,6 +152,9 @@ namespace KLSE{
     bool Vec2::operator<=(const IVec2& other) {
         return x<=static_cast<Dimention>(other.x) && y<=static_cast<Dimention>(other.y);
     }
+    std::ostream& Vec2::operator<<(std::ostream& os) {
+        return os<<"{ X: "<<x<<", Y: "<<y<<" }";
+    }
     #pragma endregion
 
     bool Vec2::greaterOr(Vec2 a, Vec2 b) {
@@ -397,6 +400,10 @@ namespace KLSE{
     }
     bool IVec2::operator<=(const IVec2& other) {
         return x<=other.x && y<=other.y;
+    }
+
+    std::ostream& IVec2::operator<<(std::ostream& os) {
+        return os<<"{ X: "<<x<<", Y: "<<y<<" }";;
     }
 
     #pragma endregion
@@ -659,6 +666,10 @@ namespace KLSE{
     }
     bool  Vec3::operator<(const IVec3& other){
         return x < static_cast<Dimention>(other.x) && y < static_cast<Dimention>(other.y) && z < static_cast<Dimention>(other.z);
+    }
+    std::ostream& Vec3::operator<<(std::ostream& os) {
+        os<<"{ X: "<<x<<", Y: "<<y<<", Z: "<<z<<" }";
+        return os;
     }
     #pragma endregion
 
@@ -923,6 +934,10 @@ namespace KLSE{
     }
     bool  IVec3::operator<=(const IVec3& other){
         return x <= other.x && y <= other.y && z <= other.z;
+    }
+    std::ostream& IVec3::operator<<(std::ostream& os) {
+        os<<"{ X: "<<x<<", Y: "<<y<<", Z: "<<z<<" }";
+        return os;
     }
 
     #pragma endregion

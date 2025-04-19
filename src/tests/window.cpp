@@ -51,6 +51,7 @@ int main(int argc, char const *argv[])
 
     Vec3 kaklik_pos=Vec3(3,0,0);
     Transform2D kaklik_t=Transform2D();
+    kaklik_t.scale*=2;
 
     while (!window->closed()) {
         window->renderer->clear();
@@ -72,13 +73,13 @@ int main(int argc, char const *argv[])
             t2.position.x+=speed;
             ti3.position.x+=speed;
             kaklik_pos.x+=speed*0.5;
-            kaklik_t.scale.x=1;
+            kaklik_t.scale.x=2;
         }else if(window->input->keyPress(Key::A)){
             cam3->position.x-=speed;
             t2.position.x-=speed;
             ti3.position.x-=speed;
             kaklik_pos.x-=speed*0.5;
-            kaklik_t.scale.x=-1;
+            kaklik_t.scale.x=-2;
         }
 
         if(window->input->keyPress(Key::Space)){
@@ -111,8 +112,8 @@ int main(int argc, char const *argv[])
         window->renderer->draw_model3D(mi3,ti3,materiali3,cami3);
         window->renderer->draw_model2D(m2,t2,material2,cam2);
     
-        window->renderer->draw_sprite2D(sprite1,t2t,cam2);
-        window->renderer->draw_sprite2D(sprite2,kaklik_t,cam2);
+        window->renderer->draw_sprite2D(sprite1,t2t,cam2,Vec2());
+        window->renderer->draw_sprite2D(sprite2,kaklik_t,cam2,Vec2(0.5,0),Vec2(),Vec2(22,45));
 
         window->update();
         c.tick();

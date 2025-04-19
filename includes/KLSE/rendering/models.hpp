@@ -58,7 +58,7 @@ namespace KLSE {
         std::vector<Vertex2D> _vertex;
         std::vector<uint32_t> _index;
 
-        static Model2D* rect(Vec2 min=Vec2(0,0),Vec2 max=Vec2(1,1));
+        static Model2D* rect(Vec2 min=Vec2(0,0),Vec2 max=Vec2(1,1),Vec2 uv_min=Vec2(0,0),Vec2 uv_max=Vec2(1,1));
         Model2D() = default;
     };
 

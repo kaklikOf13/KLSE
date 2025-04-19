@@ -39,6 +39,9 @@ namespace KLSE
     struct GLMaterialSpriteArgs{
         GLSprite* sprite;
     };
+    struct GLMaterialSpriteAdditional{
+        IVec2 uv_size;
+    };
     extern Material2DFactory<GLMaterialSpriteArgs,GLMaterialFArgs>* MF2_sprite;
     void InitOpenGLMaterials();
 } // namespace KLSE

@@ -40,9 +40,9 @@ namespace KLSE
     }; 
     class GLRenderer:public Renderer{
         public:
-            void draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)override;
-            void draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera)override;
-            void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera)override;
+            void draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D=RenderMode3D::normal,ZeroStruct* additional=nullptr)override;
+            void draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera,ZeroStruct* additional=nullptr)override;
+            void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera,Vec2 hotspot,Vec2 uv_offset=Vec2(),IVec2 uv_size=IVec2(0,0))override;
 
             void clear() override;
 

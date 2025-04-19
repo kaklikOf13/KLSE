@@ -87,15 +87,24 @@ namespace KLSE
             break;
         }
     }*/
-    void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D m){
-        reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform);
+    void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D m,ZeroStruct* additional){
+        reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform,additional);
     }
-    void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera){
-        reinterpret_cast<Material2DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform);
+    void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera,ZeroStruct* additional){
+        reinterpret_cast<Material2DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform,additional);
     }
-    void GLRenderer::draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera){
-        Model2D* mod=Model2D::rect(Vec2(),camera->pixel_to_meter(sprite->size));
-        draw_model2D(mod,transform,sprite->material,camera);
+
+    void GLRenderer::draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera,Vec2 hotspot,Vec2 uv_offset,IVec2 uv_size){
+        Vec2 rs=sprite->size;
+        if(uv_size.x>0)rs=uv_size;
+        GLMaterialSpriteAdditional gg={
+            rs,
+        };
+        Vec2 uip=uv_offset/sprite->size;
+        Vec2 sps=camera->pixel_to_meter(rs)*(Vec2(transform.scale.x/2,transform.scale.y/2));
+        Vec2 rmm=Vec2::neg(sps)*hotspot;
+        Model2D* mod=Model2D::rect(rmm,sps+rmm,uip,uip+(rs/sprite->size));
+        draw_model2D(mod,transform,sprite->material,camera,reinterpret_cast<ZeroStruct*>(&gg));
         delete mod;
     }
     void GLRenderer::set_viewport(IVec2 size){

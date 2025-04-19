@@ -90,6 +90,8 @@ namespace KLSE{
         bool operator<=(const Vec2& other);
         bool operator<=(const IVec2& other);
 
+        std::ostream& operator<<(std::ostream& os);
+
         static bool greaterOr(Vec2 a, Vec2 b);
 
         static bool lessOr(Vec2 a, Vec2 b);
@@ -193,6 +195,8 @@ namespace KLSE{
         bool operator<(const IVec2& other);
         bool operator<=(const Vec2& other);
         bool operator<=(const IVec2& other);
+
+        std::ostream& operator<<(std::ostream& os);
 
         static bool greaterOr(IVec2 a, IVec2 b);
 
@@ -304,6 +308,8 @@ namespace KLSE{
         bool operator<=(const Vec3& other);
         bool operator<=(const IVec3& other);
 
+        std::ostream& operator<<(std::ostream& os);
+
         static bool greaterOr(Vec3 a, Vec3 b);
 
         static bool lessOr(Vec3 a, Vec3 b);
@@ -410,6 +416,8 @@ namespace KLSE{
         bool operator<=(const Vec3& other);
         bool operator<=(const IVec3& other);
 
+        std::ostream& operator<<(std::ostream& os);
+
         static bool greaterOr(IVec3 a, IVec3 b);
 
         static bool lessOr(IVec3 a, IVec3 b);
@@ -483,11 +491,10 @@ namespace KLSE{
         Vec2 position;
         Dimention zIndex;
         Vec2 scale;
-        Vec2 hotspot;
-
         Dimention rotation;
+
         ~Transform2D()=default;
-        Transform2D():position(Vec2()),scale(Vec2(1,1)),rotation(0){};
+        Transform2D():position(Vec2()),scale(Vec2(1,1)),rotation(0),zIndex(0){};
         Transform2D(Vec2 position, Vec2 scale, Dimention rotation):position(position),scale(scale),rotation(rotation){}
     };
 

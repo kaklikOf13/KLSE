@@ -117,9 +117,9 @@ namespace KLSE
         Window* window;
         Model2D* default_rect;
 
-        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal)=0;
-        virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera)=0;
-        virtual void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera)=0;
+        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal,ZeroStruct* additional=nullptr)=0;
+        virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera,ZeroStruct* additional=nullptr)=0;
+        virtual void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera,Vec2 hotspot,Vec2 uv_offset=Vec2(),IVec2 uv_size=IVec2(0,0))=0;
 
         virtual void clear(){};
         virtual void init(Window* window){};

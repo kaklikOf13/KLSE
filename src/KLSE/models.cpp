@@ -72,14 +72,14 @@ namespace KLSE {
         return ret;
     }
 
-    Model2D* Model2D::rect(Vec2 min,Vec2 max) {
+    Model2D* Model2D::rect(Vec2 min,Vec2 max,Vec2 uv_min,Vec2 uv_max) {
         Model2D* ret=new Model2D();
         
         ret->_vertex = {
-            {{min.x,min.y},{0,0}},
-            {{max.x,min.y},{1,0}},
-            {{max.x,max.y},{1,1}},
-            {{min.x,max.y},{0,1}}
+            {{min.x,min.y},{uv_min.x,uv_min.y}},
+            {{max.x,min.y},{uv_max.x,uv_min.y}},
+            {{max.x,max.y},{uv_max.x,uv_max.y}},
+            {{min.x,max.y},{uv_min.x,uv_max.y}}
         };
 
         ret->_index = {
