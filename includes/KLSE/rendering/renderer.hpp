@@ -18,40 +18,48 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_RENDERER_HPP
 #define KLSE_RENDERER_HPP
-#include "geometry.hpp"
-#include "colliders.hpp"
+#include "../geometry.hpp"
+#include "../colliders.hpp"
 #include "models.hpp"
+#include <stdexcept>
+#include <regex>
 namespace KLSE
 {
     enum RenderMode3D{
         normal=0,
         wireframe=1
     };
+    struct Image;
 
     struct Color {
         float r; // Red component (0.0 to 1.0)
         float g; // Green component (0.0 to 1.0)
         float b; // Blue component (0.0 to 1.0)
         float a; // Alpha component (0.0 to 1.0)
+        Color():r(0),g(0),b(0),a(1){};
         Color(float r,float g, float b):r(r),g(g),b(b),a(1){};
         Color(float r,float g, float b, float a):r(r),g(g),b(b),a(a){};
+        static Color lerp(Color a, Color b, Dimention t);
     };
 
     struct RGBA {
-        int r, g, b;
-        int a = 255;
+        byte r, g, b;
+        byte a = 255;
 
-        static Color create(int r, int g, int b, int a);
-        static Color create(int r, int g, int b);
+        static Color create(byte r, byte g, byte b, byte a=255);
 
-        static Color from(RGBA json);
+        RGBA(Color color):r(static_cast<byte>(color.r*255)),g(static_cast<byte>(color.g*255)),b(static_cast<byte>(color.b*255)),a(static_cast<byte>(color.a*255)){};
+        RGBA(byte r, byte g, byte b, byte a=255):r(r),g(g),b(b),a(a){};
+        RGBA():r(0),b(0),g(0),a(255){};
+
+        static Color to_color(RGBA rgba);
     };
 
-    class VoxelModel{
-        public:
-            std::vector<Color> colors;
-            std::vector<uint32_t> content;
-            Vec3 size; 
+    struct GradientColor{
+        Color color;
+        Dimention position;
+        GradientColor():color(Color(0,0,0)),position(0){};
+        GradientColor(Color color, Dimention position):color(color),position(position){};
     };
 
     namespace HEXCOLOR
@@ -117,8 +125,8 @@ namespace KLSE
 
         virtual void set_viewport(IVec2 size)=0;
 
-        virtual Sprite* create_sprite(IVec2 size)=0;
-        virtual Sprite* load_sprite_from_raw_data(byte* data, IDimention width, IDimention height)=0;
+        virtual Sprite* load_sprite(Image* img)=0;
+        virtual void* sprite_basic_material(Image* data)=0;
 
         Renderer(Color backgroundColor):backgroundColor(backgroundColor),default_rect(Model2D::rect()){}
         Renderer():backgroundColor(0,0,0){}

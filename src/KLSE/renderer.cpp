@@ -16,21 +16,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#include <KLSE/renderer.hpp>
-#include <stdexcept>
-#include <regex>
+#include <KLSE/rendering/renderer.hpp>
 namespace KLSE
 {
-        Color RGBA::create(int r, int g, int b, int a) {
-            return Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
-        }
-        Color RGBA::create(int r, int g, int b) {
-            return Color(r / 255.0f, g / 255.0f, b / 255.0f);
-        }
-        Color RGBA::from(RGBA json) {
-            return Color(json.r / 255.0f, json.g / 255.0f, json.b / 255.0f, json.a / 255.0f);
-        } 
-    
+    Color Color::lerp(Color a, Color b, Dimention t) {
+        return Color(
+            a.r + (b.r - a.r) * t,
+            a.g + (b.g - a.g) * t,
+            a.b + (b.b - a.b) * t,
+            a.a + (b.a - a.a) * t
+        );
+    }
+    Color RGBA::create(byte r, byte g, byte b, byte a) {
+        return Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+    }
+    Color RGBA::to_color(RGBA rgba) {
+        return Color(static_cast<float>(rgba.r) / 255.0f, static_cast<float>(rgba.g) / 255.0f, static_cast<float>(rgba.b) / 255.0f, static_cast<float>(rgba.a) / 255.0f);
+    } 
+
     void Camera3D::update(Vec2 size){
         Matrix4 projection = matrix4::perspective(Math::deg_to_rad(fov), size.x / size.y, near, far);
 

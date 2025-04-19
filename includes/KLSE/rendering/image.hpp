@@ -16,21 +16,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_HPP
-#define KLSE_HPP
-#include "net/net.hpp"
-
-#include "geometry.hpp"
-#include "utils.hpp"
-#include "colliders.hpp"
-#include "objects2d.hpp"
-
-#include "rendering/models.hpp"
-#include "rendering/renderer.hpp"
-#include "rendering/image.hpp"
-#include "rendering/materials.hpp"
+#ifndef KLSE_IMAGE_HPP
+#define KLSE_IMAGE_HPP
+#include "../geometry.hpp"
+#include "renderer.hpp"
 namespace KLSE
 {
-    void Init();
+    struct Image{
+        public:
+        RGBA* content;
+        IVec2 size;
+        ~Image(){
+            delete[] content;
+        }
+        Image(IVec2 size):size(size){
+            uint64 ss=size.x*size.y;
+            content=new RGBA[ss];   
+        }
+        static void print(Image* img);
+        static Image* fill(Color default_color,IVec2 size);
+        static Image* parse_bitmap(std::vector<byte> code);
+        static Image* load_image(const std::string& path);
+    };    
 } // namespace KLSE
 #endif

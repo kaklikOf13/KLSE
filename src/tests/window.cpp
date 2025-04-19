@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
 
     Model3D* m3=Model3D::cube();
 
-    Model3D* mi3=Model3D::loadObj("../../../assets/models/montains.obj");
+    Model3D* mi3=Model3D::load_obj("../../../assets/models/montains.obj");
 
     Transform3D t3 = Transform3D();
     t3.position.z=-2;
@@ -46,17 +46,9 @@ int main(int argc, char const *argv[])
 
     Dimention speed=0.1;
 
-    byte* data = new byte[64 * 64 * 4];
-
-    for (int i = 0; i < 64 * 64; ++i) {
-        data[i * 4 + 0] = i/64; // R
-        data[i * 4 + 1] = 0;   // G
-        data[i * 4 + 2] = 0;   // B
-        data[i * 4 + 3] = 255; // A
-    }
-
-    auto material2t=MF2_sprite->createMaterial({reinterpret_cast<GLSprite*>(window->renderer->load_sprite_from_raw_data(data, 64, 64))});
-    delete[] data;
+    auto img=Image::load_image("../../../assets/icons/icon_64x64.bmp");
+    //img->print(img);
+    auto material2t=window->renderer->sprite_basic_material(img);
 
     while (!window->closed()) {
         window->renderer->clear();

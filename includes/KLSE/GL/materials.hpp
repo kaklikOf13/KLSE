@@ -18,10 +18,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_GL_MATERIAL_HPP
 #define KLSE_GL_MATERIAL_HPP
-#include "../materials.hpp"
+#include "../rendering/materials.hpp"
 #include "utils.hpp"
 #include "sprite.hpp"
-#include "../renderer.hpp"
+#include "../rendering/renderer.hpp"
 namespace KLSE
 {
     struct GLMaterialColorArgs{

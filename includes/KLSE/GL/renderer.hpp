@@ -19,10 +19,10 @@ SOFTWARE.*/
 #ifndef KLSE_GL_RENDERER_HPP
 #define KLSE_GL_RENDERER_HPP
 #include "glad.h"
-#include "../models.hpp"
-#include "../renderer.hpp"
+#include "../rendering/models.hpp"
+#include "../rendering/renderer.hpp"
 #include "../input.hpp"
-#include "../materials.hpp"
+#include "../rendering/materials.hpp"
 
 #include <iostream>
 namespace KLSE
@@ -46,8 +46,8 @@ namespace KLSE
 
             void init(Window* window)override;
 
-            Sprite* create_sprite(IVec2 size)override;
-            Sprite* load_sprite_from_raw_data(byte* data, IDimention width, IDimention height)override;
+            Sprite* load_sprite(Image* img)override;
+            void* sprite_basic_material(Image* img)override;
     };
 } // namespace KLSE
 #endif

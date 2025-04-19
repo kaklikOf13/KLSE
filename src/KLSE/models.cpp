@@ -16,7 +16,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#include <KLSE/models.hpp>
+#include <KLSE/rendering/models.hpp>
 
 namespace KLSE {
 
@@ -89,7 +89,7 @@ namespace KLSE {
 
         return ret;
     }
-    Model3D* Model3D::loadObj(const std::string& path){
+    Model3D* Model3D::load_obj(const std::string& path){
         std::ifstream file(path);
         if (!file.is_open()) {
             std::cerr << "Error On Open File: " << path << std::endl;
@@ -101,9 +101,9 @@ namespace KLSE {
 
         file.close();
 
-        return Model3D::parseObj(buffer.str());
+        return Model3D::parse_obj(buffer.str());
     }
-    Model3D* Model3D::parseObj(const std::string& objText) {
+    Model3D* Model3D::parse_obj(const std::string& objText) {
         Model3D* ret = new Model3D();
         std::istringstream stream(objText);
         std::string line;

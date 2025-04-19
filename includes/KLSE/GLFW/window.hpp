@@ -18,7 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_GLFW_WINDOW_HPP
 #define KLSE_GLFW_WINDOW_HPP
-#include "../renderer.hpp"
+#include "../rendering/renderer.hpp"
 #include "../input.hpp"
 #include <GLFW/glfw3.h>
 namespace KLSE

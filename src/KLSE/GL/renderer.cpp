@@ -17,7 +17,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/GL/renderer.hpp>
-#include "KLSE/GL/materials.hpp"
+#include <KLSE/GL/materials.hpp>
+#include <KLSE/rendering/image.hpp>
 #include <GLFW/glfw3.h>
 namespace KLSE
 {
@@ -169,35 +170,13 @@ namespace KLSE
     void GLRenderer::set_viewport(IVec2 size){
         glViewport(0,0,size.x, size.y);
     }
-
-    Sprite* GLRenderer::create_sprite(IVec2 size){
-        GLuint fbo, texture;
-        glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, size.x, size.y);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        IVec2 ws=window->get_size();
-        glViewport(0, 0, ws.x, ws.y);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto s=new GLSprite(fbo,texture,size,this);
-        return reinterpret_cast<Sprite*>(s);
-    }
-    Sprite* GLRenderer::load_sprite_from_raw_data(byte* data, IDimention width, IDimention height) {
+    Sprite* GLRenderer::load_sprite(Image* img) {
         GLuint texture;
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->size.x, img->size.y, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, img->content);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -205,10 +184,12 @@ namespace KLSE
     
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        GLuint dummy_fbo = 0;
     
-        auto s = new GLSprite(dummy_fbo, texture, IVec2(width, height), this);
+        auto s = new GLSprite(texture, img->size, this);
+        delete img;
         return reinterpret_cast<Sprite*>(s);
+    }
+    void* GLRenderer::sprite_basic_material(Image* img) {
+        return reinterpret_cast<void*>(MF2_sprite->createMaterial({reinterpret_cast<GLSprite*>(load_sprite(img))}));
     }
 }
