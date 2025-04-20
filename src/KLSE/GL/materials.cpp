@@ -141,7 +141,7 @@ namespace KLSE
             FragColor = texture(u_Texture, TexCoord);
         }
     )";
-    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, CameraI3D* camera,const Transform3D& t,ZeroStruct* aditional){
+    void ColorMaterial3DExecute(Material3D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model3D* model, Camera* camera,const Transform3D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();
@@ -203,7 +203,7 @@ namespace KLSE
         checkOpenGLError("_draw_3d");
     }
 
-    void ColorMaterial2DExecute(Material2D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t,ZeroStruct* aditional){
+    void ColorMaterial2DExecute(Material2D<GLMaterialColorArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera* camera,const Transform2D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();
@@ -257,7 +257,7 @@ namespace KLSE
         checkOpenGLError("_draw_2d");
     }
 
-    void SpriteMaterial2DExecute(Material2D<GLMaterialSpriteArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera2D* camera,const Transform2D& t,ZeroStruct* aditional){
+    void SpriteMaterial2DExecute(Material2D<GLMaterialSpriteArgs,GLMaterialFArgs>* material,Window* window,Model2D* model, Camera* camera,const Transform2D& t,ZeroStruct* aditional){
         VAO vao1;
 
         vao1.Bind();

@@ -87,14 +87,14 @@ namespace KLSE
             break;
         }
     }*/
-    void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, CameraI3D* camera,RenderMode3D m,ZeroStruct* additional){
+    void GLRenderer::draw_model3D(Model3D* model,const Transform3D& transform,void* material, Camera* camera,RenderMode3D m,ZeroStruct* additional){
         reinterpret_cast<Material3DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform,additional);
     }
-    void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera2D* camera,ZeroStruct* additional){
+    void GLRenderer::draw_model2D(Model2D* model,const Transform2D& transform,void* material, Camera* camera,ZeroStruct* additional){
         reinterpret_cast<Material2DExecutionFunction2>(reinterpret_cast<Material3D<ZeroStruct,GLMaterialFArgs>*>(material)->factory->execute)(material,window,model,camera,transform,additional);
     }
 
-    void GLRenderer::draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera,Vec2 hotspot,Vec2 uv_offset,IVec2 uv_size){
+    void GLRenderer::draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera* camera,Vec2 hotspot,Vec2 uv_offset,IVec2 uv_size){
         Vec2 rs=sprite->size;
         if(uv_size.x>0)rs=uv_size;
         GLMaterialSpriteAdditional gg={

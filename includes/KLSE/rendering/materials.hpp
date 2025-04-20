@@ -23,8 +23,8 @@ SOFTWARE.*/
 namespace KLSE{
     //3D
     template<typename MaterialArg,typename FactoryArgs>class Material3D;
-    template<typename MaterialArg,typename FactoryArgs>using Material3DExecutionFunction = void(*)(Material3D<MaterialArg,FactoryArgs>*,Window*,Model3D*, CameraI3D*,const Transform3D& transform,ZeroStruct* additional);
-    using Material3DExecutionFunction2 = void(*)(void*,Window*,Model3D*, CameraI3D*,const Transform3D& transform,ZeroStruct* additional);
+    template<typename MaterialArg,typename FactoryArgs>using Material3DExecutionFunction = void(*)(Material3D<MaterialArg,FactoryArgs>*,Window*,Model3D*, Camera*,const Transform3D& transform,ZeroStruct* additional);
+    using Material3DExecutionFunction2 = void(*)(void*,Window*,Model3D*, Camera*,const Transform3D& transform,ZeroStruct* additional);
     template<typename MaterialArg,typename FactoryArgs>class Material3DFactory{
         public:
         Material3DExecutionFunction<MaterialArg,FactoryArgs> execute;
@@ -44,9 +44,9 @@ namespace KLSE{
     
     //2D
     template<typename MaterialArg,typename FactoryArgs>class Material2D;
-    template<typename MaterialArg,typename FactoryArgs>using Material2DExecutionFunction = void(*)(Material2D<MaterialArg,FactoryArgs>*,Window*,Model2D* model, Camera2D*,const Transform2D& transform,ZeroStruct* additional);
+    template<typename MaterialArg,typename FactoryArgs>using Material2DExecutionFunction = void(*)(Material2D<MaterialArg,FactoryArgs>*,Window*,Model2D* model, Camera*,const Transform2D& transform,ZeroStruct* additional);
 
-    using Material2DExecutionFunction2 = void(*)(void*,Window*,Model2D*, Camera2D*,const Transform2D&,ZeroStruct* additional);
+    using Material2DExecutionFunction2 = void(*)(void*,Window*,Model2D*, Camera*,const Transform2D&,ZeroStruct* additional);
     template<typename MaterialArg,typename FactoryArgs>class Material2DFactory{
         public:
         Material2DExecutionFunction<MaterialArg,FactoryArgs> execute;

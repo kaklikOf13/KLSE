@@ -67,16 +67,23 @@ namespace KLSE
         Color create(std::string hex);
     }; // namespace HEX
 
-    class CameraI3D{
+    class Camera{
+        public:
+        Matrix4 matrix;
+        virtual void update(Vec2 size){};
+        virtual Vec2 pixel_to_meter(IVec2 px){return Vec2(px);};
+        Camera(){};
+    };
+    class CameraI3D:public Camera{
         public:
         Vec3 position;
 
         Dimention meter_size;
 
-        Matrix4 matrix;
-        CameraI3D():position(Vec3()),meter_size(100){};
+        CameraI3D():Camera(),position(Vec3()),meter_size(100){};
 
         void update(Vec2 size);
+        Vec2 pixel_to_meter(IVec2 px)override;
 
         private:
     };
@@ -88,26 +95,24 @@ namespace KLSE
         Dimention near;
         Dimention far;
 
+        void update(Vec2 size)override;
 
-        void update(Vec2 size);
-
-        Camera3D():rotation(Vec3(0,0,0)),fov(70),near(0.001),far(3000){};
+        Camera3D():CameraI3D(),rotation(Vec3(0,0,0)),fov(70),near(0.001),far(3000){};
 
         private:
     };
-    struct Camera2D{
+    class Camera2D:public Camera{
+        public:
         Dimention meter_size;
         Vec2 position;
         Dimention zoom;
         Dimention rotation;
 
-        Matrix4 matrix;
-
-        void update(Vec2 size);
-        Vec2 pixel_to_meter(IVec2 vec);
+        void update(Vec2 size)override;
+        Vec2 pixel_to_meter(IVec2 vec)override;
 
         ~Camera2D()=default;
-        Camera2D():position(Vec2()),zoom(1.0),meter_size(100.0),rotation(0.0){}
+        Camera2D():Camera(),position(Vec2()),zoom(1.0),meter_size(100.0),rotation(0.0){}
     };
     class Window;
     class Sprite;
@@ -117,9 +122,9 @@ namespace KLSE
         Window* window;
         Model2D* default_rect;
 
-        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, CameraI3D* camera,RenderMode3D=RenderMode3D::normal,ZeroStruct* additional=nullptr)=0;
-        virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera2D* camera,ZeroStruct* additional=nullptr)=0;
-        virtual void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera2D* camera,Vec2 hotspot,Vec2 uv_offset=Vec2(),IVec2 uv_size=IVec2(0,0))=0;
+        virtual void draw_model3D(Model3D* model,const Transform3D& transform,void* m, Camera* camera,RenderMode3D=RenderMode3D::normal,ZeroStruct* additional=nullptr)=0;
+        virtual void draw_model2D(Model2D* model,const Transform2D& transform,void* m, Camera* camera,ZeroStruct* additional=nullptr)=0;
+        virtual void draw_sprite2D(Sprite* sprite,const Transform2D& transform, Camera* camera,Vec2 hotspot,Vec2 uv_offset=Vec2(),IVec2 uv_size=IVec2(0,0))=0;
 
         virtual void clear(){};
         virtual void init(Window* window){};

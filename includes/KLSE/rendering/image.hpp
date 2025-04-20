@@ -37,6 +37,6 @@ namespace KLSE
         static Image* fill(Color default_color,IVec2 size);
         static Image* parse_bitmap(std::vector<byte> code);
         static Image* load_image(const std::string& path);
-    };    
+    };
 } // namespace KLSE
 #endif
