@@ -267,8 +267,8 @@ namespace KLSE{
         return std::atan2(b.y-a.y,a.x-b.x);
     }
 
-    std::string Vec2::toString(Vec2 vec){
-        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
+    STD::string Vec2::toString(Vec2 vec){
+        return "{ X: "+STD::string(vec.x)+", Y: "+STD::string(vec.y)+" }";
     }
 
     #pragma endregion
@@ -518,8 +518,8 @@ namespace KLSE{
         return std::atan2(b.y-a.y,a.x-b.x);
     }
 
-    std::string IVec2::toString(IVec2 vec){
-        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+" }";
+    STD::string IVec2::toString(IVec2 vec){
+        return "{ X: "+STD::string(vec.x)+", Y: "+STD::string(vec.y)+" }";
     }
 
     HashIVec2 IVec2::hash(IVec2 vec){
@@ -785,8 +785,8 @@ namespace KLSE{
         return Vec3(vec.x,vec.y,vec.z);
     }
 
-    std::string Vec3::toString(Vec3 vec){
-        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
+    STD::string Vec3::toString(Vec3 vec){
+        return "{ X: "+STD::string(vec.x)+", Y: "+STD::string(vec.y)+", Z: "+STD::string(vec.z)+" }";
     }
 
     Vec2 Vec3::isometric_proj(Vec3 vec){
@@ -1054,8 +1054,8 @@ namespace KLSE{
         return IVec3(vec.x,vec.y,vec.z);
     }
 
-    std::string IVec3::toString(IVec3 vec){
-        return "{ X: "+std::to_string(vec.x)+", Y: "+std::to_string(vec.y)+", Z: "+std::to_string(vec.z)+" }";
+    STD::string IVec3::toString(IVec3 vec){
+        return "{ X: "+STD::string(vec.x)+", Y: "+STD::string(vec.y)+", Z: "+STD::string(vec.z)+" }";
     }
 
     HashIVec3 IVec3::hash(IVec3 vec){

@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
 
     window->renderer->backgroundColor=RGBA::create(0,100,0);
 
-    Math::Random random("kaklik");
+    Math::Random random(STD::string("kaklik"));
 
     for(int i=0;i<10;i++){
         std::cout<<random.idimention(0,100)<<" ";

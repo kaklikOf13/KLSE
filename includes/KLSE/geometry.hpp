@@ -20,6 +20,7 @@ SOFTWARE.*/
 #define KLSE_GEOMETRY_HPP
 #include <iostream>
 #include <cmath>
+#include "basics/default_lib.hpp"
 #include "utils.hpp"
 namespace KLSE{
     #pragma region Vec2
@@ -144,7 +145,7 @@ namespace KLSE{
 
         static Dimention length(Vec2 vec);
 
-        static std::string toString(Vec2 vec);
+        static STD::string toString(Vec2 vec);
     };
 
     struct IVec2{
@@ -250,7 +251,7 @@ namespace KLSE{
 
         static IDimention length(IVec2 vec);
 
-        static std::string toString(IVec2 vec);
+        static STD::string toString(IVec2 vec);
 
         static HashIVec2 hash(IVec2 vec);
     };
@@ -360,7 +361,7 @@ namespace KLSE{
 
         static Dimention length(Vec3 vec);
 
-        static std::string toString(Vec3 vec);
+        static STD::string toString(Vec3 vec);
 
         static Vec3 pyramid_loop(Vec3 vec, Dimention minY,Dimention maxY,Dimention maxLoopSize,Dimention minLoop);
 
@@ -468,7 +469,7 @@ namespace KLSE{
 
         static Dimention length(IVec3 vec);
 
-        static std::string toString(IVec3 vec);
+        static STD::string toString(IVec3 vec);
 
         static HashIVec3 hash(IVec3 vec);
 

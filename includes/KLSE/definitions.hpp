@@ -27,7 +27,7 @@ namespace KLSE
     class Definition {
     private:
         struct Node {
-            std::string key;
+            STD::string key;
             uint32 id;
             TP value;
             Node* next;
@@ -38,7 +38,7 @@ namespace KLSE
         Node* idTable[TABLE_SIZE];
         uint32 nextId = 1;
 
-        uint32 hash(std::string key) {
+        uint32 hash(STD::string key) {
             uint32 hash = 0;
             for (char c : key) {
                 hash = (hash * 31) + c;
@@ -69,7 +69,7 @@ namespace KLSE
             }
         }
 
-        int registry(std::string key, TP val) {
+        int registry(STD::string key, TP val) {
             int index = hash(key);
             Node* current = table[index];
 
@@ -95,7 +95,7 @@ namespace KLSE
             return newId;
         }
 
-        void unregistry(std::string key) {
+        void unregistry(STD::string key) {
             int index = hash(key);
             Node* current = table[index];
             Node* prev = nullptr;
@@ -173,7 +173,7 @@ namespace KLSE
             }
         }
 
-        TP* get(std::string key) {
+        TP* get(STD::string key) {
             int index = hash(key);
             Node* current = table[index];
 

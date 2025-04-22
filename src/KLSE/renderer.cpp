@@ -60,63 +60,6 @@ namespace KLSE
     Vec2 Camera2D::pixel_to_meter(IVec2 vec){
         return (Vec2(vec)/meter_size);
     }
-    DrawForm2D::~DrawForm2D(){
-        if(this->collider!=nullptr){
-            delete this->collider;
-        }
-    }
-    void DrawForm2D::draw(Renderer* render,RContainer* container){
-        Vec2 offset=Vec2::neg(container->real_position);
-    }
-    void RContainer::CalculateRealPosition(){
-        if(parent){
-            real_position=parent->real_position+position;
-            //real_scale=Vec2::mult(parent->real_scale,scale);
-        }else {
-            real_position=position;
-            //real_scale=scale;
-        }
-    }
-    RContainer::~RContainer(){
-        for(uint32_t i=0;i<this->forms.size();i++){
-            delete this->forms[i];
-        }
-        for(uint32_t i=0;i<this->childs.size();i++){
-            delete this->childs[i];
-        }
-    }
-    DrawForm2D* RContainer::add_rectangle(Vec2 position,Vec2 size, Color color){
-        DrawForm2D* form=new DrawForm2D();
-        form->collider=new RectCollider2D(position,size);
-        form->color=color;
-        this->forms.push_back(form);
-        return form;
-    }
-    DrawForm2D* RContainer::add_circle(Vec2 position,Dimention size, Color color){
-        DrawForm2D* form=new DrawForm2D();
-        form->collider=new CircleCollider2D(position,size);
-        form->color=color;
-        this->forms.push_back(form);
-        return form;
-    }
-    void RContainer::draw(Renderer* render){
-        this->CalculateRealPosition();
-        for(uint32_t i=0;i<this->childs.size();i++){
-            auto c=this->childs[i];
-            c->draw(render);
-        }
-        for(uint32_t i=0;i<this->forms.size();i++){
-            auto f=this->forms[i];
-            f->draw(render,this);
-        }
-    }
-    RContainer* RContainer::add_container(){
-        auto cont=new RContainer();
-        cont->parent=this;
-        childs.push_back(cont);
-        return cont;
-    }
-
     namespace HEXCOLOR
     {
         Color create(std::string hex) {

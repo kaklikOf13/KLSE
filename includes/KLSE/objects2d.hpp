@@ -19,6 +19,10 @@ SOFTWARE.*/
 #ifndef KLSE_OBJECTS_HPP
 #define KLSE_OBJECTS_HPP
 #include "colliders.hpp"
+#include "rendering/renderer.hpp"
+#include "net/stream.hpp"
+#include <unordered_map>
+#include <map>
 namespace KLSE
 {
     using ObjectID=unsigned long int;
@@ -26,14 +30,23 @@ namespace KLSE
     class Layer2D;
     class ObjectsManager2D;
 
+    struct NetSync{
+        bool deletion,creation,dirty;
+    };
+
     class Object2D{
         public:
 
         //STATES
         Collider2D* collider;
+        Transform2D transform;
         bool destroyed=false;
         bool enabled=true;
+
+        //DEFS
         ObjectID id=0;
+        uint16 numberType=0;
+        NetSync netsync={true,true,true};
 
         //PARENTS
         Layer2D* layer;
@@ -41,8 +54,13 @@ namespace KLSE
 
         //FUNCTIONS
         virtual void on_update(){};
-        virtual void on_create(json args){};
+        virtual void on_render(Renderer* renderer,Camera* camera){};
+        virtual void on_create(ZeroStruct* args){};
         virtual void on_destroy(){};
+
+        //ADDITIONAL FUNCTIONS
+        void destroy();
+        void encode(Stream* steam);
 
         //CONSTRUCTORS
         Object2D():collider(new Collider2D()){}
@@ -51,24 +69,47 @@ namespace KLSE
         }
     };
 
+    class CellsManager2D{
+        public:
+        Layer2D* layer;
+        std::unordered_map<ObjectID,std::vector<IVec2>> objects_cells;
+        std::unordered_map<ObjectID,Object2D*> objects;
+        std::unordered_map<IDimention,std::unordered_map<IDimention,std::map<ObjectID,Object2D*>>> cells;
+        IDimention cells_size=10;
+
+        void registry(Object2D* obj);
+        void unregistry(Object2D* obj);
+
+        IVec2 cell_pos(Vec2);
+
+        void update_object(Object2D* obj);
+        std::vector<Object2D*> get_objects(const Vec2& postion);
+        //void reload();
+
+        protected:
+        void remove_object_from_cells(ObjectID id);
+    };
     class Layer2D{
         public:
             std::unordered_map<ObjectID,Object2D*> objects;
             std::vector<Object2D*> orden;
 
             ObjectsManager2D* manager;
-            std::string name;
+
+            CellsManager2D cells;
+
+            uint32 id;
 
             bool destroyed=false;
             bool enabled=true;
 
+            void destroy();
+
             virtual void update();
-            virtual void update_object(Object2D* obj);
-            virtual std::vector<Object2D*> get_objects(Collider2D* collider);
 
-            virtual Object2D* registry(Object2D* object, json args=nullptr,ObjectID id=0);
+            virtual Object2D* registry(Object2D* object, ZeroStruct* args,ObjectID id=0);
 
-            virtual void unregistry(Object2D* object,ObjectID i);
+            virtual void unregistry(Object2D* object,uint32 index);
 
             virtual void on_destroy();
 
@@ -77,10 +118,12 @@ namespace KLSE
 
     class ObjectsManager2D{
         public:
-            std::map<std::string,Layer2D*> layers;
+            std::unordered_map<uint32,Layer2D*> layers;
             std::vector<Layer2D*> orden;
 
-            virtual Layer2D* add_layer2D(const std::string& layer);
+            IDimention cells_size=10;
+
+            virtual Layer2D* add_layer2D(uint32 layer);
             void registry(Layer2D* layer);
 
             virtual void update();

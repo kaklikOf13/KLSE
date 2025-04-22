@@ -30,7 +30,7 @@ namespace KLSE{
             current = (current + 1) % (IDimentionLimit / 23);
 
             // LCG calculation
-            uint64_t x = (seed + a * (current * 23) + c) % IDimentionLimit;
+            uint64_t x = (seed + random_a * (current * 23) + random_c) % IDimentionLimit;
 
             // XORShift
             x ^= x >> 21;
@@ -108,17 +108,12 @@ namespace KLSE{
 
         return result;
     }
-
-    bool hasTag(Tags tags, std::string tag) {
-        return std::find(tags.begin(), tags.end(), tag) != tags.end();
-    }
-
-    bool hasTags(Tags tags1, Tags tags2) {
-        for (const std::string& t : tags1) {
-            if (std::find(tags2.begin(), tags2.end(), t) != tags2.end()) {
+    bool hasTags(Tags& tags1, Tags& tags2) {
+        /*for (uint64 i=0;i<tags1.length;i++) {
+            if (tags2.contains(tags1[i])) {
                 return true;
             }
-        }
+        }*/
         return false;
     }
 
@@ -150,13 +145,13 @@ namespace KLSE{
         lastFrameTime = std::chrono::high_resolution_clock::now();
     }
 
-    std::string WebPath::toString() {
+    /*std::string WebPath::toString() {
         std::ostringstream oss;
         oss << (HTTP ? "https://" : "http://") << IP << ":" << Port;
         return oss.str();
-    }
+    }*/
 
-    std::string replaceAll(std::string str, std::string toReplace, std::string replaceWith) {
+    /*STD::string replaceAll(STD::string str, STD::string toReplace, STD::string replaceWith) {
         std::string result = str;
         size_t pos = 0;
 
@@ -167,7 +162,7 @@ namespace KLSE{
         }
 
         return result;
-    }
+    }*/
     void Init(){
         
     }

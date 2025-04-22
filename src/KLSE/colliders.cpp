@@ -21,16 +21,23 @@ SOFTWARE.*/
 #include <math.h>
 namespace KLSE
 {
-    bool Collider2D::collidingWith(Collider2D* other) {
+    /*
+    bool Collider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         return false;
     }
     bool Collider3D::collidingWith(Collider3D* other) {
         return false;
     }
-    bool CircleCollider2D::collidingWith(Collider2D* other) {
+    bool CircleCollider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         switch(other->type){
-            case ColliderType2D::circle:
-                return Vec2::distance(position,other->position)<radius+(static_cast<CircleCollider2D*>(other)->radius);
+            case ColliderType2D::circle:{
+                Dimention dx = transform.position.x - other_transform.position.x;
+                Dimention dy = transform.position.y - other_transform.position.y;
+
+                Dimention nx = dx / ((radius*transform.scale.x) + (radius*other_transform.scale.x));
+                Dimention ny = dy / ((radius*transform.scale.y) + (radius*other_transform.scale.y));
+                return (nx * nx + ny * ny) <= 1.0f;
+            }
             case ColliderType2D::rect:
                 return _Collision::circle_with_rect(this,static_cast<RectCollider2D*>(other));
             default:
@@ -47,10 +54,16 @@ namespace KLSE
         };
         return false;
     }
-    bool RectCollider2D::collidingWith(Collider2D* other) {
+    bool RectCollider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         switch(other->type){
-            case ColliderType2D::rect:
-                return (position.x+size.x>other->position.x&&position.x<other->position.x+static_cast<RectCollider2D*>(other)->size.x) && (position.y+size.y>other->position.y&&position.y<other->position.y+static_cast<RectCollider2D*>(other)->size.y);
+            case ColliderType2D::rect:{
+                Vec2 min1=min+transform.position;
+                Vec2 min2=static_cast<RectCollider2D*>(other)->min+other_transform.position;
+
+                Vec2 max1=max*transform.scale;
+                Vec2 max2=static_cast<RectCollider2D*>(other)->max*other_transform.scale;
+                return max1>=min2 && min1<=max2;
+            }
             case ColliderType2D::circle:
                 return _Collision::circle_with_rect(static_cast<CircleCollider2D*>(other),this);
             default:
@@ -303,5 +316,5 @@ namespace KLSE
             return OverlapCollision3D();
         };
     } // namespace Collision
-    
+    */
 } // namespace KLSE

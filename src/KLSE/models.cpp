@@ -89,10 +89,10 @@ namespace KLSE {
 
         return ret;
     }
-    Model3D* Model3D::load_obj(const std::string& path){
-        std::ifstream file(path);
+    Model3D* Model3D::load_obj(const STD::string& path){
+        std::ifstream file(path.c_str());
         if (!file.is_open()) {
-            std::cerr << "Error On Open File: " << path << std::endl;
+            std::cerr << "Error On Open File: " << path.c_str() << std::endl;
             return nullptr;
         }
 
@@ -101,11 +101,11 @@ namespace KLSE {
 
         file.close();
 
-        return Model3D::parse_obj(buffer.str());
+        return Model3D::parse_obj(buffer.str().c_str());
     }
-    Model3D* Model3D::parse_obj(const std::string& objText) {
+    Model3D* Model3D::parse_obj(const STD::string& objText) {
         Model3D* ret = new Model3D();
-        std::istringstream stream(objText);
+        std::istringstream stream(objText.c_str());
         std::string line;
         
         std::vector<Vec3> positions;

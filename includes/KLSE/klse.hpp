@@ -19,6 +19,8 @@ SOFTWARE.*/
 #ifndef KLSE_HPP
 #define KLSE_HPP
 #include "net/net.hpp"
+#include "basics/types.hpp"
+#include "basics/default_lib.hpp"
 
 #include "geometry.hpp"
 #include "utils.hpp"

@@ -154,15 +154,6 @@ namespace KLSE
         virtual bool closed()=0;
         Window():renderer(nullptr){};
     };
-    class RContainer;
-    class DrawForm2D{
-        public:
-        Collider2D* collider;
-        Color color;
-        void draw(Renderer* render,RContainer* container);
-        DrawForm2D():color(RGBA::create(0,0,0)),collider(nullptr){};
-        ~DrawForm2D();
-    };
     class Sprite{
         public:
         Renderer* render;
@@ -173,27 +164,6 @@ namespace KLSE
         ~Sprite(){
             delete material;
         };
-    };
-    class RContainer{
-        public:
-        std::vector<DrawForm2D*> forms;
-        std::vector<RContainer*> childs;
-        RContainer* parent;
-        Vec2 position;
-        Vec2 scale;
-        Dimention rotation;
-        void CalculateRealPosition();
-        RContainer():scale(Vec2(1,1)){};
-        ~RContainer();
-
-        DrawForm2D* add_rectangle(Vec2 position, Vec2 size, Color color);
-        DrawForm2D* add_circle(Vec2 position, Dimention size, Color color);
-        RContainer* add_container();
-
-        void draw(Renderer* render);
-
-        Vec2 real_position;
-        Vec2 real_scale;
     };
 } // namespace KLSE
 
