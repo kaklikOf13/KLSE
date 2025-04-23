@@ -148,6 +148,9 @@ namespace KLSE{
         static STD::string toString(Vec2 vec);
     };
 
+    Vec2 operator*(Dimention left,const Vec2& right);
+    Vec2 operator/(Dimention left,const Vec2& right);
+
     struct IVec2{
         IDimention x;
         IDimention y;
@@ -255,7 +258,10 @@ namespace KLSE{
 
         static HashIVec2 hash(IVec2 vec);
     };
-    
+
+    IVec2 operator*(IDimention left,const IVec2& right);
+    IVec2 operator/(IDimention left,const IVec2& right);
+
     #pragma endregion
 
     #pragma region Vec3

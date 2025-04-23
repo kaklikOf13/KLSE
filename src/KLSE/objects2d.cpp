@@ -96,7 +96,7 @@ namespace KLSE
     }
     #pragma endregion
     #pragma region Layer2D
-    void Layer2D::update(){
+    void Layer2D::update(Dimention dt){
         for(ObjectID i=0;i<orden.size();i++){
             auto obj=orden[i];
             if(obj->destroyed){
@@ -107,7 +107,21 @@ namespace KLSE
                 continue;
             }
             if(obj->enabled){
-                obj->on_update();
+                obj->on_update(dt);
+            }
+        }
+    }
+    void Layer2D::draw(Renderer* renderer,Camera* camera){
+        for(ObjectID i=0;i<orden.size();i++){
+            auto obj=orden[i];
+            if(obj->destroyed){
+                if(i!=0){
+                    i--;
+                }
+                continue;
+            }
+            if(obj->enabled){
+                obj->on_draw(renderer,camera);
             }
         }
     }
@@ -124,7 +138,7 @@ namespace KLSE
     void Layer2D::destroy(){
         destroyed=true;
     }
-    Object2D* Layer2D::registry(Object2D* object, ZeroStruct* args,ObjectID id){
+    Object2D* Layer2D::registry(Object2D* object,Renderer* renderer, ZeroStruct* args,ObjectID id){
         if(id==0){
             id=Math::random::object_id();
             while(objects.count(id)!=0){
@@ -144,7 +158,7 @@ namespace KLSE
 
         cells.registry(object);
 
-        object->on_create(args);
+        object->on_create(renderer,args);
 
         delete args;
         return object;
@@ -160,14 +174,14 @@ namespace KLSE
         orden.push_back(layer);
     }
 
-    Layer2D* ObjectsManager2D::add_layer2D(uint32 layer){
+    Layer2D* ObjectsManager2D::add_layer(uint32 layer){
         Layer2D* l=new Layer2D();
         l->id=layer;
 
         registry(l);
         return l;
     };
-    void ObjectsManager2D::update(){
+    void ObjectsManager2D::update(Dimention dt){
         for(ObjectID i=0;i<orden.size();i++){
             auto layer=orden[i];
             if(layer->destroyed){
@@ -181,7 +195,15 @@ namespace KLSE
                 delete layer;
             }
             if(layer->enabled){
-                layer->update();
+                layer->update(dt);
+            }
+        }
+    }
+    void ObjectsManager2D::draw(Renderer* renderer,Camera* camera){
+        for(ObjectID i=0;i<orden.size();i++){
+            auto layer=orden[i];
+            if(layer->enabled){
+                layer->draw(renderer,camera);
             }
         }
     }

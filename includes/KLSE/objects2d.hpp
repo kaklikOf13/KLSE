@@ -53,14 +53,15 @@ namespace KLSE
         ObjectsManager2D* manager;
 
         //FUNCTIONS
-        virtual void on_update(){};
-        virtual void on_render(Renderer* renderer,Camera* camera){};
-        virtual void on_create(ZeroStruct* args){};
+
+        virtual void on_update(Dimention){};
+        virtual void on_draw(Renderer*,Camera*){};
+        virtual void on_create(Renderer*,ZeroStruct*){};
         virtual void on_destroy(){};
 
         //ADDITIONAL FUNCTIONS
         void destroy();
-        void encode(Stream* steam);
+        void encode(Stream*);
 
         //CONSTRUCTORS
         Object2D():collider(new Collider2D()){}
@@ -105,9 +106,10 @@ namespace KLSE
 
             void destroy();
 
-            virtual void update();
+            virtual void update(Dimention deltaTime);
+            virtual void draw(Renderer*,Camera*);
 
-            virtual Object2D* registry(Object2D* object, ZeroStruct* args,ObjectID id=0);
+            virtual Object2D* registry(Object2D* object,Renderer*, ZeroStruct* args,ObjectID id=0);
 
             virtual void unregistry(Object2D* object,uint32 index);
 
@@ -123,10 +125,11 @@ namespace KLSE
 
             IDimention cells_size=10;
 
-            virtual Layer2D* add_layer2D(uint32 layer);
+            virtual Layer2D* add_layer(uint32 layer);
             void registry(Layer2D* layer);
 
-            virtual void update();
+            virtual void update(Dimention deltaTime);
+            virtual void draw(Renderer*,Camera*);
     };
 } // namespace KLSE
 

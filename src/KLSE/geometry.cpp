@@ -155,6 +155,13 @@ namespace KLSE{
     std::ostream& Vec2::operator<<(std::ostream& os) {
         return os<<"{ X: "<<x<<", Y: "<<y<<" }";
     }
+
+    Vec2 operator*(Dimention left,const Vec2& right){
+        return Vec2(left*right.x,left*right.y);
+    }
+    Vec2 operator/(Dimention left,const Vec2& right){
+        return Vec2(left/right.x,left/right.y);
+    }
     #pragma endregion
 
     bool Vec2::greaterOr(Vec2 a, Vec2 b) {
@@ -404,6 +411,13 @@ namespace KLSE{
 
     std::ostream& IVec2::operator<<(std::ostream& os) {
         return os<<"{ X: "<<x<<", Y: "<<y<<" }";;
+    }
+
+    IVec2 operator*(IDimention left,const IVec2& right){
+        return IVec2(left*right.x,left*right.y);
+    }
+    IVec2 operator/(IDimention left,const IVec2& right){
+        return IVec2(left/right.x,left/right.y);
     }
 
     #pragma endregion

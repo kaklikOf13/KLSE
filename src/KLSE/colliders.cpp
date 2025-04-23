@@ -21,8 +21,7 @@ SOFTWARE.*/
 #include <math.h>
 namespace KLSE
 {
-    /*
-    bool Collider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    /*bool Collider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         return false;
     }
     bool Collider3D::collidingWith(Collider3D* other) {
@@ -83,16 +82,24 @@ namespace KLSE
         return false;
     }
 
-    OverlapCollision2D Collider2D::overlapCollision(Collider2D* other) {
-        return OverlapCollision2D(false,Vec2());
+    OverlapCollision2D Collider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+        return OverlapCollision2D(false,0,Vec2(),Vec2());
     }
     OverlapCollision3D Collider3D::overlapCollision(Collider3D* other) {
         return OverlapCollision3D(false,Vec3(),Vec3(),Vec3());
     }
-    OverlapCollision2D CircleCollider2D::overlapCollision(Collider2D* other) {
+    OverlapCollision2D CircleCollider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         switch(other->type){
-            case ColliderType2D::circle:
-                return _Collision::circle_with_circle_ov(this,static_cast<CircleCollider2D*>(other));
+            case ColliderType2D::circle:{
+                Vec2 sum_radius=(transform.scale*radius)+(other_transform.scale*(static_cast<CircleCollider2D*>(other)->radius));
+                auto toP1 = other_transform.position-transform.position;
+
+                if(toP1 < sum_radius*sum_radius){
+                    return OverlapCollision2D(true,1,Vec2::normalizeSafe(toP1),Vec2());
+                }else{
+                    return OverlapCollision2D(false,0,Vec2(),Vec2());
+                }
+            }
             case ColliderType2D::rect:
                 return _Collision::circle_with_rect_ov(this,static_cast<RectCollider2D*>(other),2);
             default:
@@ -100,7 +107,7 @@ namespace KLSE
         };
         return OverlapCollision2D();
     }
-    OverlapCollision2D RectCollider2D::overlapCollision(Collider2D* other) {
+    OverlapCollision2D RectCollider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::circle:
                 return _Collision::circle_with_rect_ov(static_cast<CircleCollider2D*>(other),this,-2);
@@ -236,20 +243,6 @@ namespace KLSE
             Dimention dist=Vec2::distanceSquared(hb1->position,cp);
             return (dist<hb1->radius*hb1->radius)||((hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x)&&(hb1->position.y>=hb2->position.y&&hb1->position.y<=hb2->position.y+hb2->size.y));
         };
-        static OverlapCollision2D circle_with_circle_ov(CircleCollider2D* hb1,CircleCollider2D* hb2){
-            Dimention dists = Vec2::distance(hb1->position,hb2->position);
-            Vec2 dis=hb1->position-hb2->position;
-            if(dists<0.00001){
-                return OverlapCollision2D(true,Vec2(1,1));
-            }
-            if (dists < (hb1->radius + hb2->radius)){
-                Dimention overlap=(hb1->radius + hb2->radius)-dists;
-                Vec2 dire=dis/dists;
-                Vec2 ret=Vec2::neg(dire*(overlap*2));
-                return OverlapCollision2D(true,ret);
-            }
-            return OverlapCollision2D();
-        }
         static OverlapCollision2D circle_with_rect_ov(CircleCollider2D* hb1,RectCollider2D* hb2,Dimention reverse){
             Vec2 val1;
             Dimention val2;
@@ -315,6 +308,5 @@ namespace KLSE
             }
             return OverlapCollision3D();
         };
-    } // namespace Collision
-    */
+    } // namespace Collision*/
 } // namespace KLSE

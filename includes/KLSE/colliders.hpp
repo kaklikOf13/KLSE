@@ -59,8 +59,8 @@ namespace KLSE{
         public:
             ColliderType2D type=ColliderType2D::null;
     
-            /*virtual bool colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform);
-            virtual OverlapCollision2D overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform);
+            /*virtual bool colliding_with(const Transform2D&,Collider2D*,const Transform2D&);
+            virtual OverlapCollision2D overlap_collision(const Transform2D&,Collider2D*,const Transform2D&);
             virtual bool point_inside(Vec2 point);
             virtual void scale(Dimention scale);
             virtual Vec2 random_point();
@@ -75,8 +75,8 @@ namespace KLSE{
         public:
             Dimention radius;
 
-            /*bool colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform)override;
-            OverlapCollision2D overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform)override;
+            /*bool colliding_with(const Transform2D&,Collider2D*,const Transform2D&)override;
+            OverlapCollision2D overlap_collision(const Transform2D&,Collider2D*,const Transform2D&)override;
             bool point_inside(Vec2 point)override;
             void scale(Dimention scale)override;
             Vec2 random_point()override;
