@@ -61,8 +61,7 @@ namespace KLSE
         cells[cp.y][cp.x][obj->id]=obj;
 
         //Objects
-        /*RectCollider2D* rect=obj->collider->to_rect();
-        rect->apply_transform(obj->transform);
+        RectCollider2D* rect=obj->collider->to_rect(obj->transform);
         IVec2 min = cell_pos(rect->min);
         IVec2 max = cell_pos(rect->max);
         if(max<min){
@@ -82,7 +81,7 @@ namespace KLSE
                 objects_cells[obj->id].push_back(IVec2(x,y));
             }
         }
-        delete rect;*/
+        delete rect;
     }
     std::vector<Object2D*> CellsManager2D::get_objects(const Vec2& postion){
         std::vector<Object2D*> ret;

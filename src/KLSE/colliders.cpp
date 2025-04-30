@@ -21,24 +21,24 @@ SOFTWARE.*/
 #include <math.h>
 namespace KLSE
 {
-    /*bool Collider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    bool Collider2D::colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         return false;
     }
     bool Collider3D::collidingWith(Collider3D* other) {
         return false;
     }
-    bool CircleCollider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    bool CircleCollider2D::colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::circle:{
                 Dimention dx = transform.position.x - other_transform.position.x;
                 Dimention dy = transform.position.y - other_transform.position.y;
 
-                Dimention nx = dx / ((radius*transform.scale.x) + (radius*other_transform.scale.x));
-                Dimention ny = dy / ((radius*transform.scale.y) + (radius*other_transform.scale.y));
+                Dimention nx = dx / ((radius*transform.scale) + (radius*other_transform.scale));
+                Dimention ny = dy / ((radius*transform.scale) + (radius*other_transform.scale));
                 return (nx * nx + ny * ny) <= 1.0f;
             }
             case ColliderType2D::rect:
-                return _Collision::circle_with_rect(this,static_cast<RectCollider2D*>(other));
+                //return _Collision::circle_with_rect(this,static_cast<RectCollider2D*>(other));
             default:
                 break;
         };
@@ -53,7 +53,7 @@ namespace KLSE
         };
         return false;
     }
-    bool RectCollider2D::colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    bool RectCollider2D::colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::rect:{
                 Vec2 min1=min+transform.position;
@@ -64,7 +64,7 @@ namespace KLSE
                 return max1>=min2 && min1<=max2;
             }
             case ColliderType2D::circle:
-                return _Collision::circle_with_rect(static_cast<CircleCollider2D*>(other),this);
+                //return _Collision::circle_with_rect(static_cast<CircleCollider2D*>(other),this);
             default:
                 break;
         };
@@ -82,37 +82,38 @@ namespace KLSE
         return false;
     }
 
-    OverlapCollision2D Collider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    OverlapCollision2D Collider2D::overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         return OverlapCollision2D(false,0,Vec2(),Vec2());
     }
     OverlapCollision3D Collider3D::overlapCollision(Collider3D* other) {
         return OverlapCollision3D(false,Vec3(),Vec3(),Vec3());
     }
-    OverlapCollision2D CircleCollider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    OverlapCollision2D CircleCollider2D::overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::circle:{
                 Vec2 sum_radius=(transform.scale*radius)+(other_transform.scale*(static_cast<CircleCollider2D*>(other)->radius));
                 auto toP1 = other_transform.position-transform.position;
-
-                if(toP1 < sum_radius*sum_radius){
-                    return OverlapCollision2D(true,1,Vec2::normalizeSafe(toP1),Vec2());
+                auto distSqrVec = toP1*toP1;
+                auto distSqr = distSqrVec.x / (sum_radius.x * sum_radius.x) + distSqrVec.y / (sum_radius.y * sum_radius.y); 
+                if(distSqr < 1){
+                    return OverlapCollision2D(true,1 - std::sqrt(distSqr),Vec2::normalizeSafe(toP1,Vec2::random(-1,1)),Vec2());
                 }else{
                     return OverlapCollision2D(false,0,Vec2(),Vec2());
                 }
             }
             case ColliderType2D::rect:
-                return _Collision::circle_with_rect_ov(this,static_cast<RectCollider2D*>(other),2);
+                //return _Collision::circle_with_rect_ov(this,static_cast<RectCollider2D*>(other),2);
             default:
                 break;
         };
         return OverlapCollision2D();
     }
-    OverlapCollision2D RectCollider2D::overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform) {
+    OverlapCollision2D RectCollider2D::overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::circle:
-                return _Collision::circle_with_rect_ov(static_cast<CircleCollider2D*>(other),this,-2);
+                //return _Collision::circle_with_rect_ov(static_cast<CircleCollider2D*>(other),this,-2);
             case ColliderType2D::rect:
-                return _Collision::rect_with_rect_ov(this,static_cast<RectCollider2D*>(other));
+                //return _Collision::rect_with_rect_ov(this,static_cast<RectCollider2D*>(other));
             default:
                 break;
         };
@@ -124,7 +125,7 @@ namespace KLSE
             case ColliderType3D::sphere:
                 break;
             case ColliderType3D::box:
-                return _Collision::box_with_box_ov(this,static_cast<BoxCollider3D*>(other));
+                //return _Collision::box_with_box_ov(this,static_cast<BoxCollider3D*>(other));
             default:
                 break;
         };
@@ -143,20 +144,22 @@ namespace KLSE
         return OverlapCollision3D();
     }
 
-    bool Collider2D::pointInside(Vec2 point) {
+    bool Collider2D::point_inside(Transform2D& transform,Vec2 point) {
         return false;
     }
     bool Collider3D::pointInside(Vec3 point) {
         return false;
     }
-    bool CircleCollider2D::pointInside(Vec2 point) {
-      return Vec2::distance(position,point)<radius;
+    bool CircleCollider2D::point_inside(Transform2D& transform,Vec2 point) {
+      return transform.position-point<transform.scale*radius;
     }
     bool SphereCollider3D::pointInside(Vec3 point) {
       return (transform.position-point)<transform.scale;
     }
-    bool RectCollider2D::pointInside(Vec2 point) {
-        return (position.x+size.x>=point.x&&position.x<=point.x)&&(position.y+size.y>=point.y&&position.y<=point.y);
+    bool RectCollider2D::point_inside(Transform2D& transform,Vec2 point) {
+        Vec2 rmin=transform.position+(min*transform.scale);
+        Vec2 rmax=transform.position+(max*transform.scale);
+        return (max>=point&&min<=point);
     }
     bool BoxCollider3D::pointInside(Vec3 point) {
         return (transform.position.x+transform.scale.x>=point.x&&transform.position.x<=point.x)&&
@@ -170,20 +173,12 @@ namespace KLSE
         this->radius*=scale;
     }
     void RectCollider2D::scale(Dimention scale){
-        this->size=size*scale;
+        min*=scale;
+        max*=scale;
     }
 
-    Vec2 Collider2D::center() {
-        return Vec2();
-    }
     Vec3 Collider3D::center() {
         return Vec3();
-    }
-    Vec2 CircleCollider2D::center() {
-        return position;
-    }
-    Vec2 RectCollider2D::center() {
-        return position+size/2;
     }
     Vec3 BoxCollider3D::center() {
         return transform.position+(transform.scale/2);
@@ -199,32 +194,34 @@ namespace KLSE
         return Vec3(transform.position.x + ((radius * std::sin(angle2) * std::cos(angle1))*transform.scale.x),transform.position.y + ((radius * std::sin(angle2) * std::sin(angle1))*transform.scale.y),transform.position.z + ((radius*std::cos(angle1))*transform.scale.z));
     }
 
-    Vec2 Collider2D::randomPoint() {
+    Vec2 Collider2D::random_point() {
         return Vec2();
     }
     Vec3 Collider3D::randomPoint() {
         return Vec3();
     }
-    Vec2 RectCollider2D::randomPoint() {
-        return position+Vec2::random2(Vec2(),size);
+    Vec2 RectCollider2D::random_point() {
+        return Vec2::random2(min,max);
     }
-    Vec2 CircleCollider2D::randomPoint() {
+    Vec2 CircleCollider2D::random_point() {
         Dimention angle = Math::random::dimention(0,Math::PI*2);
         Dimention length = Math::random::dimention(0,radius);
-        return Vec2(position.x+(std::cos(angle)*length),position.y+(std::sin(angle)*length));
+        return Vec2((std::cos(angle)*length),(std::sin(angle)*length));
     }
     Vec3 BoxCollider3D::randomPoint() {
         return transform.position+Vec3::random3(Vec3(),transform.scale);
     }
 
-    RectCollider2D* Collider2D::toRect(){
+    RectCollider2D* Collider2D::to_rect(Transform2D&){
         return new RectCollider2D(Vec2(),Vec2());
     }
-    RectCollider2D* RectCollider2D::toRect(){
-        return this;
+    RectCollider2D* RectCollider2D::to_rect(Transform2D& t){
+        Collider2D* cloner=clone();
+        cloner->apply_transform(t);
+        return reinterpret_cast<RectCollider2D*>(cloner);
     }
-    RectCollider2D* CircleCollider2D::toRect(){
-        return new RectCollider2D(position-Vec2(-radius,-radius),Vec2(radius,radius));
+    RectCollider2D* CircleCollider2D::to_rect(Transform2D& t){
+        return new RectCollider2D(Vec2(-radius,-radius),Vec2(radius,radius)*t.scale);
     }
     BoxCollider3D* Collider3D::toBox(){
         return new BoxCollider3D(Vec3(),Vec3(),Vec3());
@@ -236,9 +233,26 @@ namespace KLSE
         return new BoxCollider3D(transform.position,transform.scale,Vec3());
     }
 
+    void Collider2D::apply_transform(Transform2D& t){}
+    void CircleCollider2D::apply_transform(Transform2D& t){
+        
+    }
+    void RectCollider2D::apply_transform(Transform2D& t){
+        min=t.position+(min*t.scale);
+        max=t.position+(max*t.scale);
+    }
+
+    Collider2D* Collider2D::clone(){return new Collider2D(ColliderType2D::null);}
+    Collider2D* CircleCollider2D::clone(){
+        return new CircleCollider2D(radius);
+    }
+    Collider2D* RectCollider2D::clone(){
+        return new RectCollider2D(min,max);
+    }
+
     namespace _Collision
     {
-        static bool circle_with_rect(CircleCollider2D* hb1,RectCollider2D* hb2){
+        /*static bool circle_with_rect(CircleCollider2D* hb1,RectCollider2D* hb2){
             Vec2 cp=Vec2::clamp2(hb1->position,hb2->position,hb2->position+hb2->size);
             Dimention dist=Vec2::distanceSquared(hb1->position,cp);
             return (dist<hb1->radius*hb1->radius)||((hb1->position.x>=hb2->position.x&&hb1->position.x<=hb2->position.x+hb2->size.x)&&(hb1->position.y>=hb2->position.y&&hb1->position.y<=hb2->position.y+hb2->size.y));
@@ -285,7 +299,7 @@ namespace KLSE
                 return OverlapCollision2D(!(ov2==Vec2()),ov2);
             }
             return OverlapCollision2D();
-        }
+        }*/
 
         static OverlapCollision3D box_with_box_ov(BoxCollider3D* hb1,BoxCollider3D* hb2){
             Vec3 dist= hb1->center()-hb2->center();

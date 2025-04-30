@@ -59,13 +59,15 @@ namespace KLSE{
         public:
             ColliderType2D type=ColliderType2D::null;
     
-            /*virtual bool colliding_with(const Transform2D&,Collider2D*,const Transform2D&);
-            virtual OverlapCollision2D overlap_collision(const Transform2D&,Collider2D*,const Transform2D&);
-            virtual bool point_inside(Vec2 point);
+            virtual bool colliding_with(Transform2D&,Collider2D*,Transform2D&);
+            virtual OverlapCollision2D overlap_collision(Transform2D&,Collider2D*,Transform2D&);
+            virtual bool point_inside(Transform2D&,Vec2 point);
             virtual void scale(Dimention scale);
             virtual Vec2 random_point();
-            virtual RectCollider2D* to_rect();
-            virtual void apply_transform(const Transform2D&);*/
+            virtual RectCollider2D* to_rect(Transform2D&);
+            virtual void apply_transform(Transform2D&);
+
+            virtual Collider2D* clone();
 
             Collider2D(ColliderType2D type):type(type){}
             Collider2D(){}
@@ -75,13 +77,14 @@ namespace KLSE{
         public:
             Dimention radius;
 
-            /*bool colliding_with(const Transform2D&,Collider2D*,const Transform2D&)override;
-            OverlapCollision2D overlap_collision(const Transform2D&,Collider2D*,const Transform2D&)override;
-            bool point_inside(Vec2 point)override;
+            bool colliding_with(Transform2D&,Collider2D*,Transform2D&)override;
+            OverlapCollision2D overlap_collision(Transform2D&,Collider2D*,Transform2D&)override;
+            bool point_inside(Transform2D&,Vec2 point)override;
             void scale(Dimention scale)override;
             Vec2 random_point()override;
-            RectCollider2D* to_rect()override;
-            void apply_transform(const Transform2D&)override;*/
+            RectCollider2D* to_rect(Transform2D& t)override;
+            void apply_transform(Transform2D&)override;
+            Collider2D* clone()override;
 
             CircleCollider2D(Dimention radius):Collider2D(ColliderType2D::circle),radius(radius){}
             CircleCollider2D():Collider2D(ColliderType2D::circle){};
@@ -93,12 +96,15 @@ namespace KLSE{
             Vec2 min;
             Vec2 max;
 
-            /*bool colliding_with(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform)override;
-            OverlapCollision2D overlap_collision(const Transform2D& transform,Collider2D* other,const Transform2D& other_transform)override;
-            bool point_inside(Vec2 point)override;
+            bool colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform)override;
+            OverlapCollision2D overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform)override;
+            bool point_inside(Transform2D&,Vec2 point)override;
             void scale(Dimention scale)override;
             Vec2 random_point()override;
-            RectCollider2D* to_rect()override;*/
+            RectCollider2D* to_rect(Transform2D& t)override;
+
+            void apply_transform(Transform2D&)override;
+            Collider2D* clone()override;
 
             RectCollider2D(Vec2 min,Vec2 max):Collider2D(ColliderType2D::rect),min(min),max(max){}
             RectCollider2D():Collider2D(ColliderType2D::rect){}
@@ -158,8 +164,8 @@ namespace KLSE{
     #pragma endregion
     namespace _Collision
     {
-        /*static bool circle_with_rect(CircleCollider2D* hb1,const Transform2D& transform1,RectCollider2D *hb2,const Transform2D& transform2);
-        static OverlapCollision2D circle_with_rect_ov(CircleCollider2D* hb1,const Transform2D& transform1,RectCollider2D *hb2,const Transform2D& transform2);
+        /*static bool circle_with_rect(CircleCollider2D* hb1,Transform2D& transform1,RectCollider2D *hb2,Transform2D& transform2);
+        static OverlapCollision2D circle_with_rect_ov(CircleCollider2D* hb1,Transform2D& transform1,RectCollider2D *hb2,Transform2D& transform2);
 
         static OverlapCollision2D rect_with_rect_ov(RectCollider2D *hb1,RectCollider2D *hb2);
 
