@@ -79,11 +79,14 @@ def prepare_commands():
             sys.exit(1)
         
         def exec_task(task: dict):
+            ok=False
+            if "task" in task.keys():
+                subprocess.run(task["task"], shell=True,text=True)
+                ok=True
             if OS in task.keys():
-                subprocess.run(task[OS], shell=True)
-            elif "task" in task.keys():
-                subprocess.run(task["task"], shell=True)
-            else:
+                subprocess.run(task[OS], shell=True,text=True)
+                ok=True
+            if not ok:
                 print_error("Invalid Task!!!")
                 sys.exit(1)
         
@@ -145,7 +148,7 @@ def prepare_commands():
         out_mtime = os.path.getmtime(out_file) if os.path.isfile(out_file) else 0
         if not os.path.exists(out_file) or src_mtime > out_mtime:
             print_success("COMPILATION COMMAND",command)
-            subprocess.run(command)
+            subprocess.run(shsplit(command))
         else:
             print_success("ALREADY IS COMPILED",f"{out_file}")
     def compile_folder_klse(args: str):
@@ -181,7 +184,7 @@ def prepare_commands():
         for f in files:
             command+=" "+src_dir+"/"+f
         print_success("COMMAND",command)
-        subprocess.run(command)
+        subprocess.run(shsplit(command))
     default_options["-tp"].setExec(task_path_klse)
     
     default_commands["help"].setExec(help_klse)

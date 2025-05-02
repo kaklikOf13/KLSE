@@ -39,7 +39,6 @@ namespace KLSE
             IVec2 get_size()override;
             void set_size(IVec2 size)override;
 
-            std::string get_title()override;
             void set_title(std::string title)override;
 
             void setResizable(bool resizable)override;

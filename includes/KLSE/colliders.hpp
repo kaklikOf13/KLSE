@@ -58,18 +58,18 @@ namespace KLSE{
     class Collider2D{
         public:
             ColliderType2D type=ColliderType2D::null;
+            Vec2 position;
     
             virtual bool colliding_with(Transform2D&,Collider2D*,Transform2D&);
             virtual OverlapCollision2D overlap_collision(Transform2D&,Collider2D*,Transform2D&);
             virtual bool point_inside(Transform2D&,Vec2 point);
-            virtual void scale(Dimention scale);
             virtual Vec2 random_point();
             virtual RectCollider2D* to_rect(Transform2D&);
             virtual void apply_transform(Transform2D&);
 
             virtual Collider2D* clone();
 
-            Collider2D(ColliderType2D type):type(type){}
+            Collider2D(Vec2 position,ColliderType2D type):position(position),type(type){}
             Collider2D(){}
             ~Collider2D()=default;
     };
@@ -79,35 +79,32 @@ namespace KLSE{
 
             bool colliding_with(Transform2D&,Collider2D*,Transform2D&)override;
             OverlapCollision2D overlap_collision(Transform2D&,Collider2D*,Transform2D&)override;
-            bool point_inside(Transform2D&,Vec2 point)override;
-            void scale(Dimention scale)override;
+            bool point_inside(Transform2D&,Vec2)override;
             Vec2 random_point()override;
-            RectCollider2D* to_rect(Transform2D& t)override;
+            RectCollider2D* to_rect(Transform2D&)override;
             void apply_transform(Transform2D&)override;
             Collider2D* clone()override;
 
-            CircleCollider2D(Dimention radius):Collider2D(ColliderType2D::circle),radius(radius){}
-            CircleCollider2D():Collider2D(ColliderType2D::circle){};
+            CircleCollider2D(Vec2 position,Dimention radius):Collider2D(position,ColliderType2D::circle),radius(radius){}
+            CircleCollider2D():Collider2D(Vec2(),ColliderType2D::circle){};
             ~CircleCollider2D()=default;
     };
 
     class RectCollider2D:public Collider2D{
         public:
-            Vec2 min;
-            Vec2 max;
+            Vec2 size;
 
-            bool colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform)override;
-            OverlapCollision2D overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform)override;
+            bool colliding_with(Transform2D&,Collider2D*,Transform2D&)override;
+            OverlapCollision2D overlap_collision(Transform2D&,Collider2D*,Transform2D&)override;
             bool point_inside(Transform2D&,Vec2 point)override;
-            void scale(Dimention scale)override;
             Vec2 random_point()override;
             RectCollider2D* to_rect(Transform2D& t)override;
 
             void apply_transform(Transform2D&)override;
             Collider2D* clone()override;
 
-            RectCollider2D(Vec2 min,Vec2 max):Collider2D(ColliderType2D::rect),min(min),max(max){}
-            RectCollider2D():Collider2D(ColliderType2D::rect){}
+            RectCollider2D(Vec2 position,Vec2 size):Collider2D(position,ColliderType2D::rect),size(size){}
+            RectCollider2D():Collider2D(Vec2(),ColliderType2D::rect),size(Vec2()){}
             ~RectCollider2D()=default;
     };
     #pragma endregion

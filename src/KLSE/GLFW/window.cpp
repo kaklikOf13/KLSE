@@ -135,10 +135,6 @@ namespace KLSE
     void GLFWWindow::setResizable(bool resizable){
         glfwSetWindowAttrib(window, GLFW_RESIZABLE, resizable);
     }
-
-    std::string GLFWWindow::get_title(){
-        return glfwGetWindowTitle(window);
-    }
     void GLFWWindow::set_title(std::string title){
         return glfwSetWindowTitle(window,title.c_str());
     }

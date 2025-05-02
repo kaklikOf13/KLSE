@@ -499,12 +499,12 @@ namespace KLSE{
     struct Transform2D{
         Vec2 position;
         Dimention zIndex;
-        Dimention scale;
+        Vec2 scale;
         Dimention rotation;
 
         ~Transform2D()=default;
-        Transform2D():position(Vec2()),scale(1),rotation(0),zIndex(0){};
-        Transform2D(Vec2 position, Dimention scale, Dimention rotation):position(position),scale(scale),rotation(rotation){}
+        Transform2D():position(Vec2()),scale(Vec2(1,1)),rotation(0),zIndex(0){};
+        Transform2D(Vec2 position, Vec2 scale, Dimention rotation):position(position),scale(scale),rotation(rotation){}
     };
 
     #pragma region Math

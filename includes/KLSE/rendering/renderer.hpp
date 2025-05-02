@@ -146,7 +146,6 @@ namespace KLSE
         virtual void setResizable(bool resizable)=0;
 
         virtual void set_title(std::string title)=0;
-        virtual std::string get_title()=0;
 
         virtual void update()=0;
 
