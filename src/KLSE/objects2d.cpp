@@ -62,8 +62,8 @@ namespace KLSE
 
         //Objects
         RectCollider2D* rect=obj->collider->to_rect(obj->transform);
-        IVec2 min = cell_pos(rect->min);
-        IVec2 max = cell_pos(rect->max);
+        IVec2 min = cell_pos(rect->position);
+        IVec2 max = cell_pos(min+rect->size);
         if(max<min){
             IVec2 m=min;
             min=max;

@@ -6,22 +6,40 @@
             "childs":{
                 "klse":{
                     "task":"klse build-dir & klse compile-folder c++ dist/obj/klse src/KLSE '-I./includes'",
-                    "posix":"klse merge-lib dist/libs/libklse.a dist/obj/klse",
-                    "windows":"klse merge-lib dist/libs/klse.lib dist/obj/klse",
+                    "build":{
+                        "includes":["./includes"],
+                        "libs_dir":[],
+                        "lib_output":"dist/libs/klse",
+                        "o_output":"dist/obj/klse",
+                        "source":[
+                            "src/KLSE"
+                        ]
+                    },
                     "childs":{
                         "gl":{
-                            "task":"klse compile-folder c++ dist/obj/klse_gl src/KLSE/GL '-I./includes'",
-                            "posix":"klse merge-lib dist/libs/libklse_gl.a dist/obj/klse_gl",
-                            "windows":"klse merge-lib dist/libs/klse_gl.lib dist/obj/klse_gl"
-                            
+                            "build":{
+                                "includes":["./includes"],
+                                "libs_dir":[],
+                                "lib_output":"dist/libs/klse_gl",
+                                "o_output":"dist/obj/klse_gl",
+                                "source":[
+                                    "src/KLSE/GL"
+                                ]
+                            }
                         },
                         "glfw":{
-                            "task":"klse compile-folder c++ dist/obj/klse_glfw src/KLSE/GLFW '-I./includes'"
+                            "build":{
+                                "includes":["./includes"],
+                                "libs_dir":[],
+                                "lib_output":"dist/libs/klse_glfw",
+                                "o_output":"dist/obj/klse_glfw",
+                                "source":[
+                                    "src/KLSE/GLFW"
+                                ]
+                            }
                         },
                         "full":{
-                            "task":"klse task build klse & klse task build klse gl & klse task build klse glfw",
-                            "posix":"klse merge-lib dist/libs/libklse_glfw.a dist/obj/klse_glfw",
-                            "windows":"klse merge-lib dist/libs/klse_glfw.lib dist/obj/klse_glfw"
+                            "task":"klse task build klse & klse task build klse gl & klse task build klse glfw"
                         }
                     }
                 },

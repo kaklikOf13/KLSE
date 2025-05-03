@@ -33,7 +33,6 @@ namespace KLSE
             uint64 ss=size.x*size.y;
             content=new RGBA[ss];
         }
-        static void print(Image* img);
         static Image* fill(Color default_color,IVec2 size);
         static Image* parse_bitmap(std::vector<byte> code);
         static Image* load_image(const std::string& path);

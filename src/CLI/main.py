@@ -51,7 +51,28 @@ default_commands = {
     "merge-lib":Command("merge-lib","Merge All .o files Of A Folder In A Static Lib"),
     "build-dir": Command("build-dir", "Prepares all the bin and build directories based on your current CD directory")
 }
-
+def execute_build_task(task:dict,dist_os=OS):
+    includes_and_libs=""
+    for i in task["includes"]:
+        includes_and_libs=f"{includes_and_libs} -I{i}"
+    for l in task["libs_dir"]:
+        includes_and_libs=f"{includes_and_libs} -L{i}"
+    
+    lang="c++" if task.get("language")==None else task["language"]
+    outputo=task["o_output"]
+    if not os.path.isdir(outputo):
+        os.makedirs(outputo)
+    if task.get("build_dir",False):
+        default_commands["build-dir"].exec("")
+    aargs="" if task.get("build_args")==None else task["args"]
+    for d in task["source"]:
+        default_commands["compile-folder"].exec(f"{lang} {outputo} '{d}' '{includes_and_libs}{aargs}'")
+    if "lib_output" in task.keys():
+        dd=os.path.dirname(task["lib_output"])
+        if not os.path.isdir(outputo):
+            os.makedirs(dd)
+        name=f'{"lib" if dist_os=="posix" else ""}{os.path.basename(task["lib_output"])}.{"a" if dist_os=="posix" else "lib"}'
+        default_commands["merge-lib"].exec(f'{dd}/{name} {outputo}')
 def prepare_commands():
     # Opt
     def task_path_klse(new_path: str):
@@ -80,6 +101,9 @@ def prepare_commands():
         
         def exec_task(task: dict):
             ok=False
+            if "build" in task.keys():
+                ok=True
+                execute_build_task(task["build"])
             if "task" in task.keys():
                 subprocess.run(task["task"], shell=True,text=True)
                 ok=True

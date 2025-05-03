@@ -183,14 +183,4 @@ namespace KLSE
         }
         return nullptr;
     }
-    void Image::print(Image* img){
-        uint64 i=0;
-        for(uint64 y=0;y<img->size.y;y++){
-            for(uint64 x=0;x<img->size.x;x++){
-                printf("(%llu,%llu,%llu,%llu) ",img->content[i]);
-                i++;
-            }
-            printf("\n");
-        }
-    }
 } // namespace KLSE
