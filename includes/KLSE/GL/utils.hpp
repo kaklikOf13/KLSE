@@ -22,7 +22,7 @@ SOFTWARE.*/
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <map>
-#include "../input.hpp"
+#include "../KLSE/others/input.hpp"
 namespace KLSE
 {
     void checkOpenGLError(const std::string& context);

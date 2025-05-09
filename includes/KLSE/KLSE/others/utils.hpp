@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_UTILS_HPP
 #define KLSE_UTILS_HPP
-#include "basics/types.hpp"
-#include "basics/default_lib.hpp"
+#include "../basics/types.hpp"
+#include "../basics/default_lib.hpp"
 #include <algorithm>
 
 #include <chrono>

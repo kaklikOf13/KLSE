@@ -20,8 +20,8 @@ SOFTWARE.*/
 #define KLSE_GEOMETRY_HPP
 #include <iostream>
 #include <cmath>
-#include "basics/default_lib.hpp"
-#include "utils.hpp"
+#include "../basics/default_lib.hpp"
+#include "../others/utils.hpp"
 namespace KLSE{
     #pragma region Vec2
 

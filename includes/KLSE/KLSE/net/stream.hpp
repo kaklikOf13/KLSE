@@ -18,7 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_NET_STREAM_HPP
 #define KLSE_NET_STREAM_HPP
-#include "../utils.hpp"
+#include "../others/utils.hpp"
 namespace KLSE
 {
     class Stream{

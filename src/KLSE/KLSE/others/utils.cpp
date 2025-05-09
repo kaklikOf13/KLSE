@@ -17,8 +17,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <algorithm>
-#include <KLSE/utils.hpp>
-#include <KLSE/geometry.hpp>
+#include <KLSE/KLSE/others/utils.hpp>
+#include <KLSE/KLSE/physics/geometry.hpp>
 #include <iostream>
 #include <thread>
 namespace KLSE{

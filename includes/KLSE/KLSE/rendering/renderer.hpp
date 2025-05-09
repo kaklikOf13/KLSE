@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_RENDERER_HPP
 #define KLSE_RENDERER_HPP
-#include "../geometry.hpp"
-#include "../colliders.hpp"
+#include "../physics/geometry.hpp"
+#include "../physics/colliders.hpp"
 #include "models.hpp"
 #include <stdexcept>
 #include <regex>

@@ -19,8 +19,8 @@ SOFTWARE.*/
 #ifndef KLSE_MODELS_HPP
 #define KLSE_MODELS_HPP
 
-#include "../geometry.hpp"
-#include "../colliders.hpp"
+#include "../physics/geometry.hpp"
+#include "../physics/colliders.hpp"
 #include "../basics/default_lib.hpp"
 #include <string>
 #include <vector>

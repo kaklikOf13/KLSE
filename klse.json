@@ -5,14 +5,18 @@
         "build":{
             "childs":{
                 "klse":{
-                    "task":"klse build-dir & klse compile-folder c++ dist/obj/klse src/KLSE '-I./includes'",
+                    "task":"klse build-dir",
                     "build":{
                         "includes":["./includes"],
                         "libs_dir":[],
                         "lib_output":"dist/libs/klse",
                         "o_output":"dist/obj/klse",
                         "source":[
-                            "src/KLSE"
+                            "src/KLSE/KLSE",
+                            "src/KLSE/KLSE/basics",
+                            "src/KLSE/KLSE/net",
+                            "src/KLSE/KLSE/physics",
+                            "src/KLSE/KLSE/rendering"
                         ]
                     },
                     "childs":{

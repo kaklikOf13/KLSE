@@ -18,7 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_IMAGE_HPP
 #define KLSE_IMAGE_HPP
-#include "../geometry.hpp"
+#include "../physics/geometry.hpp"
 #include "renderer.hpp"
 namespace KLSE
 {

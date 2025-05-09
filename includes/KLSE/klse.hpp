@@ -18,19 +18,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #ifndef KLSE_HPP
 #define KLSE_HPP
-#include "net/net.hpp"
-#include "basics/types.hpp"
-#include "basics/default_lib.hpp"
+//Basics
+#include "KLSE/basics/types.hpp"
+#include "KLSE/basics/default_lib.hpp"
 
-#include "geometry.hpp"
-#include "utils.hpp"
-#include "colliders.hpp"
-#include "objects2d.hpp"
+//NET
+#include "KLSE/net/net.hpp"
 
-#include "rendering/models.hpp"
-#include "rendering/renderer.hpp"
-#include "rendering/image.hpp"
-#include "rendering/materials.hpp"
+//Others
+#include "KLSE/others/utils.hpp"
+#include "KLSE/others/input.hpp"
+
+//Physics
+#include "KLSE/physics/geometry.hpp"
+#include "KLSE/physics/colliders.hpp"
+#include "KLSE/physics/objects2d.hpp"
+
+//Rendering
+#include "KLSE/rendering/models.hpp"
+#include "KLSE/rendering/renderer.hpp"
+#include "KLSE/rendering/image.hpp"
+#include "KLSE/rendering/materials.hpp"
 namespace KLSE
 {
     void Init();

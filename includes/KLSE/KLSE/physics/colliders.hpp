@@ -20,7 +20,7 @@ SOFTWARE.*/
 #define KLSE_COLLIDERS_HPP
 #include <iostream>
 #include "geometry.hpp"
-#include "utils.hpp"
+#include "../others/utils.hpp"
 namespace KLSE{
     enum class ColliderType2D: unsigned char{
         circle=0,

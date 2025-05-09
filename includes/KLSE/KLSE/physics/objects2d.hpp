@@ -19,8 +19,8 @@ SOFTWARE.*/
 #ifndef KLSE_OBJECTS_HPP
 #define KLSE_OBJECTS_HPP
 #include "colliders.hpp"
-#include "rendering/renderer.hpp"
-#include "net/stream.hpp"
+#include "../rendering/renderer.hpp"
+#include "../net/stream.hpp"
 #include <unordered_map>
 #include <map>
 namespace KLSE

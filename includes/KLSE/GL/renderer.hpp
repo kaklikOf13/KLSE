@@ -19,10 +19,10 @@ SOFTWARE.*/
 #ifndef KLSE_GL_RENDERER_HPP
 #define KLSE_GL_RENDERER_HPP
 #include "glad.h"
-#include "../rendering/models.hpp"
-#include "../rendering/renderer.hpp"
-#include "../input.hpp"
-#include "../rendering/materials.hpp"
+#include "../KLSE/rendering/models.hpp"
+#include "../KLSE/rendering/renderer.hpp"
+#include "../KLSE/others/input.hpp"
+#include "../KLSE/rendering/materials.hpp"
 
 #include <iostream>
 namespace KLSE
