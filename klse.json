@@ -44,7 +44,7 @@
                     }
                 },
                 "cli":{
-                    "windows":"python -m pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py",
+                    "windows":"pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py",
                     "posix":"pyinstaller  --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py"
                 },
                 "tests":{
@@ -52,7 +52,7 @@
                         "window":{
                             "task":"klse task build klse full",
                             "posix":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw -lGL -ldl -lpthread -o dist/bin/tests/window",
-                            "windows":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldl -ldwmapi -o dist/bin/tests/window.exe"
+                            "windows":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldwmapi -o dist/bin/tests/window.exe"
                         },
                         "objects2d":{
                             "task":"klse task build klse full & g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/bin/tests/objects.exe"

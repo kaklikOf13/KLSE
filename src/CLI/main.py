@@ -172,7 +172,7 @@ def prepare_commands():
         out_mtime = os.path.getmtime(out_file) if os.path.isfile(out_file) else 0
         if not os.path.exists(out_file) or src_mtime > out_mtime:
             print_success("COMPILATION COMMAND",command)
-            subprocess.run(shsplit(command))
+            subprocess.run(command, shell=True,text=True)
         else:
             print_success("ALREADY IS COMPILED",f"{out_file}")
     def compile_folder_klse(args: str):
@@ -208,7 +208,7 @@ def prepare_commands():
         for f in files:
             command+=" "+src_dir+"/"+f
         print_success("COMMAND",command)
-        subprocess.run(shsplit(command))
+        subprocess.run(command, shell=True,text=True)
     default_options["-tp"].setExec(task_path_klse)
     
     default_commands["help"].setExec(help_klse)
