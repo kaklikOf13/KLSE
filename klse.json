@@ -15,6 +15,7 @@
                             "src/KLSE/KLSE",
                             "src/KLSE/KLSE/basics",
                             "src/KLSE/KLSE/net",
+                            "src/KLSE/KLSE/others",
                             "src/KLSE/KLSE/physics",
                             "src/KLSE/KLSE/rendering"
                         ]

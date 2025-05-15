@@ -53,6 +53,10 @@ int main(int argc, char const *argv[])
     Transform2D kaklik_t=Transform2D();
     kaklik_t.scale*=2;
 
+    c.timeout([](){
+        printf("timeouted\n");
+    },5.5);
+
     while (!window->closed()) {
         window->renderer->clear();
 

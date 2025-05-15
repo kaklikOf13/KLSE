@@ -98,15 +98,22 @@ namespace KLSE{
     using Tags = STD::Array<STD::string>;
 
     bool hasTags(Tags& tags1, Tags& tags2);
+    struct Timeout{
+        double delay;
+        void(*callback)();
+        Timeout(void(*callback)(),double delay):callback(callback),delay(delay){};
+    };
 
     class Clock {
     private:
         double frameDuration;    // Frame duration in milliseconds
         std::chrono::high_resolution_clock::time_point lastFrameTime;
+        std::vector<Timeout> timeouts;
     public:
         Clock(int targetFPS, double timeScale);
         Clock(int targetFPS);
         void tick();
+        void timeout(void(*)(),double);
         double timeScale;
         double deltaTime;
     };

@@ -126,12 +126,28 @@ namespace KLSE{
         // Sleep to maintain target frame duration (but without oversleeping)
         double sleepTime = (frameDuration * timeScale) - deltaTime;
 
+        for(uint64 t=0;t<timeouts.size();t++){
+            timeouts[t].delay-=deltaTime;
+            if(timeouts[t].delay<=0){
+                timeouts[t].callback();
+                timeouts.erase(timeouts.begin()+t);
+                t--;
+            }
+        }
+
         // Update last frame time
         lastFrameTime = std::chrono::high_resolution_clock::now();
 
         // Sleep only if we need to reduce time
         if (sleepTime > 0) {
             std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
+        }
+    }
+    void Clock::timeout(void(*callback)(),double delay) {
+        if(delay<=0){
+            callback();
+        }else{
+            timeouts.push_back({callback,delay});
         }
     }
 
