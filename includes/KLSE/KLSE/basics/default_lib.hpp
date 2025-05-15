@@ -3,6 +3,66 @@
 #include "types.hpp"
 namespace KLSE
 {
+    
+    namespace Dynamic
+    {
+        class Type;
+        class Value{
+            public:
+            Type* value_type;
+            Value(Type* tp):value_type(tp){};
+
+            virtual bool operator==(Value*)=0;
+
+            virtual bool operator>(Value*)=0;
+            virtual bool operator>=(Value*)=0;
+            virtual bool operator<(Value*)=0;
+            virtual bool operator<=(Value*)=0;
+
+            virtual Value* operator+(Value*)=0;
+            virtual Value* operator-(Value*)=0;
+            virtual Value* operator*(Value*)=0;
+            virtual Value* operator/(Value*)=0;
+            virtual Value* operator+=(Value*)=0;
+            virtual Value* operator-=(Value*)=0;
+            virtual Value* operator*=(Value*)=0;
+            virtual Value* operator/=(Value*)=0;
+        };
+        enum Kind{
+            number,
+            object,
+            array,
+            string
+        };
+        class Type:public Value{
+            public:
+            Kind kind;
+            Type(Kind kind):Value(nullptr),kind(kind){}
+            virtual bool convertible(Type*)=0;
+            virtual Value* convert(Value*)=0;
+        };
+        class NumberType:public Type{
+            public:
+            bool is_unsigned;
+            uint8 bytes;
+            NumberType(bool is_unsigned,uint8 bytes):Type(Kind::number),is_unsigned(is_unsigned),bytes(bytes){};
+
+            bool operator==(Value*)override;
+
+            Value* instantiate(int64){return nullptr;};
+        };
+        void Init();
+
+        extern Type* Int8;
+        extern Type* Int16;
+        extern Type* Int32;
+        extern Type* Int64;
+
+        extern Type* UInt8;
+        extern Type* UInt16;
+        extern Type* UInt32;
+        extern Type* UInt64;
+    } // namespace Dynamic
     namespace STD
     {
         struct ArrayRange{
@@ -28,8 +88,8 @@ namespace KLSE
 
             Array<T> operator[](ArrayRange index)const;
 
-            Array<T> operator+(const Array<T>& other)const;
-            Array<T>& operator+=(const Array<T>& other);
+            Array<T> operator+(const Array<T>&)const;
+            Array<T>& operator+=(const Array<T>&);
 
             void push(T);
             void splice(uint64 index,uint64 count);
@@ -43,7 +103,7 @@ namespace KLSE
             uint64 alloc;
             string():value(nullptr),length(0),alloc(0){}
             static string pre_alloc(uint64 alloc);
-            string(const string& other);
+            string(const string&);
             string(const char*);
             string(const char*, uint64 size);
 
@@ -73,8 +133,8 @@ namespace KLSE
             char& operator[](uint64 index)const;
             bool contains(const string& str)const;
 
-            string operator+(const string& other)const;
-            string& operator+=(const string& other);
+            string operator+(const string&)const;
+            string& operator+=(const string&);
         };
         string operator+(const string& left, const char* right);
         string operator+(const char* left,const string& right);

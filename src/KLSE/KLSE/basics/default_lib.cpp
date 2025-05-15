@@ -272,5 +272,30 @@ namespace KLSE
         #pragma endregion
         #pragma endregion
     } // namespace STD
+    namespace Dynamic
+    {
+        bool NumberType::operator==(Value* other){
+            return other->value_type==nullptr&&reinterpret_cast<Type*>(other)->kind==Kind::number&&reinterpret_cast<NumberType*>(other)->bytes==this->bytes&&reinterpret_cast<NumberType*>(other)->is_unsigned==this->is_unsigned;
+        }
+
+        /*Type* Int8;
+        Type* Int16;
+        Type* Int32;
+        Type* Int64;
+
+        Type* UInt8;
+        Type* UInt16;
+        Type* UInt32;
+        Type* UInt64;*/
+        /*class int8t:public Value{
+            int8t(NumberType* tp):Value(tp){}
+            Value* operator+(Value* other){
+                if(this->o)
+            }
+        };*/
+        void Init(){
+            //operator
+        }
+    } // namespace Dynamic
     
 } // namespace KLSE
