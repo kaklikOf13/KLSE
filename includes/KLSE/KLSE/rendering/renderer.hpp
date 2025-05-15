@@ -153,17 +153,6 @@ namespace KLSE
         virtual bool closed()=0;
         Window():renderer(nullptr){};
     };
-    class Sprite{
-        public:
-        Renderer* render;
-        ZeroClass* material;
-        IVec2 size;
-        Sprite(){};
-        Sprite(IVec2 size):size(size){};
-        ~Sprite(){
-            delete material;
-        };
-    };
 } // namespace KLSE
 
 #endif

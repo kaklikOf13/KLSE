@@ -16,36 +16,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_HPP
-#define KLSE_HPP
-//Basics
-#include "KLSE/basics/types.hpp"
-#include "KLSE/basics/default_lib.hpp"
-
-//NET
-#include "KLSE/net/net.hpp"
-
-//Others
-#include "KLSE/others/utils.hpp"
-#include "KLSE/others/input.hpp"
-
-//Physics
-#include "KLSE/physics/geometry.hpp"
-#include "KLSE/physics/colliders.hpp"
-#include "KLSE/physics/objects2d.hpp"
-
-//Rendering
-#include "KLSE/rendering/models.hpp"
-#include "KLSE/rendering/renderer.hpp"
-#include "KLSE/rendering/materials.hpp"
-
-//Sources
-
-#include "KLSE/sources/image.hpp"
-#include "KLSE/sources/manager.hpp"
-#include "KLSE/sources/types.hpp"
-namespace KLSE
-{
-    void Init();
-} // namespace KLSE
+#ifndef KLSE_SOURCES_MANAGER_HPP
+#define KLSE_SOURCES_MANAGER_HPP
+#include "../basics/types.hpp"
+#include "types.hpp"
+#include "map"
+#include "../basics/default_lib.hpp"
+#include "image.hpp"
+namespace KLSE{
+    class SourcesManager{
+        public:
+        std::map<STD::string,Source*> content;
+        Renderer* render;
+        SourcesManager(Renderer* render):render(render){}
+    };
+}
 #endif

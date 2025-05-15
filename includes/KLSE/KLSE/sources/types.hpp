@@ -16,36 +16,23 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_HPP
-#define KLSE_HPP
-//Basics
-#include "KLSE/basics/types.hpp"
-#include "KLSE/basics/default_lib.hpp"
-
-//NET
-#include "KLSE/net/net.hpp"
-
-//Others
-#include "KLSE/others/utils.hpp"
-#include "KLSE/others/input.hpp"
-
-//Physics
-#include "KLSE/physics/geometry.hpp"
-#include "KLSE/physics/colliders.hpp"
-#include "KLSE/physics/objects2d.hpp"
-
-//Rendering
-#include "KLSE/rendering/models.hpp"
-#include "KLSE/rendering/renderer.hpp"
-#include "KLSE/rendering/materials.hpp"
-
-//Sources
-
-#include "KLSE/sources/image.hpp"
-#include "KLSE/sources/manager.hpp"
-#include "KLSE/sources/types.hpp"
-namespace KLSE
-{
-    void Init();
-} // namespace KLSE
+#ifndef KLSE_SOURCES_TYPES_HPP
+#define KLSE_SOURCES_TYPES_HPP
+#include "../basics/types.hpp"
+#include "map"
+#include "../basics/default_lib.hpp"
+#include "image.hpp"
+namespace KLSE{
+    namespace SourceType{
+        const uint16 null=0;
+        const uint16 sprite=1;
+        const uint16 other=65535;
+    };
+    class Source{
+        public:
+        uint16 source_type;
+        STD::string source_id;
+        Source(uint16 source_type):source_type(source_type){}
+    };
+}
 #endif

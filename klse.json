@@ -17,7 +17,8 @@
                             "src/KLSE/KLSE/net",
                             "src/KLSE/KLSE/others",
                             "src/KLSE/KLSE/physics",
-                            "src/KLSE/KLSE/rendering"
+                            "src/KLSE/KLSE/rendering",
+                            "src/KLSE/KLSE/sources"
                         ]
                     },
                     "childs":{

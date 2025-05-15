@@ -1,4 +1,4 @@
-#include <KLSE/KLSE/rendering/image.hpp>
+#include <KLSE/KLSE/sources/image.hpp>
 namespace KLSE
 {
     Image* Image::fill(Color default_color,IVec2 size){

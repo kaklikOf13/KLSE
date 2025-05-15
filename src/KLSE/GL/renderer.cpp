@@ -18,7 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/GL/renderer.hpp>
 #include <KLSE/GL/materials.hpp>
-#include <KLSE/KLSE/rendering/image.hpp>
+#include <KLSE/KLSE/sources/image.hpp>
 #include <GLFW/glfw3.h>
 namespace KLSE
 {

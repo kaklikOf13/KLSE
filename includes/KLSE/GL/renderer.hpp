@@ -23,6 +23,7 @@ SOFTWARE.*/
 #include "../KLSE/rendering/renderer.hpp"
 #include "../KLSE/others/input.hpp"
 #include "../KLSE/rendering/materials.hpp"
+#include "../KLSE/sources/image.hpp"
 
 #include <iostream>
 namespace KLSE

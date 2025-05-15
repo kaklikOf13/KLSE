@@ -19,7 +19,8 @@ SOFTWARE.*/
 #ifndef KLSE_IMAGE_HPP
 #define KLSE_IMAGE_HPP
 #include "../physics/geometry.hpp"
-#include "renderer.hpp"
+#include "../rendering/renderer.hpp"
+#include "manager.hpp"
 namespace KLSE
 {
     struct Image{
@@ -36,6 +37,17 @@ namespace KLSE
         static Image* fill(Color default_color,IVec2 size);
         static Image* parse_bitmap(std::vector<byte> code);
         static Image* load_image(const std::string& path);
+    };
+    class Sprite:Source{
+        public:
+        Renderer* render;
+        ZeroClass* material;
+        IVec2 size;
+        Sprite():Source(SourceType::sprite){};
+        Sprite(IVec2 size):Source(SourceType::sprite),size(size){};
+        ~Sprite(){
+            delete material;
+        };
     };
 } // namespace KLSE
 #endif

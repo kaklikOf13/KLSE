@@ -7,13 +7,21 @@ namespace KLSE
     using byte=unsigned char;
 
     using uint8=byte;
+    #define UINT8_LIMIT 255;
     using uint16=short unsigned;
+    #define UINT16_LIMIT 65535;
     using uint32=unsigned;
+    #define UINT32_LIMIT 4294967295;
     using uint64=long long unsigned;
+    #define UINT64_LIMIT 18446744073709551615;
 
+    #define INT8_LIMIT 128;
     using int8=char;
+    #define INT16_LIMIT 32767;
     using int16=short int;
+    #define INT64_LIMIT 2147483647;
     using int32=int;
+    #define INT32_LIMIT 9223372036854775807;
     using int64=long long int;
 
     using float32=float;
