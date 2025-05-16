@@ -19,6 +19,8 @@ SOFTWARE.*/
 #ifndef KLSE_NET_STREAM_HPP
 #define KLSE_NET_STREAM_HPP
 #include "../others/utils.hpp"
+#include "../physics/geometry.hpp"
+#include "../basics/default_lib.hpp"
 namespace KLSE
 {
     class Stream{
@@ -34,19 +36,36 @@ namespace KLSE
             delete[] content;
         }
 
-        void writeUInt8(uint8 val);
-        void writeUInt16(uint16 val);
-        void writeUInt32(uint32 val);
-        void writeUInt64(uint64 val);
-        void writeFloat32(float32 val);
-        void writeFloat64(float64 val);
+        void write_uint8(uint8);
+        void write_uint16(uint16);
+        void write_uint32(uint32);
+        void write_uint64(uint64);
+        void write_float32(float32);
+        void write_float64(float64);
 
-        uint8 readUInt8();
-        uint16 readUInt16();
-        uint32 readUInt32();
-        uint64 readUInt64();
-        float32 readFloat32();
-        float64 readFloat64();
+        void write_bytes(byte*,uint64);
+        void write_string(STD::string&,byte);
+
+        void write_vec2(Vec2&);
+        void write_ivec2(IVec2&);
+        void write_vec3(Vec3&);
+        void write_ivec3(IVec3&);
+
+        uint8 read_uint8();
+        uint16 read_uint16();
+        uint32 read_uint32();
+        uint64 read_uint64();
+        float32 read_float32();
+        float64 read_float64();
+
+        byte* read_bytes(uint64);
+        STD::string read_string(byte);
+
+        Vec2 read_vec2();
+        IVec2 read_ivec2();
+        Vec3 read_vec3();
+        IVec3 read_ivec3();
+
     };
 } // namespace KLSE
 
