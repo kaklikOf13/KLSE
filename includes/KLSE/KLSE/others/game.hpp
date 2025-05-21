@@ -16,35 +16,41 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_GLFW_WINDOW_HPP
-#define KLSE_GLFW_WINDOW_HPP
-#include "../KLSE/rendering/renderer.hpp"
-#include "../KLSE/others/input.hpp"
-#include <GLFW/glfw3.h>
-namespace KLSE
-{
-    enum class GLAntialias:uint8_t{
-        none,
-        MSAA1X,
-        MSAA2X,
-        MSAA4X,
-    };
-    void GLFWInit_GL(GLAntialias antialias);
-    class GLFWWindow:public Window{
+#ifndef KLSE_OTHER_GAME_HPP
+#define KLSE_OTHER_GAME_HPP
+#include "../rendering/renderer.hpp"
+#include "../physics/objects2d.hpp"
+#include "input.hpp"
+namespace KLSE{
+    class Game{
         public:
-            IVec2 get_size()override;
+        Window* window;
+        Renderer* renderer;
 
-            void set_size(IVec2 size)override;
+        bool running;
+        Clock clock;
 
-            void set_title(std::string title)override;
+        ObjectsManager2D* objects2d;
 
-            void setResizable(bool resizable)override;
+        Camera2D* camera2d;
+        Camera3D* camera3d;
+        CameraI3D* camerai3d;
 
-            void update()override;
-            void close()override;
-            bool closed()override;
-            GLFWwindow* window;
-            GLFWWindow(Renderer* renderer);
+        PCInputListener* input;
+
+        Game():window(nullptr),renderer(nullptr),input(nullptr),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D()){};
+        Game(Window* window):window(window),renderer(window->renderer),input(window->input),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D()){};
+
+        void run(bool);
+
+        void tick();
+
+        void draw();
+
+        virtual void on_tick(){};
+        virtual void on_draw(){};
+        virtual void on_start(){};
+        virtual void on_stop(){};
     };
-} // namespace KLSE
+}
 #endif

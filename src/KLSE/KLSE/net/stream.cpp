@@ -104,6 +104,12 @@ namespace KLSE
         memcpy(content+pointer,val.value,val.length);
         pointer+=val.length;
     }
+    void Stream::write_color(Color& val) {
+        write_uint8(static_cast<int>(val.r*255));
+        write_uint8(static_cast<int>(val.g*255));
+        write_uint8(static_cast<int>(val.b*255));
+        write_uint8(static_cast<int>(val.a*255));
+    }
     uint8 Stream::read_uint8(){
         return content[pointer++];
     }
@@ -179,5 +185,8 @@ namespace KLSE
         memcpy(ret,content+pointer,size);
         pointer+=size;
         return STD::string(reinterpret_cast<const char*>(ret),size);
+    }
+    Color Stream::read_color() {
+        return Color(static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255);
     }
 } // namespace KLSE

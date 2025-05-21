@@ -51,6 +51,8 @@ namespace KLSE
         void write_vec3(Vec3&);
         void write_ivec3(IVec3&);
 
+        void write_color(Color&);
+
         uint8 read_uint8();
         uint16 read_uint16();
         uint32 read_uint32();
@@ -66,6 +68,7 @@ namespace KLSE
         Vec3 read_vec3();
         IVec3 read_ivec3();
 
+        Color read_color();
     };
 } // namespace KLSE
 

@@ -32,5 +32,16 @@ namespace KLSE
 
     struct ZeroStruct{};
     class ZeroClass{public:ZeroClass(){};~ZeroClass()=default;};
+
+    struct Color {
+        float r; // Red component (0.0 to 1.0)
+        float g; // Green component (0.0 to 1.0)
+        float b; // Blue component (0.0 to 1.0)
+        float a; // Alpha component (0.0 to 1.0)
+        Color():r(0),g(0),b(0),a(1){};
+        Color(float r,float g, float b):r(r),g(g),b(b),a(1){};
+        Color(float r,float g, float b, float a):r(r),g(g),b(b),a(a){};
+        static Color lerp(Color a, Color b, Dimention t);
+    };
 } // namespace KLSE
 #endif

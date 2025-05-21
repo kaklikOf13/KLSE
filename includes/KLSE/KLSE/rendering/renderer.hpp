@@ -16,11 +16,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_RENDERER_HPP
-#define KLSE_RENDERER_HPP
+#ifndef KLSE_RENDERING_RENDERER_HPP
+#define KLSE_RENDERING_RENDERER_HPP
 #include "../physics/geometry.hpp"
 #include "../physics/colliders.hpp"
 #include "models.hpp"
+#include "../others/input.hpp"
 #include <stdexcept>
 #include <regex>
 namespace KLSE
@@ -30,17 +31,6 @@ namespace KLSE
         wireframe=1
     };
     struct Image;
-
-    struct Color {
-        float r; // Red component (0.0 to 1.0)
-        float g; // Green component (0.0 to 1.0)
-        float b; // Blue component (0.0 to 1.0)
-        float a; // Alpha component (0.0 to 1.0)
-        Color():r(0),g(0),b(0),a(1){};
-        Color(float r,float g, float b):r(r),g(g),b(b),a(1){};
-        Color(float r,float g, float b, float a):r(r),g(g),b(b),a(a){};
-        static Color lerp(Color a, Color b, Dimention t);
-    };
 
     struct RGBA {
         byte r, g, b;
@@ -140,6 +130,7 @@ namespace KLSE
     class Window{
         public:
         Renderer* renderer;
+        PCInputListener* input;
         virtual void set_size(IVec2 size)=0;
         virtual IVec2 get_size()=0;
 
@@ -152,6 +143,7 @@ namespace KLSE
         virtual void close()=0;
         virtual bool closed()=0;
         Window():renderer(nullptr){};
+        Window(Renderer* renderer):renderer(renderer){};
     };
 } // namespace KLSE
 

@@ -26,6 +26,8 @@ SOFTWARE.*/
 #include "KLSE/net/net.hpp"
 
 //Others
+#include "KLSE/others/definitions.hpp"
+#include "KLSE/others/game.hpp"
 #include "KLSE/others/utils.hpp"
 #include "KLSE/others/input.hpp"
 

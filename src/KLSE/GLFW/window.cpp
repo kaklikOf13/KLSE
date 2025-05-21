@@ -96,7 +96,7 @@ namespace KLSE
             }
         }
     }
-    GLFWWindow::GLFWWindow(Renderer* renderer):Window(){
+    GLFWWindow::GLFWWindow(Renderer* renderer):Window(renderer){
         window = glfwCreateWindow(DEFAULT_WINDOWS_SIZE_X, DEFAULT_WINDOWS_SIZE_Y, "KLSE Windows", nullptr, nullptr);
         if (!window) {
             std::cerr << "Failed to create GLFW window " << window << std::endl;
@@ -105,8 +105,6 @@ namespace KLSE
         }
         glfwMakeContextCurrent(window);
 
-
-        this->renderer=renderer;
 
         // Set the user pointer to this instance
         glfwSetWindowUserPointer(window, this);
