@@ -43,5 +43,16 @@ namespace KLSE
         Color(float r,float g, float b, float a):r(r),g(g),b(b),a(a){};
         static Color lerp(Color a, Color b, Dimention t);
     };
+
+    union number32{
+        float32 f;
+        uint32 ui;
+        int32 i;
+    };
+    union number64{
+        float64 f;
+        uint64 ui;
+        int64 i;
+    };
 } // namespace KLSE
 #endif

@@ -25,41 +25,25 @@ namespace KLSE
         pointer++;
     }
     void Stream::write_uint16(uint16 val){
-        content[pointer++] = val & 0xFF;
-        content[pointer++] = (val >> 8) & 0xFF;
+        *((uint16*)(content+pointer))=val;
+        pointer+=2;
     }
     void Stream::write_uint32(uint32 val){
-        content[pointer++] = val & 0xFF;
-        content[pointer++] = (val >> 8) & 0xFF;
-        content[pointer++] = (val >> 16) & 0xFF;
-        content[pointer++] = (val >> 24) & 0xFF;
+        *((uint32*)(content+pointer))=val;
+        pointer+=4;
     }
     void Stream::write_uint64(uint64 val){
-        content[pointer++] = val & 0xFF;
-        content[pointer++] = (val >> 8) & 0xFF;
-        content[pointer++] = (val >> 16) & 0xFF;
-        content[pointer++] = (val >> 24) & 0xFF;
-        content[pointer++] = (val >> 32) & 0xFF;
-        content[pointer++] = (val >> 40) & 0xFF;
-        content[pointer++] = (val >> 48) & 0xFF;
-        content[pointer++] = (val >> 56) & 0xFF;
+        *((uint64*)(content+pointer))=val;
+        pointer+=8;
     }
 
     void Stream::write_float32(float32 val) {
-        content[pointer++] = Math::Floor(val) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 8) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 16) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 24) & 0xFF;
+        *((float32*)(content+pointer))=val;
+        pointer+=4;
     }
     void Stream::write_float64(float64 val) {
-        content[pointer++] = Math::Floor(val) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 8) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 16) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 24) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 32) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 40) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 48) & 0xFF;
-        content[pointer++] = (Math::Floor(val) >> 56) & 0xFF;
+        *((float64*)(content+pointer))=val;
+        pointer+=8;
     }
     void Stream::write_vec2(Vec2& val) {
         write_float64(val.x);
@@ -105,52 +89,38 @@ namespace KLSE
         pointer+=val.length;
     }
     void Stream::write_color(Color& val) {
-        write_uint8(static_cast<int>(val.r*255));
-        write_uint8(static_cast<int>(val.g*255));
-        write_uint8(static_cast<int>(val.b*255));
-        write_uint8(static_cast<int>(val.a*255));
+        write_uint8((int)(val.r*255));
+        write_uint8((int)(val.g*255));
+        write_uint8((int)(val.b*255));
+        write_uint8((int)(val.a*255));
     }
     uint8 Stream::read_uint8(){
         return content[pointer++];
     }
     uint16 Stream::read_uint16(){
-        uint16 val = content[pointer] | (content[pointer + 1] << 8);
+        uint16 val=*((uint16*)(content+pointer));
         pointer += 2;
         return val;
     }
     uint32 Stream::read_uint32(){
-        uint32 val = content[pointer] | (content[pointer + 1] << 8) |
-             (content[pointer + 2] << 16) | (content[pointer + 3] << 24);
+        uint32 val=*((uint32*)(content+pointer));
         pointer += 4;
         return val;
     }
     uint64 Stream::read_uint64(){
-        uint64 val = static_cast<uint64>(content[pointer]) |
-             (static_cast<uint64>(content[pointer + 1]) << 8) |
-             (static_cast<uint64>(content[pointer + 2]) << 16) |
-             (static_cast<uint64>(content[pointer + 3]) << 24) |
-             (static_cast<uint64>(content[pointer + 4]) << 32) |
-             (static_cast<uint64>(content[pointer + 5]) << 40) |
-             (static_cast<uint64>(content[pointer + 6]) << 48) |
-             (static_cast<uint64>(content[pointer + 7]) << 56);
+        uint64 val=*((uint64*)(content+pointer));
         pointer += 8;
         return val;
     }
     float32 Stream::read_float32(){
-        union {
-            uint32 i;
-            float f;
-        } converter;
-        converter.i = read_uint32();
-        return converter.f;
+        float32 val=*((float32*)(content+pointer));
+        pointer += 4;
+        return val;
     }
     float64 Stream::read_float64(){
-        union {
-            uint64 i;
-            double d;
-        } converter;
-        converter.i = read_uint64();
-        return converter.d;
+        float64 val=*((float64*)(content+pointer));
+        pointer += 8;
+        return val;
     }
     Vec2 Stream::read_vec2() {
         return Vec2(read_float64(),read_float64());
@@ -188,5 +158,10 @@ namespace KLSE
     }
     Color Stream::read_color() {
         return Color(static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255,static_cast<float>(read_uint8())*255);
+    }
+    Stream* Stream::clone(){
+        Stream* ret=new Stream(alloc);
+        memcpy(ret->content,content,alloc);
+        return ret;
     }
 } // namespace KLSE

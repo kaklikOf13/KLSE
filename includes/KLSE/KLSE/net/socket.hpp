@@ -16,8 +16,49 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_NET_HPP
-#define KLSE_NET_HPP
+#ifndef KLSE_NET_SOCKET_HPP
+#define KLSE_NET_SOCKET_HPP
 #include "stream.hpp"
-#include "socket.hpp"
+#include "../basics/types.hpp"
+namespace KLSE
+{
+    class Socket{
+        public:
+        uint64 id;
+        Socket(uint64 id):id(id){};
+        ~Socket()=default;
+
+        virtual Stream* recv()=0;
+        virtual int send(Stream*)=0;
+        virtual void close()=0;
+    };
+    class SocketServer{
+        public:
+        SocketServer(){};
+        virtual Socket* accept()=0;
+        virtual void stop()=0;
+    };
+
+    class OfflineServer:public SocketServer{
+        public:
+        Socket* sok;
+        OfflineServer():SocketServer(){};
+        Socket* accept()override;
+        void stop()override;
+    };
+    class OfflineSocket:public Socket{
+        public:
+        OfflineServer* server;
+        OfflineSocket* connection;
+        OfflineSocket():Socket(0){};
+        static Socket* ConnectTo(OfflineServer*);
+        ~OfflineSocket()=default;
+
+        Stream* recv()override;
+        int send(Stream*)override;
+        void close()override;
+        protected:
+        Stream* recev_stream;
+    };
+} // namespace KLSE
 #endif

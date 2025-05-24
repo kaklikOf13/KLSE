@@ -23,6 +23,10 @@ Sprite* sprite2;
 
 Vec3 kaklik_pos;
 Transform2D kaklik_t;
+
+OfflineServer* server;
+Socket* client_socket;
+Socket* server_socket;
 class WindowGame:public Game{
     public:
     WindowGame():Game(reinterpret_cast<Window*>(new GLFWWindow(new GLRenderer()))){}
@@ -31,6 +35,12 @@ class WindowGame:public Game{
 
         renderer->backgroundColor=RGBA::create(0,100,0);
         m3=Model3D::cube();
+
+        server=new OfflineServer();
+        client_socket=OfflineSocket::ConnectTo(server);
+        server_socket=server->accept();
+
+        printf("client socket:%p, server socket:%p\n",client_socket,server_socket);
 
         mi3=Model3D::load_obj("../../../assets/models/montains.obj");
 
@@ -60,8 +70,22 @@ class WindowGame:public Game{
         kaklik_t.scale*=2;
 
         clock.timeout([](){
+            Stream* stream=new Stream(1000);
+            stream->write_uint64(1234);
+            stream->write_float32(36.6f);
+            client_socket->send(stream);
+
+            delete stream;
+
+            stream=server_socket->recv();
+
+            auto intv=stream->read_uint64();
+            auto floatv=stream->read_float32();
+            printf("receved messages: %llu,%f, pointer:%llu\n",intv,floatv,stream->pointer);
+            
+            delete stream;
             printf("timeouted\n");
-        },5.5);
+        },2);
     }
     void on_tick()override{
         if(input->keyPress(Key::S)){

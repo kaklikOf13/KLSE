@@ -112,7 +112,7 @@ namespace KLSE
     }
     Sprite* GLRenderer::load_sprite(Image* img,bool create_material) {
         GLuint texture;
-        glGenTextures(1, &texture);
+        glGenTextures(1,&texture);
         glBindTexture(GL_TEXTURE_2D, texture);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->size.x, img->size.y, 0,

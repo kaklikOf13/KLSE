@@ -279,7 +279,6 @@ namespace KLSE
             std::cerr << "Uniform 'u_MainMatrix' not founded!" << std::endl;
         }
 
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, material->args.sprite->texture);
         glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
 

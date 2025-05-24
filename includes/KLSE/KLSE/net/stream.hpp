@@ -29,8 +29,9 @@ namespace KLSE
         uint32 pointer;
         uint32 alloc;
 
-        Stream(uint32 pre_alloc):alloc(alloc), pointer(0){
-           content=new byte[pre_alloc]; 
+        Stream(uint32 pre_alloc):pointer(0){
+           content=new byte[pre_alloc];
+           alloc=pre_alloc;
         }
         ~Stream(){
             delete[] content;
@@ -69,6 +70,7 @@ namespace KLSE
         IVec3 read_ivec3();
 
         Color read_color();
+        Stream* clone();
     };
 } // namespace KLSE
 
