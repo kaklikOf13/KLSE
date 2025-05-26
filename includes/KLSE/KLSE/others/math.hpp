@@ -16,39 +16,26 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_HPP
-#define KLSE_HPP
-//Basics
-#include "KLSE/basics/types.hpp"
-#include "KLSE/basics/default_lib.hpp"
+#ifndef KLSE_UTILS_MATH_HPP
+#define KLSE_UTILS_MATH_HPP
+#include "../basics/types.hpp"
+#include "../basics/default_lib.hpp"
+namespace KLSE{
 
-//NET
-#include "KLSE/net/net.hpp"
+    namespace Math
+    {
+        int32 floor(float32);
+        int64 floor(float64);
 
-//Others
-#include "KLSE/others/definitions.hpp"
-#include "KLSE/others/game.hpp"
-#include "KLSE/others/math.hpp"
-#include "KLSE/others/utils.hpp"
-#include "KLSE/others/input.hpp"
+        float64 max(float64,float64);
+        float32 max(float32,float32);
 
-//Physics
-#include "KLSE/physics/geometry.hpp"
-#include "KLSE/physics/colliders.hpp"
-#include "KLSE/physics/objects2d.hpp"
+        float64 min(float64,float64);
+        float32 min(float32,float32);
 
-//Rendering
-#include "KLSE/rendering/models.hpp"
-#include "KLSE/rendering/renderer.hpp"
-#include "KLSE/rendering/materials.hpp"
-
-//Sources
-
-#include "KLSE/sources/image.hpp"
-#include "KLSE/sources/manager.hpp"
-#include "KLSE/sources/types.hpp"
-namespace KLSE
-{
-    void Init();
-} // namespace KLSE
+        float64 abs(float64);
+        float32 abs(float32);
+        int64 abs(int64);
+    }
+}
 #endif

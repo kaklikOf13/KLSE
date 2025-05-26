@@ -85,8 +85,8 @@ namespace KLSE{
             void apply_transform(Transform2D&)override;
             Collider2D* clone()override;
 
-            CircleCollider2D(Vec2 position,Dimention radius):Collider2D(position,ColliderType2D::circle),radius(radius){}
-            CircleCollider2D():Collider2D(Vec2(),ColliderType2D::circle){};
+            CircleCollider2D(Vec2 position,Dimention radius);
+            CircleCollider2D();
             ~CircleCollider2D()=default;
     };
 

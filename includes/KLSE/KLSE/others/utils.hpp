@@ -58,9 +58,6 @@ namespace KLSE{
             Dimention dimention(Dimention min, Dimention max);
             unsigned long int object_id();
         }
-
-        int32 Floor(float32);
-        int64 Floor(float64);
     } // namespace Math
 
     /*class Formatter

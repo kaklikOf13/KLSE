@@ -207,20 +207,36 @@ namespace KLSE
             return i;
         }
         uint64 string::ftoa(char* buffer, double value) {
+            uint64 len = 0;
+            if (value < 0.0) {
+                buffer[len++] = '-';
+                value = -value;
+            }
+
             long long inteiro = (long long)value;
             double resto = value - (double)inteiro;
-            uint64 len = itoa_base(buffer, inteiro, 10, false);
-        
+            len += itoa_base(buffer + len, inteiro, 10, false);
+
             buffer[len++] = '.';
-        
-            for (int i = 0; i < 6; i++) {
-                resto *= 10.0;
-                int digito = (int)resto;
-                buffer[len++] = '0' + digito;
-                resto -= digito;
+
+            resto *= 1000000.0;
+            long long decimais = (long long)(resto + 0.5);
+
+            char temp[7];
+            int decLen = 6;
+            for (int i = 5; i >= 0; i--) {
+                temp[i] = '0' + (decimais % 10);
+                decimais /= 10;
             }
-        
-            buffer[len] = 0;
+            while (decLen > 1 && temp[decLen - 1] == '0') {
+                decLen--;
+            }
+
+            for (int i = 0; i < decLen; i++) {
+                buffer[len++] = temp[i];
+            }
+
+            buffer[len] = '\0';
             return len;
         }
         #pragma endregion

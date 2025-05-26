@@ -29,6 +29,7 @@ namespace KLSE
 
     class Layer2D;
     class ObjectsManager2D;
+    class GameBase;
 
     struct NetSync{
         bool deletion,creation,dirty;
@@ -45,18 +46,19 @@ namespace KLSE
 
         //DEFS
         ObjectID id=0;
-        uint16 numberType=0;
+        uint16 number_type=0;
         NetSync netsync={true,true,true};
 
         //PARENTS
         Layer2D* layer;
         ObjectsManager2D* manager;
+        GameBase* game;
 
         //FUNCTIONS
 
-        virtual void on_update(Dimention){};
+        virtual void on_update(float64){};
         virtual void on_draw(Renderer*,Camera*){};
-        virtual void on_create(Renderer*,ZeroStruct*){};
+        virtual void on_create(ZeroStruct*){};
         virtual void on_destroy(){};
 
         //ADDITIONAL FUNCTIONS
@@ -64,7 +66,7 @@ namespace KLSE
         void encode(Stream*);
 
         //CONSTRUCTORS
-        Object2D():collider(new Collider2D()){}
+        Object2D():collider(nullptr){}
         ~Object2D(){
             delete collider;
         }
@@ -109,7 +111,7 @@ namespace KLSE
             virtual void update(Dimention deltaTime);
             virtual void draw(Renderer*,Camera*);
 
-            virtual Object2D* registry(Object2D* object,Renderer*, ZeroStruct* args,ObjectID id=0);
+            virtual Object2D* registry(Object2D* object,ZeroStruct* args,ObjectID id=0);
 
             virtual void unregistry(Object2D* object,uint32 index);
 
@@ -124,12 +126,15 @@ namespace KLSE
             std::vector<Layer2D*> orden;
 
             IDimention cells_size=10;
+            GameBase* game;
 
             virtual Layer2D* add_layer(uint32 layer);
             void registry(Layer2D* layer);
 
             virtual void update(Dimention deltaTime);
             virtual void draw(Renderer*,Camera*);
+
+            ObjectsManager2D(GameBase* game):game(game){}
     };
 } // namespace KLSE
 

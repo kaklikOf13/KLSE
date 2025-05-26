@@ -61,7 +61,9 @@
                             "windows":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldwmapi -o dist/bin/tests/window.exe"
                         },
                         "objects2d":{
-                            "task":"klse task build klse full & g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -lopengl32 -ldwmapi -o dist/bin/tests/objects.exe"
+                            "task":"klse task build klse full",
+                            "posix":"g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw -lGL -ldl -lpthread -o dist/bin/tests/objects2d",
+                            "windows":"g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldwmapi -o dist/bin/tests/objects2d.exe"
                         }
                     }
                 }

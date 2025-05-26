@@ -27,9 +27,9 @@ Transform2D kaklik_t;
 OfflineServer* server;
 Socket* client_socket;
 Socket* server_socket;
-class WindowGame:public Game{
+class WindowGame:public GameBase{
     public:
-    WindowGame():Game(reinterpret_cast<Window*>(new GLFWWindow(new GLRenderer()))){}
+    WindowGame():GameBase(reinterpret_cast<Window*>(new GLFWWindow(new GLRenderer()))){}
     void on_start()override{
         auto rect=new RectCollider2D(Vec2(0,0),Vec2(5,5));
 

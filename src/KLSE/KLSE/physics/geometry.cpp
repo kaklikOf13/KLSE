@@ -18,6 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/KLSE/physics/geometry.hpp>
 #include <KLSE/KLSE/others/utils.hpp>
+#include <KLSE/KLSE/others/math.hpp>
 namespace KLSE{
 
     #pragma region Vec2
@@ -56,7 +57,7 @@ namespace KLSE{
         return *this;
     }
     Vec2 Vec2::operator-(const Vec2& other){
-        return Vec2(x+other.x,y+other.y);
+        return Vec2(x-other.x,y-other.y);
     }
     Vec2& Vec2::operator-=(const IVec2& other){
         x-=static_cast<Dimention>(other.x);
@@ -177,7 +178,7 @@ namespace KLSE{
     }
 
     Vec2 Vec2::absolute(Vec2 a) {
-        return Vec2(abs(a.x), abs(a.y));
+        return Vec2(Math::abs(a.x), Math::abs(a.y));
     }
 
     Vec2 Vec2::maxDecimal(Vec2 vec, int decimalPlaces) {
@@ -219,12 +220,12 @@ namespace KLSE{
 
     Vec2 Vec2::normalizeSafe(Vec2 vec, Vec2 fallback) {
         Dimention len = length(vec);
-        return len > 0.000001f ? Vec2(vec.x / len, vec.y / len) : fallback;
+        return len > 0.00000001 ? Vec2(vec.x / len, vec.y / len) : fallback;
     }
 
     Vec2 Vec2::normalize(Vec2 vec) {
         Dimention len = length(vec);
-        return len > 0.000001f ? Vec2(vec.x / len, vec.y / len) : vec;
+        return len > 0.00000001 ? Vec2(vec.x / len, vec.y / len) : vec;
     }
 
     Vec2 Vec2::neg(Vec2 vec) {
@@ -292,12 +293,12 @@ namespace KLSE{
     #pragma region IVec2 Operators
     //Sum
     IVec2& IVec2::operator+=(const Vec2& other){
-        x+=Math::Floor(other.x);
-        y+=Math::Floor(other.y);
+        x+=Math::floor(other.x);
+        y+=Math::floor(other.y);
         return *this;
     }
     IVec2  IVec2::operator+(const Vec2& other){
-        return IVec2(x+Math::Floor(other.x),y+Math::Floor(other.y));
+        return IVec2(x+Math::floor(other.x),y+Math::floor(other.y));
     }
     IVec2& IVec2::operator+=(const IVec2& other){
         x+=other.x;
@@ -309,12 +310,12 @@ namespace KLSE{
     }
     //Sub
     IVec2& IVec2::operator-=(const Vec2& other){
-        x-=Math::Floor(other.x);
-        y-=Math::Floor(other.y);
+        x-=Math::floor(other.x);
+        y-=Math::floor(other.y);
         return *this;
     }
     IVec2  IVec2::operator-(const Vec2& other){
-        return IVec2(x-Math::Floor(other.x),y-Math::Floor(other.y));
+        return IVec2(x-Math::floor(other.x),y-Math::floor(other.y));
     }
     IVec2& IVec2::operator-=(const IVec2& other){
         x-=other.x;
@@ -326,12 +327,12 @@ namespace KLSE{
     }
     //Mult
     IVec2& IVec2::operator*=(const Vec2& other){
-        x*=Math::Floor(other.x);
-        y*=Math::Floor(other.y);
+        x*=Math::floor(other.x);
+        y*=Math::floor(other.y);
         return *this;
     }
     IVec2  IVec2::operator*(const Vec2& other){
-        return IVec2(x*Math::Floor(other.x),y*Math::Floor(other.y));
+        return IVec2(x*Math::floor(other.x),y*Math::floor(other.y));
     }
     IVec2& IVec2::operator*=(const IVec2& other){
         x*=other.x;
@@ -351,12 +352,12 @@ namespace KLSE{
     }
     //Div
     IVec2& IVec2::operator/=(const Vec2& other){
-        x/=Math::Floor(other.x);
-        y/=Math::Floor(other.y);
+        x/=Math::floor(other.x);
+        y/=Math::floor(other.y);
         return *this;
     }
     IVec2  IVec2::operator/(const Vec2& other){
-        return IVec2(x/Math::Floor(other.x),y/Math::Floor(other.y));
+        return IVec2(x/Math::floor(other.x),y/Math::floor(other.y));
     }
     IVec2& IVec2::operator/=(const IVec2& other){
         x/=other.x;
@@ -377,33 +378,33 @@ namespace KLSE{
 
     //==
     bool IVec2::operator==(const Vec2& other) {
-        return x == Math::Floor(other.x) && y == Math::Floor(other.y);
+        return x == Math::floor(other.x) && y == Math::floor(other.y);
     }
     bool IVec2::operator==(const IVec2& other) {
         return x==other.x && y==other.y;
     }
     //> and >=
     bool IVec2::operator>(const Vec2& other) {
-        return x > Math::Floor(other.x) && y > Math::Floor(other.y);
+        return x > Math::floor(other.x) && y > Math::floor(other.y);
     }
     bool IVec2::operator>(const IVec2& other) {
         return x>other.x && y>other.y;
     }
     bool IVec2::operator>=(const Vec2& other) {
-        return x >= Math::Floor(other.x) && y >= Math::Floor(other.y);
+        return x >= Math::floor(other.x) && y >= Math::floor(other.y);
     }
     bool IVec2::operator>=(const IVec2& other) {
         return x>=other.x && y>=other.y;
     }
     //< and <=
     bool IVec2::operator<(const Vec2& other) {
-        return x < Math::Floor(other.x) && y < Math::Floor(other.y);
+        return x < Math::floor(other.x) && y < Math::floor(other.y);
     }
     bool IVec2::operator<(const IVec2& other) {
         return x<other.x && y<other.y;
     }
     bool IVec2::operator<=(const Vec2& other) {
-        return x <= Math::Floor(other.x) && y <= Math::Floor(other.y);
+        return x <= Math::floor(other.x) && y <= Math::floor(other.y);
     }
     bool IVec2::operator<=(const IVec2& other) {
         return x<=other.x && y<=other.y;
@@ -435,7 +436,7 @@ namespace KLSE{
     }
 
     IVec2 IVec2::absolute(IVec2 a) {
-        return IVec2(abs(a.x), abs(a.y));
+        return IVec2(Math::abs(a.x), Math::abs(a.y));
     }
 
     IVec2 IVec2::maxDecimal(IVec2 vec, int decimalPlaces) {
@@ -700,7 +701,7 @@ namespace KLSE{
     }
 
     Vec3 Vec3::absolute(Vec3 a) {
-        return Vec3(std::abs(a.x), std::abs(a.y), std::abs(a.z));
+        return Vec3(Math::abs(a.x), Math::abs(a.y), Math::abs(a.z));
     }
 
     Vec3 Vec3::maxDecimal(Vec3 vec, int decimalPlaces) {
@@ -820,15 +821,15 @@ namespace KLSE{
 
     //Sum
     IVec3& IVec3::operator+=(const Vec3& other){
-        x+=Math::Floor(other.x);
-        y+=Math::Floor(other.y);
-        z+=Math::Floor(other.z);
+        x+=Math::floor(other.x);
+        y+=Math::floor(other.y);
+        z+=Math::floor(other.z);
         return *this;
     }
     IVec3  IVec3::operator+(const Vec3& other){
-        return IVec3(x+Math::Floor(other.x),y+Math::Floor(other.y),z+Math::Floor(other.z));
+        return IVec3(x+Math::floor(other.x),y+Math::floor(other.y),z+Math::floor(other.z));
     }
-    IVec3& IVec3::operator+=(const IVec3& other){
+    IVec3& IVec3::operator+=(const IVec3 & other){
         x+=other.x;
         y+=other.y;
         z+=other.z;
@@ -839,13 +840,13 @@ namespace KLSE{
     }
     //Sub
     IVec3& IVec3::operator-=(const Vec3& other){
-        x-=Math::Floor(other.x);
-        y-=Math::Floor(other.y);
-        z-=Math::Floor(other.z);
+        x-=Math::floor(other.x);
+        y-=Math::floor(other.y);
+        z-=Math::floor(other.z);
         return *this;
     }
     IVec3  IVec3::operator-(const Vec3& other){
-        return IVec3(x-Math::Floor(other.x),y-Math::Floor(other.y),z-Math::Floor(other.z));
+        return IVec3(x-Math::floor(other.x),y-Math::floor(other.y),z-Math::floor(other.z));
     }
     IVec3& IVec3::operator-=(const IVec3& other){
         x-=other.x;
@@ -859,13 +860,13 @@ namespace KLSE{
 
     //Mult
     IVec3& IVec3::operator*=(const Vec3& other){
-        x*=Math::Floor(other.x);
-        y*=Math::Floor(other.y);
-        z*=Math::Floor(other.z);
+        x*=Math::floor(other.x);
+        y*=Math::floor(other.y);
+        z*=Math::floor(other.z);
         return *this;
     }
     IVec3  IVec3::operator*(const Vec3& other){
-        return IVec3(x*Math::Floor(other.x),y*Math::Floor(other.y),z*Math::Floor(other.z));
+        return IVec3(x*Math::floor(other.x),y*Math::floor(other.y),z*Math::floor(other.z));
     }
     IVec3& IVec3::operator*=(const IVec3& other){
         x*=other.x;
@@ -887,13 +888,13 @@ namespace KLSE{
     }
     //Div
     IVec3& IVec3::operator/=(const Vec3& other){
-        x/=Math::Floor(other.x);
-        y/=Math::Floor(other.y);
-        z/=Math::Floor(other.z);
+        x/=Math::floor(other.x);
+        y/=Math::floor(other.y);
+        z/=Math::floor(other.z);
         return *this;
     }
     IVec3  IVec3::operator/(const Vec3& other){
-        return IVec3(x/Math::Floor(other.x),y/Math::Floor(other.y),z/Math::Floor(other.z));
+        return IVec3(x/Math::floor(other.x),y/Math::floor(other.y),z/Math::floor(other.z));
     }
     IVec3& IVec3::operator/=(const IVec3& other){
         x/=other.x;
@@ -916,7 +917,7 @@ namespace KLSE{
 
     //==
     bool  IVec3::operator==(const Vec3& other){
-        return x == Math::Floor(other.x) && y == Math::Floor(other.y) && z == Math::Floor(other.z);
+        return x == Math::floor(other.x) && y == Math::floor(other.y) && z == Math::floor(other.z);
     }
     bool  IVec3::operator==(const IVec3& other){
         return x == other.x && y == other.y && z == other.z;
@@ -924,13 +925,13 @@ namespace KLSE{
 
     //> and >=
     bool  IVec3::operator>(const Vec3& other){
-        return x > Math::Floor(other.x) && y > Math::Floor(other.y) && z > Math::Floor(other.z);
+        return x > Math::floor(other.x) && y > Math::floor(other.y) && z > Math::floor(other.z);
     }
     bool  IVec3::operator>(const IVec3& other){
         return x > other.x && y > other.y && z > other.z;
     }
     bool  IVec3::operator>=(const Vec3& other){
-        return x >= Math::Floor(other.x) && y >= Math::Floor(other.y) && z >= Math::Floor(other.z);
+        return x >= Math::floor(other.x) && y >= Math::floor(other.y) && z >= Math::floor(other.z);
     }
     bool  IVec3::operator>=(const IVec3& other){
         return x >= other.x && y >= other.y && z >= other.z;
@@ -938,13 +939,13 @@ namespace KLSE{
 
     //< and <=
     bool  IVec3::operator<(const Vec3& other){
-        return x < Math::Floor(other.x) && y < Math::Floor(other.y) && z < Math::Floor(other.z);
+        return x < Math::floor(other.x) && y < Math::floor(other.y) && z < Math::floor(other.z);
     }
     bool  IVec3::operator<(const IVec3& other){
         return x < other.x && y < other.y && z < other.z;
     }
     bool  IVec3::operator<=(const Vec3& other){
-        return x <= Math::Floor(other.x) && y <= Math::Floor(other.y) && z <= Math::Floor(other.z);
+        return x <= Math::floor(other.x) && y <= Math::floor(other.y) && z <= Math::floor(other.z);
     }
     bool  IVec3::operator<=(const IVec3& other){
         return x <= other.x && y <= other.y && z <= other.z;
@@ -969,7 +970,7 @@ namespace KLSE{
     }
 
     IVec3 IVec3::absolute(IVec3 a) {
-        return IVec3(std::abs(a.x), std::abs(a.y), std::abs(a.z));
+        return IVec3(Math::abs(a.x), Math::abs(a.y), Math::abs(a.z));
     }
 
     IVec3 IVec3::maxDecimal(IVec3 vec, int decimalPlaces) {

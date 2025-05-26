@@ -1,7 +1,7 @@
 #include "KLSE/KLSE/others/game.hpp"
 namespace KLSE
 {
-    void Game::run(bool render){
+    void GameBase::run(bool render){
         running=true;
         on_start();
         if(render){
@@ -19,11 +19,11 @@ namespace KLSE
         }
         on_stop();
     }
-    void Game::tick(){
+    void GameBase::tick(){
         on_tick();
         objects2d->update(clock.deltaTime);
     }
-    void Game::draw(){
+    void GameBase::draw(){
         IVec2 size=window->get_size();
         camera2d->update(size);
         camera3d->update(size);

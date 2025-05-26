@@ -51,6 +51,7 @@ namespace KLSE
     }
     void CellsManager2D::update_object(Object2D* obj){
         remove_object_from_cells(obj->id);
+        if(!obj->collider)return;
         Vec2 cp=cell_pos(obj->transform.position);
         if(cells.find(cp.y)==cells.end()){
             cells[cp.y]={};
@@ -137,7 +138,7 @@ namespace KLSE
     void Layer2D::destroy(){
         destroyed=true;
     }
-    Object2D* Layer2D::registry(Object2D* object,Renderer* renderer, ZeroStruct* args,ObjectID id){
+    Object2D* Layer2D::registry(Object2D* object, ZeroStruct* args,ObjectID id){
         if(id==0){
             id=Math::random::object_id();
             while(objects.count(id)!=0){
@@ -151,13 +152,14 @@ namespace KLSE
         object->id=id;
         object->manager=manager;
         object->layer=this;
+        object->game=manager->game;
 
         orden.push_back(object);
         objects[id]=object;
 
         cells.registry(object);
 
-        object->on_create(renderer,args);
+        object->on_create(args);
 
         delete args;
         return object;

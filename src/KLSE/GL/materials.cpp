@@ -19,38 +19,38 @@ SOFTWARE.*/
 #include <KLSE/GL/materials.hpp>
 namespace KLSE
 {
-    const char* vertex3Dcolor = R"(
-        #version 330 core
-        layout (location = 0) in vec3 a_Position;
-        layout (location = 1) in vec3 a_Normal;
-        out vec3 v_normal;
-        uniform mat4 u_MainMatrix;
-        uniform vec3 u_Position;
-        uniform mat4 u_Rotation;
-        uniform vec3 u_Scale;
+        const char* vertex3Dcolor = R"(
+            #version 330 core
+            layout (location = 0) in vec3 a_Position;
+            layout (location = 1) in vec3 a_Normal;
+            out vec3 v_normal;
+            uniform mat4 u_MainMatrix;
+            uniform vec3 u_Position;
+            uniform mat4 u_Rotation;
+            uniform vec3 u_Scale;
 
-        void main() {
-            vec3 scaledPosition = (u_Rotation*vec4(a_Position,1.0)).xyz * u_Scale;
-            vec3 translatedPosition = scaledPosition + u_Position;
+            void main() {
+                vec3 scaledPosition = (u_Rotation*vec4(a_Position,1.0)).xyz * u_Scale;
+                vec3 translatedPosition = scaledPosition + u_Position;
 
-            v_normal=a_Normal;
-            gl_Position = u_MainMatrix * vec4(translatedPosition,1.0);
-        }
-    )";
+                v_normal=a_Normal;
+                gl_Position = u_MainMatrix * vec4(translatedPosition,1.0);
+            }
+        )";
 
-    const char* frag3Dcolor = R"(
-        #version 330 core
-        out vec4 FragColor;
-        uniform vec4 u_Color;
-        in vec3 v_normal;
+        const char* frag3Dcolor = R"(
+            #version 330 core
+            out vec4 FragColor;
+            uniform vec4 u_Color;
+            in vec3 v_normal;
 
-        void main() {
-            vec3 normal = normalize(v_normal);
-            float light=dot(normal, vec3(0.1,0.2,-1));
-            FragColor = u_Color;
-            FragColor.rgb*=light;
-        }
-    )";
+            void main() {
+                vec3 normal = normalize(v_normal);
+                float light=dot(normal, vec3(0.1,0.2,-1));
+                FragColor = u_Color;
+                FragColor.rgb*=light;
+            }
+        )";
 
     const char* vertexI3Dcolor = R"(
         #version 330 core

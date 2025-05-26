@@ -1,0 +1,4 @@
+namespace KLSE
+{
+    
+} // namespace KLSE

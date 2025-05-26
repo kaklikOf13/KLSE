@@ -16,39 +16,45 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
-#ifndef KLSE_HPP
-#define KLSE_HPP
-//Basics
-#include "KLSE/basics/types.hpp"
-#include "KLSE/basics/default_lib.hpp"
+#include <algorithm>
+#include <KLSE/KLSE/others/math.hpp>
+#include <iostream>
+#include <thread>
+namespace KLSE{
 
-//NET
-#include "KLSE/net/net.hpp"
+    namespace Math
+    {
+        int32 floor(float32 x){
+            int32 i = static_cast<int32>(x);
+            return (x < 0 && x != i) ? i - 1 : i;
+        }
+        int64 floor(float64 x){
+            int64 i = static_cast<int64>(x);
+            return (x < 0 && x != i) ? i - 1 : i;
+        }
 
-//Others
-#include "KLSE/others/definitions.hpp"
-#include "KLSE/others/game.hpp"
-#include "KLSE/others/math.hpp"
-#include "KLSE/others/utils.hpp"
-#include "KLSE/others/input.hpp"
+        float64 max(float64 a,float64 b){
+            return a>b?a:b;
+        }
+        float32 max(float32 a,float32 b){
+            return a>b?a:b;
+        }
 
-//Physics
-#include "KLSE/physics/geometry.hpp"
-#include "KLSE/physics/colliders.hpp"
-#include "KLSE/physics/objects2d.hpp"
+        float64 min(float64 a,float64 b){
+            return a<b?a:b;
+        }
+        float32 min(float32 a,float32 b){
+            return a<b?a:b;
+        }
 
-//Rendering
-#include "KLSE/rendering/models.hpp"
-#include "KLSE/rendering/renderer.hpp"
-#include "KLSE/rendering/materials.hpp"
-
-//Sources
-
-#include "KLSE/sources/image.hpp"
-#include "KLSE/sources/manager.hpp"
-#include "KLSE/sources/types.hpp"
-namespace KLSE
-{
-    void Init();
-} // namespace KLSE
-#endif
+        float64 abs(float64 val){
+            return val<0?-val:val;
+        }
+        float32 abs(float32 val){
+            return val<0?-val:val;
+        }
+        int64 abs(int64 val){
+            return val<0?-val:val;
+        }
+    }
+}

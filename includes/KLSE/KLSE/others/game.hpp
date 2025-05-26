@@ -22,7 +22,7 @@ SOFTWARE.*/
 #include "../physics/objects2d.hpp"
 #include "input.hpp"
 namespace KLSE{
-    class Game{
+    class GameBase{
         public:
         Window* window;
         Renderer* renderer;
@@ -38,8 +38,8 @@ namespace KLSE{
 
         PCInputListener* input;
 
-        Game():window(nullptr),renderer(nullptr),input(nullptr),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D()){};
-        Game(Window* window):window(window),renderer(window->renderer),input(window->input),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D()){};
+        GameBase():window(nullptr),renderer(nullptr),input(nullptr),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D(this)){on_awake();};
+        GameBase(Window* window):window(window),renderer(window->renderer),input(window->input),clock(Clock(50)),camera2d(new Camera2D()),camera3d(new Camera3D()),camerai3d(new CameraI3D()),objects2d(new ObjectsManager2D(this)){on_awake();};
 
         void run(bool);
 
@@ -51,6 +51,7 @@ namespace KLSE{
         virtual void on_draw(){};
         virtual void on_start(){};
         virtual void on_stop(){};
+        virtual void on_awake(){};
     };
 }
 #endif

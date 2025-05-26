@@ -19,8 +19,14 @@ SOFTWARE.*/
 #include <KLSE/KLSE/physics/colliders.hpp>
 #include <iostream>
 #include <math.h>
+#include "KLSE/KLSE/others/math.hpp"
 namespace KLSE
 {
+    CircleCollider2D::CircleCollider2D(Vec2 position,Dimention radius):Collider2D(position,ColliderType2D::circle){
+        this->radius=radius;
+    }
+    CircleCollider2D::CircleCollider2D():Collider2D(Vec2(),ColliderType2D::circle){};
+
     bool Collider2D::colliding_with(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         return false;
     }
@@ -31,10 +37,10 @@ namespace KLSE
         switch(other->type){
             case ColliderType2D::circle:{
                 Dimention dx = (position.x+transform.position.x) - (other->position.x+other_transform.position.x);
-                    Dimention dy = (position.y+transform.position.y) - (other->position.y+other_transform.position.y);
+                Dimention dy = (position.y+transform.position.y) - (other->position.y+other_transform.position.y);
 
-                Dimention s1=std::max(transform.scale.x,transform.scale.y);
-                Dimention s2=std::max(other_transform.scale.x,other_transform.scale.y);
+                Dimention s1=Math::max(transform.scale.x,transform.scale.y);
+                Dimention s2=Math::max(other_transform.scale.x,other_transform.scale.y);
                 Dimention nx = dx / (radius*s1 + radius*s2);
                 Dimention ny = dy / (radius*s1 + radius*s2);
                 return (nx * nx + ny * ny) <= 1.0f;
@@ -93,11 +99,14 @@ namespace KLSE
     OverlapCollision2D CircleCollider2D::overlap_collision(Transform2D& transform,Collider2D* other,Transform2D& other_transform) {
         switch(other->type){
             case ColliderType2D::circle:{
-                auto sum_radius=(radius*std::max(transform.scale.x,transform.scale.y))+(static_cast<CircleCollider2D*>(other)->radius*std::max(other_transform.scale.x,other_transform.scale.y));
+                auto sum_radius=(radius*Math::max(transform.scale.x,transform.scale.y))+(((CircleCollider2D*)other)->radius*Math::max(other_transform.scale.x,other_transform.scale.y));
                 auto toP1 = (other_transform.position+other->position)-(transform.position+position);
                 auto distSqr = Vec2::squared(toP1);
                 if(distSqr < sum_radius*sum_radius){
-                    return OverlapCollision2D(true,sum_radius - std::sqrt(distSqr),Vec2::normalizeSafe(toP1,Vec2::random(-1,1)),Vec2());
+                    auto dist=std::sqrt(distSqr);
+                    auto dire=Vec2::normalizeSafe(toP1,Vec2(1,0));
+                    auto len=sum_radius - dist;
+                    return OverlapCollision2D(true,len,dire,dire*len);
                 }else{
                     return OverlapCollision2D(false,0,Vec2(),Vec2());
                 }
@@ -113,10 +122,34 @@ namespace KLSE
         switch(other->type){
             case ColliderType2D::circle:
                 //return _Collision::circle_with_rect_ov(static_cast<CircleCollider2D*>(other),this,-2);
-            case ColliderType2D::rect:
-                //return _Collision::rect_with_rect_ov(this,static_cast<RectCollider2D*>(other));
-            default:
                 break;
+            case ColliderType2D::rect:{
+                auto p1=transform.position+position;
+                auto p2=other_transform.position+other->position;
+
+                auto s1=size*transform.scale;
+                auto s2=((RectCollider2D*)other)->size*other_transform.scale;
+                auto ss=(s1+s2)/2;
+
+                auto dist=(p1+(s1/2))-(p2+(s2/2));
+
+                if(Vec2::absolute(dist)<ss){
+                    auto ov=ss-Vec2::absolute(dist);
+                    auto len=Math::min(ov.x,ov.y);
+                    auto ovv=dist/ss;
+                    if(ov.x>ov.y){
+                        ovv.x=0;
+                    }else{
+                        ovv.y=0;
+                    }
+
+                    return OverlapCollision2D(true,len,ovv,ovv*len);
+                }
+                return OverlapCollision2D(false,0,Vec2(),Vec2());
+            }
+            default:{
+                break;
+            }
         };
         return OverlapCollision2D();
     }
