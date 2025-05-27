@@ -36,8 +36,21 @@ if os.name == "nt":
 else:
     OS = "posix"
 
+main_file=""
+if getattr(sys, 'frozen', False):
+    main_file=sys.executable
+else:
+    main_file=__file__
+
 # default commands
 default_search_path = ""
+
+default_includes = os.path.dirname(main_file)+"/includes"
+default_libs = os.path.dirname(main_file)+"/libs"
+if not os.path.exists(default_includes):
+    os.makedirs(default_includes)
+if not os.path.exists(default_libs):
+    os.makedirs(default_libs)
 
 default_options = {
     "-tp": Opt("tp", "Set the tasks path to search for klse.json `klse -tp=\"my/path/to/klse/json/file\" task`"),
@@ -52,27 +65,49 @@ default_commands = {
     "build-dir": Command("build-dir", "Prepares all the bin and build directories based on your current CD directory")
 }
 def execute_build_task(task:dict,dist_os=OS):
-    includes_and_libs=""
+    includes_and_libs=f"-I\"{default_includes}\" -L\"{default_libs}\""
     for i in task["includes"]:
-        includes_and_libs=f"{includes_and_libs} -I{i}"
+        includes_and_libs=f"{includes_and_libs} -I\"{i}\""
     for l in task["libs_dir"]:
-        includes_and_libs=f"{includes_and_libs} -L{i}"
+        includes_and_libs=f"{includes_and_libs} -L\"{l}\""
     
     lang="c++" if task.get("language")==None else task["language"]
-    outputo=task["o_output"]
-    if not os.path.isdir(outputo):
-        os.makedirs(outputo)
-    if task.get("build_dir",False):
-        default_commands["build-dir"].exec("")
-    aargs="" if task.get("build_args")==None else task["args"]
-    for d in task["source"]:
-        default_commands["compile-folder"].exec(f"{lang} {outputo} '{d}' '{includes_and_libs}{aargs}'")
+    outputo=""
+    if "source" in task.keys():
+        outputo=task["o_output"]
+        if not os.path.isdir(outputo):
+            os.makedirs(outputo)
+        if task.get("build_dir",False):
+            default_commands["build-dir"].exec("")
+        aargs="" if task.get("build_args")==None else task["args"]
+        for d in task["source"]:
+            default_commands["compile-folder"].exec(f"{lang} {outputo} '{d}' '{includes_and_libs}{aargs}'")
     if "lib_output" in task.keys():
         dd=os.path.dirname(task["lib_output"])
-        if not os.path.isdir(outputo):
+        if not os.path.isdir(dd):
             os.makedirs(dd)
         name=f'{"lib" if dist_os=="posix" else ""}{os.path.basename(task["lib_output"])}.{"a" if dist_os=="posix" else "lib"}'
         default_commands["merge-lib"].exec(f'{dd}/{name} {outputo}')
+    elif "bin_output" in task.keys():
+        dd=os.path.dirname(task["bin_output"])
+        if not os.path.isdir(dd):
+            os.makedirs(dd)
+        name=f'{os.path.dirname(task["bin_output"])}/{os.path.basename(task["bin_output"])}{"" if dist_os=="posix" else ".exe"}'
+        libsi=" "
+        if "libs" in task.keys():
+            for l in task["libs"]:
+                match l:
+                    case "gl":
+                        if dist_os=="posix":
+                            libsi+="-lklse_glfw -lklse_gl -lklse -lglfw -lGL -ldl -lpthread "
+                        else:
+                            libsi+="-lklse_glfw -lklse_gl -lklse -lglfw3 -lgdi32 -ldwmapi "
+                    case _:
+                        libsi+="-l"+l+" "
+        command=f"{compilers[lang]} {task['bin_main']} -o {name}{libsi}{includes_and_libs}"
+        print("Executing:",command)
+        subprocess.run(command, shell=True,text=True)
+
 def prepare_commands():
     # Opt
     def task_path_klse(new_path: str):

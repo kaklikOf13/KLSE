@@ -56,14 +56,30 @@
                 "tests":{
                     "childs":{
                         "window":{
-                            "task":"klse task build klse full",
-                            "posix":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw -lGL -ldl -lpthread -o dist/bin/tests/window",
-                            "windows":"g++ src/tests/window.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldwmapi -o dist/bin/tests/window.exe"
+                            "build":{
+                                "includes":["./includes"],
+                                "libs_dir":["./dist/libs"],
+                                "libs":[
+                                    "gl",
+                                    "klse"
+                                ],
+                                "bin_main":"src/tests/window.cpp",
+                                "bin_output":"dist/bin/tests/window"
+                            },
+                            "task":"klse task build klse full"
                         },
                         "objects2d":{
-                            "task":"klse task build klse full",
-                            "posix":"g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw -lGL -ldl -lpthread -o dist/bin/tests/objects2d",
-                            "windows":"g++ src/tests/objects2d.cpp -L./dist/libs -I./includes -lklse_gl -lklse_glfw -lklse -lglfw3 -lgdi32 -ldwmapi -o dist/bin/tests/objects2d.exe"
+                            "build":{
+                                "includes":["./includes"],
+                                "libs_dir":["./dist/libs"],
+                                "libs":[
+                                    "gl",
+                                    "klse"
+                                ],
+                                "bin_main":"src/tests/objects2d.cpp",
+                                "bin_output":"dist/bin/tests/objects2d"
+                            },
+                            "task":"klse task build klse full"
                         }
                     }
                 }

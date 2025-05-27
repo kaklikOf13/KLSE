@@ -19,3 +19,6 @@ __pycache__
 
 venv
 main.spec
+
+src/CLI/includes
+src/CLI/libs
