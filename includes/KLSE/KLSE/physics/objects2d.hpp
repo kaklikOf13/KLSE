@@ -23,6 +23,7 @@ SOFTWARE.*/
 #include "../net/stream.hpp"
 #include <unordered_map>
 #include <map>
+#include "../others/definitions.hpp"
 namespace KLSE
 {
     using ObjectID=unsigned long int;
@@ -30,10 +31,20 @@ namespace KLSE
     class Layer2D;
     class ObjectsManager2D;
     class GameBase;
+    class Object2D;
 
     struct NetSync{
         bool deletion,creation,dirty;
     };
+
+    struct Object2DEncoderDef{
+        public:
+        void(*encode)(Stream*,Object2D*);
+        void(*decode)(Stream*,Object2D*);
+        Object2DEncoderDef(){};
+    };
+
+    using Object2DConstructor=Object2D*(*)();
 
     class Object2D{
         public:
@@ -46,7 +57,8 @@ namespace KLSE
 
         //DEFS
         ObjectID id=0;
-        uint16 number_type=0;
+        uint32 number_type=0;
+        STD::string string_type="";
         NetSync netsync={true,true,true};
 
         //PARENTS
@@ -67,8 +79,11 @@ namespace KLSE
 
         //CONSTRUCTORS
         Object2D():collider(nullptr){}
-        ~Object2D(){
-            delete collider;
+        virtual ~Object2D(){
+            if(collider!=nullptr){
+                delete collider;
+                collider=nullptr;
+            }
         }
     };
 
@@ -134,7 +149,12 @@ namespace KLSE
             virtual void update(Dimention deltaTime);
             virtual void draw(Renderer*,Camera*);
 
-            ObjectsManager2D(GameBase* game):game(game){}
+            std::unordered_map<uint64,Object2DEncoderDef> encoders;
+            BasicDefinitions<Object2DConstructor> objects;
+
+            void registry_object(Object2DConstructor,Object2DEncoderDef);
+
+            ObjectsManager2D(GameBase* game):game(game),objects(){}
     };
 } // namespace KLSE
 

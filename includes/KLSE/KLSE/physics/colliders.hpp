@@ -71,7 +71,7 @@ namespace KLSE{
 
             Collider2D(Vec2 position,ColliderType2D type):position(position),type(type){}
             Collider2D(){}
-            ~Collider2D()=default;
+            virtual ~Collider2D()=default;
     };
     class CircleCollider2D:public Collider2D{
         public:

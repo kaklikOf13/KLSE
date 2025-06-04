@@ -7,6 +7,13 @@ void* material_r;
 void* material_r2;
 class ColliderOBJ:public Object2D{
     public:
+    ColliderOBJ():Object2D(){
+        number_type=10;
+        string_type="collider";
+    }
+    ~ColliderOBJ(){
+
+    }
     void on_create(ZeroStruct* args)override{
         transform.position=Vec2::random(0,7);
         transform.scale*=0.5;
@@ -29,6 +36,13 @@ class ColliderOBJ:public Object2D{
 };
 class MColliderOBJ:public Object2D{
     public:
+    MColliderOBJ():Object2D(){
+        number_type=30;
+        string_type="mcollider";
+    }
+    ~MColliderOBJ(){
+    }
+
     void on_create(ZeroStruct* args)override{
         transform.position=Vec2(3,2);
         transform.scale*=0.5;
@@ -64,6 +78,13 @@ class WindowGame:public GameBase{
     public:
     WindowGame():GameBase(reinterpret_cast<Window*>(new GLFWWindow(new GLRenderer()))){}
     void on_start()override{
+        objects2d->registry_object([]() -> Object2D* {
+            return new ColliderOBJ();
+        },{});
+        /*objects2d->registry_object([]() -> Object2D* {
+            return new MColliderOBJ();
+        },{});*/
+
         objects2d->cells_size=2;
         Layer2D* layer=objects2d->add_layer(0);
         material_r=MF2_color->createMaterial({

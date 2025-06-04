@@ -1,6 +1,8 @@
 #ifndef KLSE_DEFAULT_LIB_HPP
 #define KLSE_DEFAULT_LIB_HPP
 #include "types.hpp"
+#include <iostream>
+#include <unordered_map>
 namespace KLSE
 {
     
@@ -139,5 +141,13 @@ namespace KLSE
         string operator+(const string& left, const char* right);
         string operator+(const char* left,const string& right);
     } // namespace STD
-} // namespace 
+} // namespace
+namespace std {
+    template<>
+    struct hash <KLSE::STD::string> {
+        size_t operator()(const KLSE::STD::string& s) const noexcept {
+            return s.hash();
+        }
+    };
+}
 #endif

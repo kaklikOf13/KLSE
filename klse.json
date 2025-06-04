@@ -5,7 +5,6 @@
         "build":{
             "childs":{
                 "klse":{
-                    "task":"klse build-dir",
                     "build":{
                         "includes":["./includes"],
                         "libs_dir":[],
@@ -50,8 +49,8 @@
                     }
                 },
                 "cli":{
-                    "windows":"pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py",
-                    "posix":"pyinstaller  --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/main.py"
+                    "windows":"pyinstaller --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/klse.py",
+                    "posix":"pyinstaller  --onefile --distpath dist/bin --icon=assets/icons/icon.ico src/CLI/klse.py"
                 },
                 "tests":{
                     "childs":{
@@ -60,26 +59,26 @@
                                 "includes":["./includes"],
                                 "libs_dir":["./dist/libs"],
                                 "libs":[
-                                    "gl",
-                                    "klse"
+                                    "klse",
+                                    "gl"
                                 ],
                                 "bin_main":"src/tests/window.cpp",
-                                "bin_output":"dist/bin/tests/window"
-                            },
-                            "task":"klse task build klse full"
+                                "bin_output":"dist/bin/tests/window",
+                                "pre_tasks":["build klse full"]
+                            }
                         },
                         "objects2d":{
                             "build":{
                                 "includes":["./includes"],
                                 "libs_dir":["./dist/libs"],
                                 "libs":[
-                                    "gl",
-                                    "klse"
+                                    "klse",
+                                    "gl"
                                 ],
                                 "bin_main":"src/tests/objects2d.cpp",
-                                "bin_output":"dist/bin/tests/objects2d"
-                            },
-                            "task":"klse task build klse full"
+                                "bin_output":"dist/bin/tests/objects2d",
+                                "pre_tasks":["build klse full"]
+                            }
                         }
                     }
                 }

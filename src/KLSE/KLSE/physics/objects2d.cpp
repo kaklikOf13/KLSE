@@ -17,8 +17,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 #include <KLSE/KLSE/physics/objects2d.hpp>
+
 namespace KLSE
 {
+    template class BasicDefinitions<Object2DConstructor>;
     #pragma region Object2D
     void Object2D::destroy(){
         on_destroy();
@@ -207,6 +209,14 @@ namespace KLSE
                 layer->draw(renderer,camera);
             }
         }
+    }
+    void ObjectsManager2D::registry_object(Object2DConstructor construct,Object2DEncoderDef encoder){
+        auto obj=construct();
+        //objects.registry(obj->string_type,obj->number_type,construct);
+        encoders[obj->number_type]=encoder;
+
+        delete obj;
+        obj=nullptr;
     }
     #pragma endregion
 }
